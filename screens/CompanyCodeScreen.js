@@ -54,7 +54,10 @@ export default function CompanyCodeScreen({ navigation }) {
           <Text style={[styles.companyName, { color: company.primary_color }]}>{company.name}</Text>
           <Text style={styles.companyLocation}>{company.location}</Text>
           <Text style={styles.companyBio}>{company.bio}</Text>
-          <TouchableOpacity style={[styles.joinButton, { backgroundColor: company.primary_color }]}>
+          <TouchableOpacity 
+  style={[styles.joinButton, { backgroundColor: company.primary_color }]}
+  onPress={() => navigation.navigate('Signup', { company })}
+>
             <Text style={[styles.joinButtonText, { color: company.secondary_color }]}>Join {company.name} →</Text>
           </TouchableOpacity>
         </View>
