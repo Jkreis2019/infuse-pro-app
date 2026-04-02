@@ -5,6 +5,7 @@ import CompanyCodeScreen from './screens/CompanyCodeScreen'
 import SignupScreen from './screens/SignupScreen'
 import LoginScreen from './screens/LoginScreen'
 import HomeScreen from './screens/HomeScreen'
+import BookingScreen from './screens/BookingScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -44,6 +45,11 @@ export default function App() {
   name="Home"
   component={HomeScreen}
   options={{ headerShown: false }}
+/>
+<Stack.Screen
+  name="Booking"
+  component={BookingScreen}
+  options={{ title: 'Book appointment' }}
 />
       </Stack.Navigator>
     </NavigationContainer>

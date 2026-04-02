@@ -12,7 +12,10 @@ export default function HomeScreen({ route, navigation }) {
         <Text style={styles.location}>{company.location}</Text>
       </View>
 
-      <TouchableOpacity style={[styles.bookButton, { backgroundColor: company.primaryColor }]}>
+      <TouchableOpacity 
+  style={[styles.bookButton, { backgroundColor: company.primaryColor }]}
+  onPress={() => navigation.navigate('Booking', { token, user, company })}
+>
         <Text style={[styles.bookButtonText, { color: company.secondaryColor }]}>Book an appointment</Text>
       </TouchableOpacity>
 
