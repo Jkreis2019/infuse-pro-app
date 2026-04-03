@@ -50,7 +50,7 @@ export default function BookingScreen({ route, navigation }) {
       })
       const data = await response.json()
       if (data.success) {
-        navigation.navigate('Home', {
+        navigation.navigate('HomeTab', {
           token,
           user,
           company,

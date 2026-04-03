@@ -3,14 +3,24 @@ import { useState } from 'react'
 
 const API_URL = 'https://api.infusepro.app'
 
+const DEFAULT_COMPANY = {
+  name: 'Infuse Pro',
+  location: '',
+  primary_color: '#C9A84C',
+  secondary_color: '#0D1B4B',
+  code: null
+}
+
 export default function SignupScreen({ route, navigation }) {
-  const { company } = route.params
+  const company = route.params?.company || DEFAULT_COMPANY
 
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [dob, setDob] = useState('')
   const [password, setPassword] = useState('')
+  const [companyCode, setCompanyCode] = useState(company.code || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,12 +41,13 @@ export default function SignupScreen({ route, navigation }) {
           firstName,
           lastName,
           phone,
-          companyCode: company.code
+          dob: dob || undefined,
+          companyCode: companyCode || undefined
         })
       })
       const data = await response.json()
       if (data.success) {
-        navigation.navigate('Login', { company, message: 'Account created! Please log in.' })
+        navigation.navigate('EmailVerification', { email: data.user.email })
       } else {
         setError(data.message || 'Something went wrong')
       }
@@ -48,10 +59,12 @@ export default function SignupScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={[styles.companyBadge, { borderColor: company.primary_color }]}>
-        <Text style={[styles.companyName, { color: company.primary_color }]}>{company.name}</Text>
-        <Text style={styles.companyLocation}>{company.location}</Text>
-      </View>
+      {company.name !== 'Infuse Pro' && (
+        <View style={[styles.companyBadge, { borderColor: company.primary_color }]}>
+          <Text style={[styles.companyName, { color: company.primary_color }]}>{company.name}</Text>
+          {company.location ? <Text style={styles.companyLocation}>{company.location}</Text> : null}
+        </View>
+      )}
 
       <Text style={styles.title}>Create your account</Text>
 
@@ -99,6 +112,26 @@ export default function SignupScreen({ route, navigation }) {
         keyboardType="phone-pad"
       />
 
+      <Text style={styles.label}>Date of birth</Text>
+<TextInput
+  style={styles.input}
+  placeholder="MM/DD/YYYY"
+  placeholderTextColor="#666"
+  value={dob}
+  onChangeText={(text) => {
+    const cleaned = text.replace(/\D/g, '')
+    let formatted = cleaned
+    if (cleaned.length >= 3 && cleaned.length <= 4) {
+      formatted = `${cleaned.slice(0,2)}/${cleaned.slice(2)}`
+    } else if (cleaned.length > 4) {
+      formatted = `${cleaned.slice(0,2)}/${cleaned.slice(2,4)}/${cleaned.slice(4,8)}`
+    }
+    setDob(formatted)
+  }}
+  keyboardType="numeric"
+  maxLength={10}
+/>
+
       <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
@@ -108,6 +141,20 @@ export default function SignupScreen({ route, navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
+
+      {!company.code && (
+        <>
+          <Text style={styles.label}>Company code (optional)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. MIVD"
+            placeholderTextColor="#666"
+            value={companyCode}
+            onChangeText={setCompanyCode}
+            autoCapitalize="characters"
+          />
+        </>
+      )}
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -127,7 +174,7 @@ export default function SignupScreen({ route, navigation }) {
 
       <TouchableOpacity
         style={styles.loginLink}
-        onPress={() => navigation.navigate('Login', { company })}
+        onPress={() => navigation.navigate('Login')}
       >
         <Text style={styles.loginLinkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
