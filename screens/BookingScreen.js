@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native'
 import { useState } from 'react'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -22,6 +23,12 @@ export default function BookingScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  // Scheduling
+  const [scheduleType, setScheduleType] = useState('now') // 'now' or 'later'
+  const [scheduledDate, setScheduledDate] = useState(new Date())
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [showTimePicker, setShowTimePicker] = useState(false)
+
   const submitBooking = async () => {
     if (!selectedService) {
       setError('Please select a service')
@@ -29,6 +36,10 @@ export default function BookingScreen({ route, navigation }) {
     }
     if (!address.trim()) {
       setError('Please enter your address')
+      return
+    }
+    if (scheduleType === 'later' && scheduledDate <= new Date()) {
+      setError('Please select a future date and time')
       return
     }
     setLoading(true)
@@ -45,7 +56,8 @@ export default function BookingScreen({ route, navigation }) {
           service: selectedService.name,
           address,
           addressNote,
-          notes
+          notes,
+          requestedTime: scheduleType === 'later' ? scheduledDate.toISOString() : null
         })
       })
       const data = await response.json()
@@ -54,7 +66,9 @@ export default function BookingScreen({ route, navigation }) {
           token,
           user,
           company,
-          message: 'Booking submitted! We will confirm shortly.'
+          message: scheduleType === 'later' 
+            ? `Appointment scheduled for ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            : 'Booking submitted! We will confirm shortly.'
         })
       } else {
         setError(data.message || 'Something went wrong')
@@ -92,6 +106,74 @@ export default function BookingScreen({ route, navigation }) {
           </Text>
         </TouchableOpacity>
       ))}
+
+      <Text style={styles.sectionLabel}>When do you need us?</Text>
+      <View style={styles.scheduleRow}>
+        <TouchableOpacity
+          style={[styles.scheduleBtn, scheduleType === 'now' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
+          onPress={() => setScheduleType('now')}
+        >
+          <Text style={[styles.scheduleBtnText, scheduleType === 'now' && { color: company.secondaryColor }]}>⚡ Now</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.scheduleBtn, scheduleType === 'later' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
+          onPress={() => setScheduleType('later')}
+        >
+          <Text style={[styles.scheduleBtnText, scheduleType === 'later' && { color: company.secondaryColor }]}>📅 Schedule</Text>
+        </TouchableOpacity>
+      </View>
+
+      {scheduleType === 'later' && (
+        <View style={styles.dateTimeRow}>
+          <TouchableOpacity
+            style={styles.dateTimeBtn}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.dateTimeBtnText}>
+              📅 {scheduledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.dateTimeBtn}
+            onPress={() => setShowTimePicker(true)}
+          >
+            <Text style={styles.dateTimeBtnText}>
+              🕐 {scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={scheduledDate}
+          mode="date"
+          minimumDate={new Date()}
+          onChange={(event, date) => {
+            setShowDatePicker(false)
+            if (date) {
+              const updated = new Date(scheduledDate)
+              updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate())
+              setScheduledDate(updated)
+            }
+          }}
+        />
+      )}
+
+      {showTimePicker && (
+        <DateTimePicker
+          value={scheduledDate}
+          mode="time"
+          onChange={(event, date) => {
+            setShowTimePicker(false)
+            if (date) {
+              const updated = new Date(scheduledDate)
+              updated.setHours(date.getHours(), date.getMinutes())
+              setScheduledDate(updated)
+            }
+          }}
+        />
+      )}
 
       <Text style={styles.sectionLabel}>Your location</Text>
       <TextInput
@@ -131,7 +213,7 @@ export default function BookingScreen({ route, navigation }) {
           <ActivityIndicator color={company.secondaryColor} />
         ) : (
           <Text style={[styles.buttonText, { color: company.secondaryColor }]}>
-            Submit booking request
+            {scheduleType === 'later' ? 'Schedule appointment' : 'Submit booking request'}
           </Text>
         )}
       </TouchableOpacity>
@@ -150,6 +232,12 @@ const styles = StyleSheet.create({
   serviceName: { fontSize: 14, fontWeight: '500', color: '#fff', marginBottom: 2 },
   serviceDuration: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: '300' },
   servicePrice: { fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  scheduleRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  scheduleBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, alignItems: 'center' },
+  scheduleBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
+  dateTimeRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  dateTimeBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, alignItems: 'center' },
+  dateTimeBtnText: { color: '#fff', fontSize: 14 },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff', marginBottom: 10 },
   textarea: { height: 80, textAlignVertical: 'top' },
   error: { color: '#f09090', fontSize: 13, marginTop: 8, marginBottom: 4 },
