@@ -1,7 +1,8 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Text, View } from 'react-native'
+import { Text } from 'react-native'
+import { useState, useCallback } from 'react'
 
 import WelcomeScreen from './screens/WelcomeScreen'
 import LoginScreen from './screens/LoginScreen'
@@ -20,8 +21,48 @@ import ChangePasswordScreen from './screens/ChangePasswordScreen'
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
 
+const API_URL = 'https://api.infusepro.app'
+
 function MainTabs({ route }) {
-  const params = route.params
+  const initialParams = route.params
+  const [params, setParams] = useState(initialParams)
+
+  const refreshCompany = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/my-companies`, {
+        headers: { Authorization: `Bearer ${params.token}` }
+      })
+      const data = await res.json()
+      if (data.companies && data.companies.length > 0) {
+        const c = data.companies[0]
+        setParams(prev => ({
+          ...prev,
+          company: {
+            id: c.id,
+            name: c.name,
+            code: c.code,
+            primaryColor: c.primary_color,
+            secondaryColor: c.secondary_color,
+            location: c.location,
+            phone: c.phone,
+            bio: c.bio
+          }
+        }))
+      } else {
+        // No linked company — reset to defaults
+        setParams(prev => ({
+          ...prev,
+          company: {
+            name: 'Infuse Pro',
+            primaryColor: '#C9A84C',
+            secondaryColor: '#0D1B4B'
+          }
+        }))
+      }
+    } catch (err) {
+      console.error('Refresh company error:', err)
+    }
+  }, [params.token])
 
   return (
     <Tab.Navigator
@@ -52,15 +93,15 @@ function MainTabs({ route }) {
         {(props) => <BookingScreen {...props} route={{ ...props.route, params }} />}
       </Tab.Screen>
 
-     <Tab.Screen
-  name="ProfileTab"
-  options={{
-    tabBarLabel: 'Profile',
-    tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>👤</Text>
-  }}
->
-  {(props) => <ProfileScreen {...props} route={{ ...props.route, params }} />}
-</Tab.Screen>
+      <Tab.Screen
+        name="ProfileTab"
+        options={{
+          tabBarLabel: 'Profile',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>👤</Text>
+        }}
+      >
+        {(props) => <ProfileScreen {...props} route={{ ...props.route, params }} onCompanyChange={refreshCompany} />}
+      </Tab.Screen>
     </Tab.Navigator>
   )
 }
@@ -84,14 +125,10 @@ export default function App() {
         <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} options={{ title: 'Appointment', headerShown: true }} />
         <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
-<Stack.Screen name="TechHome" component={TechHomeScreen} options={{ headerShown: false }} />
-<Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
-<Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
-        <Stack.Screen
-  name="Map"
-  component={MapScreen}
-  options={{ title: 'Find a company' }}
-/>
+        <Stack.Screen name="TechHome" component={TechHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Map" component={MapScreen} options={{ title: 'Find a company' }} />
       </Stack.Navigator>
     </NavigationContainer>
   )
