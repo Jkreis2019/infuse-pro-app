@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Modal, Alert, TextInput
-} from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -72,6 +69,15 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [cancelStatus, setCancelStatus] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
+
+// Merge modal
+const [mergeModal, setMergeModal] = useState(false)
+const [mergeSourceId, setMergeSourceId] = useState(null)
+const [mergingId, setMergingId] = useState(null)
+
+// Booking detail modal
+const [detailModal, setDetailModal] = useState(false)
+const [detailBooking, setDetailBooking] = useState(null)
 
   // New booking modal
   const [newBookingModal, setNewBookingModal] = useState(false)
@@ -211,6 +217,39 @@ if (lData.log) setLog(lData.log)
       setCancelling(false)
     }
   }
+
+const openDetailModal = (booking) => {
+  setDetailBooking(booking)
+  setDetailModal(true)
+}
+
+  const openMergeModal = (bookingId) => {
+  setMergeSourceId(bookingId)
+  setMergeModal(true)
+}
+
+const submitMerge = async (targetId) => {
+  setMergingId(targetId)
+  try {
+    const res = await fetch(`${API_URL}/bookings/merge`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ primaryBookingId: targetId, secondaryBookingId: mergeSourceId })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setMergeModal(false)
+      Alert.alert('✅ Merged!', data.message)
+      fetchAll()
+    } else {
+      Alert.alert('Error', data.error || 'Could not merge bookings')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setMergingId(null)
+  }
+}
 
   const submitNewBooking = async () => {
     if (!nbPatientName || !nbService || !nbAddress) {
@@ -427,7 +466,7 @@ const submitSendIntake = async () => {
             </View>
           ) : (
             queue.map(booking => (
-              <View key={booking.id} style={styles.card}>
+              <TouchableOpacity key={booking.id} style={styles.card} onPress={() => openDetailModal(booking)} activeOpacity={0.8}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardService}>{booking.service}</Text>
                   <View style={[styles.newBadge, { backgroundColor: booking.source === 'phone' ? '#2196F3' : primaryColor }]}>
@@ -457,13 +496,19 @@ const submitSendIntake = async () => {
     <Text style={[styles.viewPatientsText, { color: primaryColor }]}>👥 Patients</Text>
   </TouchableOpacity>
   <TouchableOpacity
+  style={[styles.reassignButton, { borderColor: primaryColor }]}
+  onPress={() => openMergeModal(booking.id)}
+>
+  <Text style={[styles.reassignButtonText, { color: primaryColor }]}>⊕ Merge</Text>
+</TouchableOpacity>
+  <TouchableOpacity
     style={styles.cancelCardButton}
     onPress={() => openCancelModal(booking.id, 'pending')}
   >
     <Text style={styles.cancelCardText}>Cancel</Text>
   </TouchableOpacity>
 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
           <View style={{ height: 40 }} />
@@ -810,10 +855,12 @@ const submitSendIntake = async () => {
         </View>
       </Modal>
 
-      {/* Send Intake Modal */}
+     
+{/* Send Intake Modal */}
 <Modal visible={sendIntakeModal} transparent animationType="slide">
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalCard}>
+  <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalCard}>
       <Text style={styles.modalTitle}>Send Intake Form</Text>
       <Text style={styles.modalSub}>Patient: {intakePatientName}</Text>
       <Text style={styles.reasonLabel}>Patient email *</Text>
@@ -841,6 +888,7 @@ const submitSendIntake = async () => {
       </TouchableOpacity>
     </View>
   </View>
+  </KeyboardAvoidingView>
 </Modal>
 
 {/* Profile Modal */}
@@ -865,6 +913,125 @@ const submitSendIntake = async () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.cancelModal} onPress={() => setProfileModal(false)}>
         <Text style={styles.cancelModalText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Booking Detail Modal */}
+<Modal visible={detailModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={[styles.modalCard, { maxHeight: '80%' }]}>
+      <ScrollView>
+        <Text style={styles.modalTitle}>{detailBooking?.service}</Text>
+        <View style={[styles.statusBadge, { 
+          borderColor: detailBooking?.source === 'phone' ? '#a0c0f0' : '#C9A84C',
+          alignSelf: 'flex-start', marginBottom: 12
+        }]}>
+          <Text style={[styles.statusBadgeText, { 
+            color: detailBooking?.source === 'phone' ? '#a0c0f0' : '#C9A84C' 
+          }]}>
+            {detailBooking?.source === 'phone' ? 'PHONE' : 'APP'}
+          </Text>
+        </View>
+        <Text style={styles.reasonLabel}>📍 Address</Text>
+        <Text style={styles.techName}>{detailBooking?.address}</Text>
+        {detailBooking?.address_note && (
+          <Text style={styles.techStatus}>{detailBooking.address_note}</Text>
+        )}
+        <Text style={[styles.reasonLabel, { marginTop: 12 }]}>👤 Primary Patient</Text>
+        <Text style={styles.techName}>{detailBooking?.patient_name}</Text>
+        {detailBooking?.patient_phone && (
+          <Text style={styles.techStatus}>📞 {detailBooking.patient_phone}</Text>
+        )}
+        {detailBooking?.patient_dob && (
+          <Text style={styles.techStatus}>🎂 {new Date(detailBooking.patient_dob).toLocaleDateString()}</Text>
+        )}
+        {detailBooking?.requested_time && (
+          <>
+            <Text style={[styles.reasonLabel, { marginTop: 12 }]}>🕐 Scheduled For</Text>
+            <Text style={styles.techName}>
+              {new Date(detailBooking.requested_time).toLocaleDateString('en-US', { 
+                month: 'short', day: 'numeric', year: 'numeric' 
+              })} at {new Date(detailBooking.requested_time).toLocaleTimeString([], { 
+                hour: '2-digit', minute: '2-digit' 
+              })}
+            </Text>
+          </>
+        )}
+        {detailBooking?.notes && (
+          <>
+            <Text style={[styles.reasonLabel, { marginTop: 12 }]}>📝 Notes</Text>
+            <Text style={styles.techName}>{detailBooking.notes}</Text>
+          </>
+        )}
+        {detailBooking?.patient_count > 1 && (
+          <>
+            <Text style={[styles.reasonLabel, { marginTop: 12 }]}>👥 Group Booking</Text>
+            <Text style={styles.techStatus}>{detailBooking.patient_count} patients on this call</Text>
+            <TouchableOpacity
+              style={[styles.confirmCancelBtn, { backgroundColor: primaryColor, marginTop: 8 }]}
+              onPress={() => {
+                setDetailModal(false)
+                openPatientList(detailBooking.id, detailBooking.patient_name, detailBooking.patient_email || '')
+              }}
+            >
+              <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>👥 View All Patients</Text>
+            </TouchableOpacity>
+          </>
+        )}
+        <Text style={[styles.reasonLabel, { marginTop: 12 }]}>📋 Intake Status</Text>
+        <Text style={styles.techStatus}>
+          {detailBooking?.intake_submitted ? '✅ Completed' : '⏳ Not submitted'}
+        </Text>
+        <Text style={[styles.reasonLabel, { marginTop: 12 }]}>🕐 Received</Text>
+        <Text style={styles.techStatus}>
+          {detailBooking?.created_at && new Date(detailBooking.created_at).toLocaleTimeString([], { 
+            hour: '2-digit', minute: '2-digit' 
+          })}
+        </Text>
+      </ScrollView>
+      <TouchableOpacity 
+        style={styles.cancelModal} 
+        onPress={() => setDetailModal(false)}
+      >
+        <Text style={styles.cancelModalText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Merge Modal */}
+
+{/* Merge Modal */}
+<Modal visible={mergeModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>Merge Booking</Text>
+      <Text style={styles.modalSub}>Select which booking to merge this into:</Text>
+      {queue.filter(b => b.id !== mergeSourceId).length === 0 ? (
+        <Text style={styles.noTechs}>No other pending bookings to merge with</Text>
+      ) : (
+        queue.filter(b => b.id !== mergeSourceId).map(b => (
+          <TouchableOpacity
+            key={b.id}
+            style={[styles.techRow, mergingId === b.id && { opacity: 0.6 }]}
+            onPress={() => submitMerge(b.id)}
+            disabled={!!mergingId}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={styles.techName}>{b.patient_name}</Text>
+              <Text style={styles.techStatus}>{b.service} · {b.address}</Text>
+            </View>
+            {mergingId === b.id 
+              ? <ActivityIndicator color={primaryColor} />
+              : <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>Merge →</Text>
+            }
+          </TouchableOpacity>
+        ))
+      )}
+      <TouchableOpacity style={styles.cancelModal} onPress={() => setMergeModal(false)}>
+        <Text style={styles.cancelModalText}>Cancel</Text>
       </TouchableOpacity>
     </View>
   </View>
