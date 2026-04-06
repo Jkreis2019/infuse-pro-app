@@ -8,15 +8,19 @@ const API_URL = 'https://api.infusepro.app'
 
 const STATUS_COLORS = {
   confirmed: '#C9A84C',
+  assigned: '#C9A84C',
   en_route: '#2196F3',
   on_scene: '#4CAF50',
+  cleared: '#aaa',
   completed: '#aaa'
 }
 
 const STATUS_LABELS = {
   confirmed: 'Confirmed — Waiting to depart',
+  assigned: 'Confirmed — Waiting to depart',
   en_route: 'En Route',
   on_scene: 'On Scene',
+  cleared: 'Cleared',
   completed: 'Completed'
 }
 
@@ -46,12 +50,12 @@ export default function TechHomeScreen({ route, navigation }) {
         setUpcoming(data.upcoming || [])
 
         // Start 60 min timer if on scene
-        if (data.call?.status === 'on_scene' && data.call?.onscene_at) {
-          const secondsOnScene = Math.floor(
-            (Date.now() - new Date(data.call.onscene_at).getTime()) / 1000
-          )
-          setOnSceneSeconds(secondsOnScene)
-        }
+       if (data.call?.tech_status === 'on_scene' && data.call?.tech_onscene_at) {
+  const secondsOnScene = Math.floor(
+    (Date.now() - new Date(data.call.tech_onscene_at).getTime()) / 1000
+  )
+  setOnSceneSeconds(secondsOnScene)
+}
       }
     } catch (err) {
       console.error('Fetch call error:', err)
@@ -69,7 +73,7 @@ export default function TechHomeScreen({ route, navigation }) {
 
   // 60 minute on-scene timer
   useEffect(() => {
-    if (call?.status === 'on_scene') {
+    if (call?.tech_status === 'on_scene') {
       timerRef.current = setInterval(() => {
         setOnSceneSeconds(prev => {
           const next = prev + 1
@@ -198,9 +202,9 @@ export default function TechHomeScreen({ route, navigation }) {
       ) : (
         <>
           {/* Status Banner */}
-          <View style={[styles.statusBanner, { backgroundColor: STATUS_COLORS[call.status] + '22', borderColor: STATUS_COLORS[call.status] }]}>
-            <Text style={[styles.statusBannerText, { color: STATUS_COLORS[call.status] }]}>
-              {STATUS_LABELS[call.status] || call.status}
+          <View style={[styles.statusBanner, { backgroundColor: STATUS_COLORS[call.tech_status || call.status] + '33', borderColor: STATUS_COLORS[call.tech_status || call.status] }]}>
+            <Text style={[styles.statusBannerText, { color: STATUS_COLORS[call.tech_status || call.status] }]}>
+              {STATUS_LABELS[call.tech_status || call.status] || call.tech_status || call.status}
             </Text>
           </View>
 
@@ -254,7 +258,7 @@ export default function TechHomeScreen({ route, navigation }) {
           )}
 
           {/* 60 Min Timer */}
-          {call.status === 'on_scene' && (
+          {call.tech_status === 'on_scene' && (
             <View style={[styles.timerCard, timerDanger && styles.timerDanger, timerWarning && !timerDanger && styles.timerWarning]}>
               <Text style={styles.timerLabel}>⏱ Time On Scene</Text>
               <Text style={[styles.timerValue, timerDanger && { color: '#f09090' }, timerWarning && !timerDanger && { color: '#E2C97E' }]}>
@@ -272,7 +276,7 @@ export default function TechHomeScreen({ route, navigation }) {
           {call.status !== 'completed' && (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Update Status</Text>
-              {call.status === 'confirmed' && (
+              {(call.tech_status === 'assigned' || call.tech_status === null) && (
                 <TouchableOpacity
                   style={[styles.statusButton, { backgroundColor: '#2196F3' }]}
                   onPress={() => handleStatusChange('en_route')}
@@ -281,7 +285,7 @@ export default function TechHomeScreen({ route, navigation }) {
                   {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>🚗 I'm En Route</Text>}
                 </TouchableOpacity>
               )}
-              {call.status === 'en_route' && (
+              {call.tech_status === 'en_route' && (
                 <TouchableOpacity
                   style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
                   onPress={() => handleStatusChange('on_scene')}
@@ -290,7 +294,7 @@ export default function TechHomeScreen({ route, navigation }) {
                   {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>📍 I'm On Scene</Text>}
                 </TouchableOpacity>
               )}
-              {call.status === 'on_scene' && (
+              {call.tech_status === 'on_scene' && (
                 <TouchableOpacity
                   style={[styles.statusButton, { backgroundColor: primaryColor }]}
                   onPress={() => handleStatusChange('clear')}
@@ -353,8 +357,8 @@ const styles = StyleSheet.create({
   noCallIcon: { fontSize: 64, marginBottom: 16 },
   noCallText: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 8 },
   noCallSub: { fontSize: 14, color: 'rgba(255,255,255,0.4)', textAlign: 'center' },
-  statusBanner: { marginHorizontal: 16, marginBottom: 16, borderWidth: 1, borderRadius: 12, padding: 16, alignItems: 'center' },
-  statusBannerText: { fontSize: 16, fontWeight: '700' },
+  statusBanner: { marginHorizontal: 16, marginBottom: 16, borderWidth: 2, borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
+statusBannerText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   card: { marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20 },
   cardTitle: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.8)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 },
   service: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 12 },

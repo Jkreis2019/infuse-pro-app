@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -59,9 +59,13 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [refreshing, setRefreshing] = useState(false)
 
   // Assign modal
-  const [assignModal, setAssignModal] = useState(false)
-  const [selectedBooking, setSelectedBooking] = useState(null)
-  const [isReassign, setIsReassign] = useState(false)
+const [assignModal, setAssignModal] = useState(false)
+const [selectedBooking, setSelectedBooking] = useState(null)
+const [isReassign, setIsReassign] = useState(false)
+const [selectedTechs, setSelectedTechs] = useState([])
+const [callDetailModal, setCallDetailModal] = useState(false)
+const [selectedCall, setSelectedCall] = useState(null)
+const [callTechs, setCallTechs] = useState([])
 
   // Cancel modal
   const [cancelModal, setCancelModal] = useState(false)
@@ -157,28 +161,68 @@ if (lData.log) setLog(lData.log)
     setAssignModal(true)
   }
 
-  const assignTech = async (techId) => {
+ const toggleTechSelection = (techId) => {
+    if (isReassign) {
+      assignTechs(techId)
+      return
+    }
+    setSelectedTechs(prev =>
+      prev.includes(techId) ? prev.filter(id => id !== techId) : [...prev, techId]
+    )
+  }
+
+  const assignTechs = async (singleTechId = null) => {
+    const techIds = singleTechId ? [singleTechId] : selectedTechs
+    if (techIds.length === 0) return Alert.alert('Select at least one tech')
     try {
-      const url = isReassign
-        ? `${API_URL}/bookings/${selectedBooking.id}/reassign`
-        : `${API_URL}/dispatch/assign`
-      const body = isReassign
-        ? { techId }
-        : { bookingId: selectedBooking.id, techId }
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      })
-      const data = await res.json()
-      if (data.success) {
-        setAssignModal(false)
-        setSelectedBooking(null)
-        setIsReassign(false)
-        fetchAll()
+      if (isReassign) {
+        const res = await fetch(`${API_URL}/bookings/${selectedBooking.id}/reassign`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ techId: techIds[0] })
+        })
+        const data = await res.json()
+        if (!data.success) return Alert.alert('Error', data.message || 'Could not reassign tech')
+      } else if (selectedBooking.isActiveCall) {
+        for (const techId of techIds) {
+          const res = await fetch(`${API_URL}/calls/${selectedBooking.callId}/techs`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tech_id: techId })
+          })
+          const data = await res.json()
+          if (!data.success) return Alert.alert('Error', data.message || 'Could not add tech')
+        }
       } else {
-        Alert.alert('Error', data.message || 'Could not assign tech')
+        const res = await fetch(`${API_URL}/dispatch/assign`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingId: selectedBooking.id, techId: techIds[0] })
+        })
+        const data = await res.json()
+        if (!data.success) return Alert.alert('Error', data.message || 'Could not assign tech')
+
+        if (techIds.length > 1) {
+          const callRes = await fetch(`${API_URL}/dispatch/queue`, { headers })
+          const callData = await callRes.json()
+          const call = callData.active?.find(c => c.booking_id === selectedBooking.id)
+          if (call) {
+            for (const techId of techIds.slice(1)) {
+              await fetch(`${API_URL}/calls/${call.id}/techs`, {
+                method: 'POST',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tech_id: techId })
+              })
+            }
+          }
+        }
       }
+
+      setAssignModal(false)
+      setSelectedBooking(null)
+      setIsReassign(false)
+      setSelectedTechs([])
+      fetchAll()
     } catch (err) {
       Alert.alert('Error', 'Network error')
     }
@@ -216,6 +260,50 @@ if (lData.log) setLog(lData.log)
     } finally {
       setCancelling(false)
     }
+  }
+
+  const openCallDetail = async (call) => {
+    setSelectedCall(call)
+    setCallTechs([])
+    setCallDetailModal(true)
+    try {
+      const res = await fetch(`${API_URL}/calls/${call.call_id}/techs`, { headers })
+      const data = await res.json()
+      setCallTechs(data.techs || [])
+    } catch (err) {
+      setCallTechs([])
+    }
+  }
+
+  const removeTechFromCall = async (callId, techId, techName) => {
+    Alert.alert(
+      'Remove Tech',
+      `Remove ${techName} from this call?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+         text: 'Remove', style: 'destructive', onPress: async () => {
+            try {
+              const res = await fetch(`${API_URL}/calls/${callId}/techs/${techId}`, {
+                method: 'DELETE',
+                headers
+              })
+              const data = await res.json()
+              if (data.success) {
+                const techRes = await fetch(`${API_URL}/calls/${callId}/techs`, { headers })
+                const techData = await techRes.json()
+                setCallTechs(techData.techs || [])
+                fetchAll()
+              } else {
+                Alert.alert('Error', data.message || 'Could not remove tech')
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Network error')
+            }
+          }
+        }
+      ]
+    )
   }
 
 const openDetailModal = (booking) => {
@@ -529,7 +617,7 @@ const submitSendIntake = async () => {
             </View>
           ) : (
             active.map(call => (
-              <View key={call.id} style={styles.card}>
+              <TouchableOpacity key={call.id} style={styles.card} onPress={() => openCallDetail(call)}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardService}>{call.service}</Text>
                   <View style={[styles.statusBadge, { borderColor: BOOKING_STATUS_COLORS[call.status] || '#aaa' }]}>
@@ -576,7 +664,7 @@ const submitSendIntake = async () => {
                     </TouchableOpacity>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
           <View style={{ height: 40 }} />
@@ -628,8 +716,8 @@ const submitSendIntake = async () => {
         <Text style={styles.emptySub}>Completed and cancelled calls will appear here</Text>
       </View>
     ) : (
-      log.map(entry => (
-        <View key={entry.id} style={styles.card}>
+     log.map((entry, index) => (
+        <View key={`${entry.id}-${index}`} style={styles.card}>
           <View style={styles.cardTop}>
             <Text style={styles.cardService}>{entry.service}</Text>
             <View style={[styles.statusBadge, { 
@@ -664,7 +752,60 @@ const submitSendIntake = async () => {
   </ScrollView>
 )}
 
-      {/* Assign / Reassign Tech Modal */}
+{/* Call Detail Modal */}
+      <Modal visible={callDetailModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxHeight: '85%' }]}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>{selectedCall?.service}</Text>
+              {selectedCall && (
+                <>
+                  <Text style={styles.modalSub}>👤 {selectedCall.patient_name}</Text>
+                  <Text style={styles.modalSub}>📍 {selectedCall.address}</Text>
+                  <Text style={styles.modalSub}>⏱ {formatTime(selectedCall.seconds_in_status)} in current status</Text>
+                  <Text style={styles.modalSub}>📋 Status: {selectedCall.status?.replace('_', ' ').toUpperCase()}</Text>
+
+                  <Text style={[styles.modalTitle, { fontSize: 16, marginTop: 16 }]}>Techs on this Call</Text>
+                  {callTechs.length === 0 ? (
+                    <Text style={styles.modalSub}>No techs assigned via call_techs yet</Text>
+                  ) : (
+                    callTechs.map(tech => (
+                      <View key={tech.tech_id} style={[styles.techRow, { borderColor: '#ddd', marginBottom: 8 }]}>
+                        <View>
+                          <Text style={styles.techName}>{tech.first_name} {tech.last_name}</Text>
+                          <Text style={styles.techStatus}>{tech.status} · {tech.cleared_at ? 'Cleared' : 'Active'}</Text>
+                        </View>
+                        <TouchableOpacity onPress={() => removeTechFromCall(selectedCall.call_id, tech.tech_id, `${tech.first_name} ${tech.last_name}`)}>
+                          <Text style={{ color: '#e53e3e', fontSize: 13, fontWeight: '600' }}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  )}
+
+                  <TouchableOpacity
+                    style={[styles.submitBtn, { backgroundColor: primaryColor, marginTop: 16, marginBottom: 8, paddingVertical: 16, borderRadius: 12 }]}
+                    onPress={() => {
+                      const bookingForAssign = { ...selectedCall, isActiveCall: true, callId: selectedCall.call_id }
+                      setCallDetailModal(false)
+                      setSelectedBooking(bookingForAssign)
+                      setSelectedTechs([])
+                      setIsReassign(false)
+                      setAssignModal(true)
+                    }}
+                  >
+                    <Text style={[styles.submitBtnText, { color: secondaryColor }]}>+ Add Another Tech</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </ScrollView>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => setCallDetailModal(false)}>
+              <Text style={styles.cancelModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+     {/* Assign / Reassign Tech Modal */}
       <Modal visible={assignModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -678,21 +819,34 @@ const submitSendIntake = async () => {
             {availableTechs.length === 0 ? (
               <Text style={styles.noTechs}>No available techs right now</Text>
             ) : (
-              availableTechs.map(tech => (
-                <TouchableOpacity
-                  key={tech.id}
-                  style={[styles.techRow, { borderColor: primaryColor }]}
-                  onPress={() => assignTech(tech.id)}
-                >
-                  <View>
-                    <Text style={styles.techName}>{tech.first_name} {tech.last_name}</Text>
-                    <Text style={styles.techStatus}>{STATUS_LABELS[tech.status]} · {formatTime(tech.seconds_in_status)} in status</Text>
-                  </View>
-                  <Text style={[styles.assignArrow, { color: primaryColor }]}>→</Text>
-                </TouchableOpacity>
-              ))
+              availableTechs.map(tech => {
+                const isSelected = selectedTechs.includes(tech.id)
+                return (
+                  <TouchableOpacity
+                    key={tech.id}
+                    style={[styles.techRow, { borderColor: isSelected ? primaryColor : '#ddd', backgroundColor: isSelected ? primaryColor + '15' : 'transparent' }]}
+                    onPress={() => toggleTechSelection(tech.id)}
+                  >
+                    <View>
+                      <Text style={styles.techName}>{tech.first_name} {tech.last_name}</Text>
+                      <Text style={styles.techStatus}>{STATUS_LABELS[tech.status]} · {formatTime(tech.seconds_in_status)} in status</Text>
+                    </View>
+                    <Text style={[styles.assignArrow, { color: primaryColor }]}>{isSelected ? '✓' : '→'}</Text>
+                  </TouchableOpacity>
+                )
+              })
             )}
-            <TouchableOpacity style={styles.cancelModal} onPress={() => { setAssignModal(false); setIsReassign(false) }}>
+            {!isReassign && selectedTechs.length > 0 && (
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10, paddingVertical: 16, borderRadius: 12 }]}
+                onPress={() => assignTechs()}
+              >
+                <Text style={[styles.submitBtnText, { color: secondaryColor }]}>
+                  Assign {selectedTechs.length} Tech{selectedTechs.length > 1 ? 's' : ''} →
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setAssignModal(false); setIsReassign(false); setSelectedTechs([]) }}>
               <Text style={styles.cancelModalText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -701,7 +855,8 @@ const submitSendIntake = async () => {
 
       {/* Cancel Booking Modal */}
       <Modal visible={cancelModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Cancel Booking</Text>
             <Text style={styles.modalSub}>
@@ -729,8 +884,11 @@ const submitSendIntake = async () => {
               <Text style={styles.cancelModalText}>Keep booking</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
+
+      {/* New Booking Modal */}
 
       {/* New Booking Modal */}
       <Modal visible={newBookingModal} transparent animationType="slide">
