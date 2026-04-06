@@ -31,6 +31,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [refreshing, setRefreshing] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [onSceneSeconds, setOnSceneSeconds] = useState(0)
+  const [upcoming, setUpcoming] = useState([])
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
@@ -42,6 +43,7 @@ export default function TechHomeScreen({ route, navigation }) {
       if (data.success) {
         setCall(data.call)
         setPatients(data.patients || [])
+        setUpcoming(data.upcoming || [])
 
         // Start 60 min timer if on scene
         if (data.call?.status === 'on_scene' && data.call?.onscene_at) {
@@ -166,11 +168,20 @@ export default function TechHomeScreen({ route, navigation }) {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
     >
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: secondaryColor }]}>
-        <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
-        <Text style={styles.headerTitle}>My Call</Text>
-        <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
-      </View>
+     <View style={[styles.header, { backgroundColor: secondaryColor }]}>
+  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <View>
+      <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+      <Text style={styles.headerTitle}>My Call</Text>
+      <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
+    </View>
+    <TouchableOpacity
+      onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+    >
+      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
+    </TouchableOpacity>
+  </View>
+</View>
 
       {/* Emergency Button */}
       <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
@@ -290,6 +301,27 @@ export default function TechHomeScreen({ route, navigation }) {
               )}
             </View>
           )}
+
+{/* Up Next */}
+{upcoming.length > 0 && (
+  <View style={styles.card}>
+    <Text style={styles.cardTitle}>Up Next — {upcoming.length} more call{upcoming.length > 1 ? 's' : ''}</Text>
+    {upcoming.map((u, index) => (
+      <View key={u.id} style={[styles.patientRow, index > 0 && { marginTop: 8 }]}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.patientName}>{u.service}</Text>
+          <Text style={styles.patientDetail}>📍 {u.address}</Text>
+          <Text style={styles.patientDetail}>👤 {u.patient_name}</Text>
+          {u.requested_time && (
+            <Text style={styles.patientDetail}>
+              🕐 {new Date(u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          )}
+        </View>
+      </View>
+    ))}
+  </View>
+)}
 
           {/* Completed */}
           {call.status === 'completed' && (

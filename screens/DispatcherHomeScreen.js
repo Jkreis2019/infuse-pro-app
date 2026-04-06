@@ -57,6 +57,7 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [active, setActive] = useState([])
   const [techs, setTechs] = useState([])
   const [stats, setStats] = useState({ pending: 0, active: 0, completed_today: 0, cancelled_today: 0 })
+  const [log, setLog] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -110,19 +111,21 @@ const [profileModal, setProfileModal] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
-      const [qRes, aRes, tRes, sRes] = await Promise.all([
-        fetch(`${API_URL}/dispatch/queue`, { headers }),
-        fetch(`${API_URL}/dispatch/active`, { headers }),
-        fetch(`${API_URL}/dispatch/techs`, { headers }),
-        fetch(`${API_URL}/dispatch/stats`, { headers })
-      ])
-      const [qData, aData, tData, sData] = await Promise.all([
-        qRes.json(), aRes.json(), tRes.json(), sRes.json()
-      ])
-      if (qData.queue) setQueue(qData.queue)
-      if (aData.active) setActive(aData.active)
-      if (tData.techs) setTechs(tData.techs)
-      if (sData.stats) setStats(sData.stats)
+    const [qRes, aRes, tRes, sRes, lRes] = await Promise.all([
+  fetch(`${API_URL}/dispatch/queue`, { headers }),
+  fetch(`${API_URL}/dispatch/active`, { headers }),
+  fetch(`${API_URL}/dispatch/techs`, { headers }),
+  fetch(`${API_URL}/dispatch/stats`, { headers }),
+  fetch(`${API_URL}/dispatch/log`, { headers })
+])
+const [qData, aData, tData, sData, lData] = await Promise.all([
+  qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json()
+])
+if (qData.queue) setQueue(qData.queue)
+if (aData.active) setActive(aData.active)
+if (tData.techs) setTechs(tData.techs)
+if (sData.stats) setStats(sData.stats)
+if (lData.log) setLog(lData.log)
     } catch (err) {
       console.error('Fetch error:', err)
     } finally {
@@ -394,7 +397,7 @@ const submitSendIntake = async () => {
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        {['queue', 'active', 'team'].map(tab => (
+        {['queue', 'active', 'team', 'log'].map(tab => (
           <TouchableOpacity
             key={tab}
             style={[styles.tab, activeTab === tab && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
@@ -402,8 +405,9 @@ const submitSendIntake = async () => {
           >
             <Text style={[styles.tabText, activeTab === tab && { color: primaryColor }]}>
               {tab === 'queue' ? `Queue ${queue.length > 0 ? `(${queue.length})` : ''}` :
-               tab === 'active' ? `Active ${active.length > 0 ? `(${active.length})` : ''}` :
-               `Team (${techs.length})`}
+ tab === 'active' ? `Active ${active.length > 0 ? `(${active.length})` : ''}` :
+ tab === 'team' ? `Team (${techs.length})` :
+ `Log (${log.length})`}
             </Text>
           </TouchableOpacity>
         ))}
@@ -565,6 +569,55 @@ const submitSendIntake = async () => {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Log Tab */}
+{activeTab === 'log' && (
+  <ScrollView
+    style={styles.scroll}
+    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
+  >
+    {log.length === 0 ? (
+      <View style={styles.emptyState}>
+        <Text style={styles.emptyIcon}>📋</Text>
+        <Text style={styles.emptyText}>No calls logged today</Text>
+        <Text style={styles.emptySub}>Completed and cancelled calls will appear here</Text>
+      </View>
+    ) : (
+      log.map(entry => (
+        <View key={entry.id} style={styles.card}>
+          <View style={styles.cardTop}>
+            <Text style={styles.cardService}>{entry.service}</Text>
+            <View style={[styles.statusBadge, { 
+              borderColor: entry.status === 'completed' ? '#4CAF50' : '#f09090' 
+            }]}>
+              <Text style={[styles.statusBadgeText, { 
+                color: entry.status === 'completed' ? '#4CAF50' : '#f09090' 
+              }]}>
+                {entry.status.toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.cardPatient}>👤 {entry.patient_name}</Text>
+          <Text style={styles.cardAddress}>📍 {entry.address}</Text>
+          {entry.tech_first && (
+            <Text style={styles.cardTech}>🧑‍⚕️ {entry.tech_first} {entry.tech_last}</Text>
+          )}
+          {entry.seconds_on_scene && (
+            <Text style={styles.cardTimer}>⏱ {formatTime(entry.seconds_on_scene)} on scene</Text>
+          )}
+          <Text style={styles.cardTimer}>
+            🕐 {new Date(entry.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            {entry.source === 'phone' ? ' · Phone booking' : ' · App booking'}
+          </Text>
+          <Text style={styles.cardTimer}>
+            Intake: {entry.intake_submitted ? '✅ Complete' : '⏳ Not submitted'}
+          </Text>
+        </View>
+      ))
+    )}
+    <View style={{ height: 40 }} />
+  </ScrollView>
+)}
 
       {/* Assign / Reassign Tech Modal */}
       <Modal visible={assignModal} transparent animationType="slide">
