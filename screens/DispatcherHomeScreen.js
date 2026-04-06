@@ -97,6 +97,15 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [patients, setPatients] = useState([])
   const [loadingPatients, setLoadingPatients] = useState(false)
 
+  // Send intake modal
+const [sendIntakeModal, setSendIntakeModal] = useState(false)
+const [intakePatientName, setIntakePatientName] = useState('')
+const [intakePatientEmail, setIntakePatientEmail] = useState('')
+const [patientListEmail, setPatientListEmail] = useState('')
+const [intakeBookingId, setIntakeBookingId] = useState(null)
+const [sendingIntake, setSendingIntake] = useState(false)
+const [profileModal, setProfileModal] = useState(false)
+
   const headers = { Authorization: `Bearer ${token}` }
 
   const fetchAll = useCallback(async () => {
@@ -240,9 +249,10 @@ export default function DispatcherHomeScreen({ route, navigation }) {
     }
   }
 
-  const openPatientList = async (bookingId, patientName) => {
+ const openPatientList = async (bookingId, patientName, patientEmail = '') => {
     setPatientListBookingId(bookingId)
     setPatientListName(patientName)
+    setPatientListEmail(patientEmail)
     setPatientListModal(true)
     setLoadingPatients(true)
     try {
@@ -264,6 +274,45 @@ export default function DispatcherHomeScreen({ route, navigation }) {
     setPatientListModal(false)
     setAddPatientModal(true)
   }
+
+const openSendIntake = (bookingId, patientName, patientEmail = '') => {
+  setIntakeBookingId(bookingId)
+  setIntakePatientName(patientName)
+  setIntakePatientEmail(patientEmail)
+  setPatientListModal(false)
+  setSendIntakeModal(true)
+}
+
+const submitSendIntake = async () => {
+  if (!intakePatientEmail.trim()) {
+    Alert.alert('Required', 'Please enter the patient email')
+    return
+  }
+  setSendingIntake(true)
+  try {
+    const res = await fetch(`${API_URL}/intake/send-form`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bookingId: intakeBookingId,
+        patientEmail: intakePatientEmail,
+        patientName: intakePatientName
+      })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setSendIntakeModal(false)
+      Alert.alert('✅ Sent!', `Intake form sent to ${intakePatientEmail}`)
+      fetchAll()
+    } else {
+      Alert.alert('Error', data.message || 'Could not send intake form')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setSendingIntake(false)
+  }
+}
 
   const submitAddPatient = async () => {
     if (!apName.trim()) {
@@ -310,26 +359,38 @@ export default function DispatcherHomeScreen({ route, navigation }) {
     <View style={styles.container}>
 
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: secondaryColor }]}>
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
-            <Text style={styles.headerTitle}>Dispatch Console</Text>
-            <View style={styles.statsRow}>
-              <Text style={styles.statItem}>📋 {stats.pending} pending</Text>
-              <Text style={styles.statItem}>🚗 {stats.active} active</Text>
-              <Text style={styles.statItem}>✅ {stats.completed_today} done</Text>
-              <Text style={styles.statItem}>❌ {stats.cancelled_today} cancelled</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.newBookingBtn, { backgroundColor: primaryColor }]}
-            onPress={() => setNewBookingModal(true)}
-          >
-            <Text style={[styles.newBookingBtnText, { color: secondaryColor }]}>+ New</Text>
-          </TouchableOpacity>
-        </View>
+   <View style={[styles.header, { backgroundColor: secondaryColor }]}>
+  <View style={styles.headerRow}>
+    <View style={{ flex: 1 }}>
+      <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+      <Text style={styles.headerTitle}>Dispatch Console</Text>
+      <View style={styles.statsRow}>
+        <Text style={styles.statItem}>📋 {stats.pending} pending</Text>
+        <Text style={styles.statItem}>🚗 {stats.active} active</Text>
+        <Text style={styles.statItem}>✅ {stats.completed_today} done</Text>
+        <Text style={styles.statItem}>❌ {stats.cancelled_today} cancelled</Text>
       </View>
+    </View>
+    <View style={{ alignItems: 'flex-end', gap: 8 }}>
+      <TouchableOpacity
+  style={[styles.newBookingBtn, { backgroundColor: primaryColor }]}
+  onPress={() => setNewBookingModal(true)}
+>
+  <Text style={[styles.newBookingBtnText, { color: secondaryColor }]}>+ New</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  onPress={() => setProfileModal(true)}
+>
+  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>👤 Profile</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+>
+  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
+</TouchableOpacity>
+</View>
+</View>
+</View>
 
       {/* Tabs */}
       <View style={styles.tabs}>
@@ -387,7 +448,7 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   </TouchableOpacity>
   <TouchableOpacity
     style={[styles.viewPatientsButton, { borderColor: primaryColor }]}
-    onPress={() => openPatientList(booking.id, booking.patient_name)}
+    onPress={() => openPatientList(booking.id, booking.patient_name, booking.patient_email || '')}
   >
     <Text style={[styles.viewPatientsText, { color: primaryColor }]}>👥 Patients</Text>
   </TouchableOpacity>
@@ -445,7 +506,7 @@ export default function DispatcherHomeScreen({ route, navigation }) {
                 <View style={styles.cardActions}>
                   <TouchableOpacity
                     style={[styles.viewPatientsButton, { borderColor: primaryColor }]}
-                    onPress={() => openPatientList(call.id, call.patient_name)}
+                    onPress={() => openPatientList(call.id, call.patient_name, call.patient_email || '')}
                   >
                     <Text style={[styles.viewPatientsText, { color: primaryColor }]}>👥 Patients</Text>
                   </TouchableOpacity>
@@ -627,23 +688,35 @@ export default function DispatcherHomeScreen({ route, navigation }) {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Patients on Call</Text>
             <Text style={styles.modalSub}>Primary: {patientListName}</Text>
+            <TouchableOpacity
+  style={[styles.confirmCancelBtn, { backgroundColor: primaryColor, marginTop: 0, marginBottom: 12 }]}
+  onPress={() => openSendIntake(patientListBookingId, patientListName, patientListEmail)}
+>
+  <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>📧 Send Intake to Primary Patient</Text>
+</TouchableOpacity>
             {loadingPatients ? (
               <ActivityIndicator color={primaryColor} style={{ marginVertical: 20 }} />
             ) : patients.length === 0 ? (
               <Text style={styles.noTechs}>No additional patients added yet</Text>
             ) : (
               patients.map(p => (
-                <View key={p.id} style={styles.patientRow}>
-                  <View>
-                    <Text style={styles.techName}>{p.patient_name}</Text>
-                    <Text style={styles.techStatus}>
-                      {p.patient_phone || 'No phone'} · 
-                      Intake: {p.intake_completed ? '✅' : p.intake_sent ? '📤 Sent' : '⏳ Pending'} · 
-                      Chart: {p.chart_completed ? '✅' : '⏳'}
-                    </Text>
-                  </View>
-                </View>
-              ))
+  <View key={p.id} style={styles.patientRow}>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.techName}>{p.patient_name}</Text>
+      <Text style={styles.techStatus}>
+        {p.patient_phone || 'No phone'} · 
+        Intake: {p.intake_completed ? '✅' : p.intake_sent ? '📤 Sent' : '⏳ Pending'} · 
+        Chart: {p.chart_completed ? '✅' : '⏳'}
+      </Text>
+    </View>
+    <TouchableOpacity
+      style={[styles.reassignButton, { borderColor: primaryColor, paddingHorizontal: 8 }]}
+      onPress={() => openSendIntake(patientListBookingId, p.patient_name, p.patient_email || '')}
+    >
+      <Text style={[styles.reassignButtonText, { color: primaryColor, fontSize: 11 }]}>📧 Intake</Text>
+    </TouchableOpacity>
+  </View>
+))
             )}
             <TouchableOpacity
               style={[styles.confirmCancelBtn, { backgroundColor: primaryColor, marginTop: 16 }]}
@@ -684,9 +757,71 @@ export default function DispatcherHomeScreen({ route, navigation }) {
         </View>
       </Modal>
 
+      {/* Send Intake Modal */}
+<Modal visible={sendIntakeModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>Send Intake Form</Text>
+      <Text style={styles.modalSub}>Patient: {intakePatientName}</Text>
+      <Text style={styles.reasonLabel}>Patient email *</Text>
+      <TextInput
+        style={styles.reasonInput}
+        placeholder="patient@email.com"
+        placeholderTextColor="#666"
+        value={intakePatientEmail}
+        onChangeText={setIntakePatientEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+      <TouchableOpacity
+        style={[styles.confirmCancelBtn, { backgroundColor: primaryColor }, sendingIntake && { opacity: 0.6 }]}
+        onPress={submitSendIntake}
+        disabled={sendingIntake}
+      >
+        {sendingIntake
+          ? <ActivityIndicator color={secondaryColor} />
+          : <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>📧 Send Intake Form</Text>
+        }
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelModal} onPress={() => setSendIntakeModal(false)}>
+        <Text style={styles.cancelModalText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Profile Modal */}
+<Modal visible={profileModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>{user?.firstName} {user?.lastName}</Text>
+      <Text style={styles.modalSub}>{user?.email}</Text>
+      <View style={styles.patientRow}>
+        <Text style={styles.techName}>Role</Text>
+        <Text style={styles.techStatus}>{user?.role?.toUpperCase()}</Text>
+      </View>
+      <View style={styles.patientRow}>
+        <Text style={styles.techName}>Company</Text>
+        <Text style={styles.techStatus}>{company?.name}</Text>
+      </View>
+      <TouchableOpacity
+        style={[styles.confirmCancelBtn, { backgroundColor: '#f09090', marginTop: 24 }]}
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+      >
+        <Text style={styles.confirmCancelText}>Log out</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelModal} onPress={() => setProfileModal(false)}>
+        <Text style={styles.cancelModalText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </View>
   )
 }
+
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
