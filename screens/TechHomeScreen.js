@@ -233,6 +233,9 @@ export default function TechHomeScreen({ route, navigation }) {
               Primary Patient {call.patient_count > 1 ? `(+${call.patient_count - 1} more)` : ''}
             </Text>
             <Text style={styles.service}>{call.patient_name}</Text>
+            {!call.has_valid_intake && (
+              <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginTop: 4 }}>⚠️ No intake on file</Text>
+            )}
             {call.patient_phone && <Text style={styles.value}>📞 {call.patient_phone}</Text>}
             {call.patient_dob && (
               <Text style={styles.value}>

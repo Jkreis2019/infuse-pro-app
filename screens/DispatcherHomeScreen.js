@@ -565,6 +565,9 @@ const submitSendIntake = async () => {
                 </View>
                 <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
                 <Text style={styles.cardAddress}>📍 {booking.address}</Text>
+                {!booking.has_valid_intake && (
+                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
+                )}
                 {booking.patient_phone && <Text style={styles.cardPhone}>📞 {booking.patient_phone}</Text>}
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
                 <Text style={styles.cardTime}>
@@ -628,6 +631,9 @@ const submitSendIntake = async () => {
                 </View>
                 <Text style={styles.cardPatient}>👤 {call.patient_name}</Text>
                 <Text style={styles.cardAddress}>📍 {call.address}</Text>
+                {!call.has_valid_intake && (
+                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
+                )}
                 {call.tech_first && (
                   <Text style={styles.cardTech}>🧑‍⚕️ {call.tech_first} {call.tech_last}</Text>
                 )}
