@@ -568,6 +568,9 @@ const submitSendIntake = async () => {
                 {!booking.has_valid_intake && (
                   <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
                 )}
+                {booking.patient_count > 1 && (
+                  <Text style={[styles.cardPatient, { color: primaryColor }]}>👥 Group booking · {booking.patient_count} IVs</Text>
+                )}
                 {booking.patient_phone && <Text style={styles.cardPhone}>📞 {booking.patient_phone}</Text>}
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
                 <Text style={styles.cardTime}>

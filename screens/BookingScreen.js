@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
 import { useState } from 'react'
 import DateTimePicker from '@react-native-community/datetimepicker'
 
@@ -20,6 +20,7 @@ export default function BookingScreen({ route, navigation }) {
   const [address, setAddress] = useState('')
   const [addressNote, setAddressNote] = useState('')
   const [notes, setNotes] = useState('')
+  const [ivCount, setIvCount] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -57,6 +58,7 @@ export default function BookingScreen({ route, navigation }) {
           address,
           addressNote,
           notes,
+          patientCount: ivCount,
           requestedTime: scheduleType === 'later' ? scheduledDate.toISOString() : null
         })
       })
@@ -80,7 +82,8 @@ export default function BookingScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Book an appointment</Text>
       <Text style={styles.subtitle}>{company.name} · {company.location}</Text>
 
@@ -191,6 +194,20 @@ export default function BookingScreen({ route, navigation }) {
         onChangeText={setAddressNote}
       />
 
+<Text style={styles.sectionLabel}>How many IVs? (including yourself)</Text>
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+        {[1,2,3,4,5,6].map(n => (
+          <TouchableOpacity
+            key={n}
+            style={[styles.serviceCard, { padding: 12, alignItems: 'center', flex: 1, marginBottom: 0 },
+              ivCount === n && { borderColor: company.primaryColor, backgroundColor: `${company.primaryColor}15` }]}
+            onPress={() => setIvCount(n)}
+          >
+            <Text style={[styles.serviceName, ivCount === n && { color: company.primaryColor }]}>{n}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <Text style={styles.sectionLabel}>Notes for your tech</Text>
       <TextInput
         style={[styles.input, styles.textarea]}
@@ -218,6 +235,7 @@ export default function BookingScreen({ route, navigation }) {
         )}
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
