@@ -17,6 +17,7 @@ import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
 import TechHomeScreen from './screens/TechHomeScreen'
 import NPHomeScreen from './screens/NPHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
+import ClinicHomeScreen from './screens/ClinicHomeScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -116,6 +117,7 @@ export default function App() {
         <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Book Appointment', headerShown: true }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ClinicHome" component={ClinicHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="TechHome" component={TechHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />

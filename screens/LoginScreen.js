@@ -47,9 +47,11 @@ export default function LoginScreen({ route, navigation }) {
               routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
             })
           } else {
+            const serviceType = company?.serviceType || 'mobile'
+            const destination = serviceType === 'clinic' ? 'ClinicHome' : 'DispatcherHome'
             navigation.reset({
               index: 0,
-              routes: [{ name: 'DispatcherHome', params: { token: data.token, user: data.user, company } }]
+              routes: [{ name: destination, params: { token: data.token, user: data.user, company } }]
             })
           }
         } else if (role === 'tech') {
