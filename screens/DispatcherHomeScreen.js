@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -55,6 +56,8 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [techs, setTechs] = useState([])
   const [stats, setStats] = useState({ pending: 0, active: 0, completed_today: 0, cancelled_today: 0 })
   const [log, setLog] = useState([])
+  const [scheduled, setScheduled] = useState([])
+  const [upcoming, setUpcoming] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -66,6 +69,9 @@ const [selectedTechs, setSelectedTechs] = useState([])
 const [callDetailModal, setCallDetailModal] = useState(false)
 const [selectedCall, setSelectedCall] = useState(null)
 const [callTechs, setCallTechs] = useState([])
+const [confirmTimeModal, setConfirmTimeModal] = useState(false)
+const [confirmedTime, setConfirmedTime] = useState(new Date())
+const [pendingTechIds, setPendingTechIds] = useState([])
 
   // Cancel modal
   const [cancelModal, setCancelModal] = useState(false)
@@ -121,21 +127,25 @@ const [profileModal, setProfileModal] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
-    const [qRes, aRes, tRes, sRes, lRes] = await Promise.all([
-  fetch(`${API_URL}/dispatch/queue`, { headers }),
-  fetch(`${API_URL}/dispatch/active`, { headers }),
-  fetch(`${API_URL}/dispatch/techs`, { headers }),
-  fetch(`${API_URL}/dispatch/stats`, { headers }),
-  fetch(`${API_URL}/dispatch/log`, { headers })
-])
-const [qData, aData, tData, sData, lData] = await Promise.all([
-  qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json()
-])
-if (qData.queue) setQueue(qData.queue)
-if (aData.active) setActive(aData.active)
-if (tData.techs) setTechs(tData.techs)
-if (sData.stats) setStats(sData.stats)
-if (lData.log) setLog(lData.log)
+    const [qRes, aRes, tRes, sRes, lRes, schRes, upRes] = await Promise.all([
+      fetch(`${API_URL}/dispatch/queue`, { headers }),
+      fetch(`${API_URL}/dispatch/active`, { headers }),
+      fetch(`${API_URL}/dispatch/techs`, { headers }),
+      fetch(`${API_URL}/dispatch/stats`, { headers }),
+      fetch(`${API_URL}/dispatch/log`, { headers }),
+      fetch(`${API_URL}/dispatch/scheduled`, { headers }),
+      fetch(`${API_URL}/dispatch/upcoming`, { headers })
+    ])
+    const [qData, aData, tData, sData, lData, schData, upData] = await Promise.all([
+      qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json(), schRes.json(), upRes.json()
+    ])
+    if (qData.queue) setQueue(qData.queue)
+    if (aData.active) setActive(aData.active)
+    if (tData.techs) setTechs(tData.techs)
+    if (sData.stats) setStats(sData.stats)
+    if (lData.log) setLog(lData.log)
+    if (schData.scheduled) setScheduled(schData.scheduled)
+    if (upData.upcoming) setUpcoming(upData.upcoming)
     } catch (err) {
       console.error('Fetch error:', err)
     } finally {
@@ -174,6 +184,27 @@ if (lData.log) setLog(lData.log)
   const assignTechs = async (singleTechId = null) => {
     const techIds = singleTechId ? [singleTechId] : selectedTechs
     if (techIds.length === 0) return Alert.alert('Select at least one tech')
+
+    // If reassign or active call, skip time picker
+    if (isReassign || selectedBooking?.isActiveCall) {
+      await executeAssign(techIds)
+      return
+    }
+
+    // If booking already has a scheduled time, skip time picker
+    if (selectedBooking?.requested_time) {
+      await executeAssign(techIds)
+      return
+    }
+
+    // Show time confirmation for Now bookings
+    setPendingTechIds(techIds)
+    setConfirmedTime(new Date())
+    setAssignModal(false)
+    setConfirmTimeModal(true)
+  }
+
+  const executeAssign = async (techIds, overrideTime = null) => {
     try {
       if (isReassign) {
         const res = await fetch(`${API_URL}/bookings/${selectedBooking.id}/reassign`, {
@@ -197,7 +228,11 @@ if (lData.log) setLog(lData.log)
         const res = await fetch(`${API_URL}/dispatch/assign`, {
           method: 'POST',
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bookingId: selectedBooking.id, techId: techIds[0] })
+          body: JSON.stringify({ 
+            bookingId: selectedBooking.id, 
+            techId: techIds[0],
+            confirmedTime: overrideTime ? overrideTime.toISOString() : null
+          })
         })
         const data = await res.json()
         if (!data.success) return Alert.alert('Error', data.message || 'Could not assign tech')
@@ -218,10 +253,12 @@ if (lData.log) setLog(lData.log)
         }
       }
 
+      setConfirmTimeModal(false)
       setAssignModal(false)
       setSelectedBooking(null)
       setIsReassign(false)
       setSelectedTechs([])
+      setPendingTechIds([])
       fetchAll()
     } catch (err) {
       Alert.alert('Error', 'Network error')
@@ -524,7 +561,7 @@ const submitSendIntake = async () => {
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        {['queue', 'active', 'team', 'log'].map(tab => (
+        {['queue', 'scheduled', 'upcoming', 'active', 'team', 'log'].map(tab => (
           <TouchableOpacity
             key={tab}
             style={[styles.tab, activeTab === tab && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
@@ -532,9 +569,11 @@ const submitSendIntake = async () => {
           >
             <Text style={[styles.tabText, activeTab === tab && { color: primaryColor }]}>
               {tab === 'queue' ? `Queue ${queue.length > 0 ? `(${queue.length})` : ''}` :
- tab === 'active' ? `Active ${active.length > 0 ? `(${active.length})` : ''}` :
- tab === 'team' ? `Team (${techs.length})` :
- `Log (${log.length})`}
+               tab === 'scheduled' ? `Scheduled ${scheduled.length > 0 ? `(${scheduled.length})` : ''}` :
+               tab === 'upcoming' ? `Upcoming ${upcoming.length > 0 ? `(${upcoming.length})` : ''}` :
+               tab === 'active' ? `Active ${active.length > 0 ? `(${active.length})` : ''}` :
+               tab === 'team' ? `Team (${techs.length})` :
+               `Log (${log.length})`}
             </Text>
           </TouchableOpacity>
         ))}
@@ -575,7 +614,7 @@ const submitSendIntake = async () => {
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
                 <Text style={styles.cardTime}>
                   {booking.requested_time
-                    ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
                     : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                   }
                 </Text>
@@ -612,6 +651,127 @@ const submitSendIntake = async () => {
         </ScrollView>
       )}
 
+{/* Scheduled Tab */}
+      {activeTab === 'scheduled' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          {scheduled.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📅</Text>
+              <Text style={styles.emptyText}>No scheduled appointments</Text>
+              <Text style={styles.emptySub}>Future bookings will appear here</Text>
+            </View>
+          ) : (
+            Object.entries(
+              scheduled.reduce((groups, booking) => {
+                const date = new Date(booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                if (!groups[date]) groups[date] = []
+                groups[date].push(booking)
+                return groups
+              }, {})
+            ).map(([date, bookings]) => (
+              <View key={date}>
+                <Text style={[styles.dateGroupHeader, { color: primaryColor }]}>📅 {date}</Text>
+                {bookings.map(booking => (
+                  <View key={booking.id} style={styles.card}>
+                    <View style={styles.cardTop}>
+                      <Text style={styles.cardService}>{booking.service}</Text>
+                      <Text style={styles.cardTime}>
+                        {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                      </Text>
+                    </View>
+                    <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
+                    <Text style={styles.cardAddress}>📍 {booking.address}</Text>
+                    {!booking.has_valid_intake && (
+                      <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
+                    )}
+                    {booking.patient_count > 1 && (
+                      <Text style={[styles.cardPatient, { color: primaryColor }]}>👥 Group booking · {booking.patient_count} IVs</Text>
+                    )}
+                    <View style={styles.cardActions}>
+                      <TouchableOpacity
+                        style={[styles.assignButton, { backgroundColor: primaryColor }]}
+                        onPress={() => openAssignModal(booking, false)}
+                      >
+                        <Text style={[styles.assignButtonText, { color: secondaryColor }]}>Assign →</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.cancelCardButton}
+                        onPress={() => openCancelModal(booking.id, booking.status)}
+                      >
+                        <Text style={styles.cancelCardText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ))
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Upcoming Tab */}
+      {activeTab === 'upcoming' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          {upcoming.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>🗓</Text>
+              <Text style={styles.emptyText}>No upcoming assignments</Text>
+              <Text style={styles.emptySub}>Pre-assigned future bookings will appear here</Text>
+            </View>
+          ) : (
+            Object.entries(
+              upcoming.reduce((groups, booking) => {
+                const date = new Date(booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                if (!groups[date]) groups[date] = []
+                groups[date].push(booking)
+                return groups
+              }, {})
+            ).map(([date, bookings]) => (
+              <View key={date}>
+                <Text style={[styles.dateGroupHeader, { color: primaryColor }]}>📅 {date}</Text>
+                {bookings.map(booking => (
+                  <View key={booking.id} style={styles.card}>
+                    <View style={styles.cardTop}>
+                      <Text style={styles.cardService}>{booking.service}</Text>
+                      <Text style={styles.cardTime}>
+                        {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                      </Text>
+                    </View>
+                    <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
+                    <Text style={styles.cardAddress}>📍 {booking.address}</Text>
+                    {booking.tech_first_name && (
+                      <Text style={styles.cardTech}>🧑‍⚕️ {booking.tech_first_name} {booking.tech_last_name}</Text>
+                    )}
+                    {!booking.has_valid_intake && (
+                      <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
+                    )}
+                    {booking.patient_count > 1 && (
+                      <Text style={[styles.cardPatient, { color: primaryColor }]}>👥 Group booking · {booking.patient_count} IVs</Text>
+                    )}
+                    <View style={styles.cardActions}>
+                      <TouchableOpacity
+                        style={styles.reassignButton}
+                        onPress={() => openAssignModal(booking, true)}
+                      >
+                        <Text style={styles.reassignButtonText}>Reassign</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.cancelCardButton}
+                        onPress={() => openCancelModal(booking.id, booking.status)}
+                      >
+                        <Text style={styles.cancelCardText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ))
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
       {/* Active Tab */}
       {activeTab === 'active' && (
         <ScrollView
@@ -642,6 +802,11 @@ const submitSendIntake = async () => {
                 )}
                 {call.tech_first && (
                   <Text style={styles.cardTech}>🧑‍⚕️ {call.tech_first} {call.tech_last}</Text>
+                )}
+                {call.requested_time && (
+                  <Text style={[styles.cardTech, { color: primaryColor }]}>
+                    🕐 Confirmed for {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                  </Text>
                 )}
                 {call.patient_count > 1 && (
                   <Text style={[styles.cardPatientCount, { color: primaryColor }]}>
@@ -812,6 +977,34 @@ const submitSendIntake = async () => {
             </ScrollView>
             <TouchableOpacity style={styles.cancelModal} onPress={() => setCallDetailModal(false)}>
               <Text style={styles.cancelModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+{/* Confirm Time Modal */}
+      <Modal visible={confirmTimeModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
+            <Text style={styles.modalSub}>Set the confirmed time for this appointment</Text>
+            <DateTimePicker
+              value={confirmedTime}
+              mode="time"
+              display="spinner"
+              onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+              style={{ marginVertical: 16 }}
+            />
+            <TouchableOpacity
+              style={[styles.submitBtn, { backgroundColor: primaryColor, paddingVertical: 16, borderRadius: 12, marginBottom: 10 }]}
+              onPress={() => executeAssign(pendingTechIds, confirmedTime)}
+            >
+              <Text style={[styles.submitBtnText, { color: secondaryColor }]}>
+                Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
+              <Text style={styles.cancelModalText}>← Back</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1275,5 +1468,6 @@ const styles = StyleSheet.create({
   techStatus: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
   assignArrow: { fontSize: 20, fontWeight: '700' },
   cancelModal: { marginTop: 8, padding: 16, alignItems: 'center' },
-  cancelModalText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 }
+  cancelModalText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
+  dateGroupHeader: { fontSize: 13, fontWeight: '700', letterSpacing: 0.5, marginTop: 16, marginBottom: 8, paddingHorizontal: 4 },
 })
