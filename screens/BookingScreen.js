@@ -93,15 +93,7 @@ export default function BookingScreen({ route, navigation }) {
         setScheduleType('now')
         setSelectedSlot(null)
         setError('')
-        navigation.goBack()
-        navigation.navigate('HomeTab', {
-          token,
-          user,
-          company,
-          message: scheduleType === 'later' 
-            ? `Appointment scheduled for ${new Date(selectedSlot?.datetime).toLocaleDateString()} at ${new Date(selectedSlot?.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : 'Booking submitted! We will confirm shortly.'
-        })
+       navigation.goBack()
       } else {
         setError(data.message || 'Something went wrong')
       }

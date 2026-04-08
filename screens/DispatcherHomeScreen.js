@@ -77,7 +77,9 @@ const [pendingTechIds, setPendingTechIds] = useState([])
   const [cancelModal, setCancelModal] = useState(false)
   const [cancelBookingId, setCancelBookingId] = useState(null)
   const [cancelStatus, setCancelStatus] = useState(null)
-  const [cancelReason, setCancelReason] = useState('')
+const [cancelReason, setCancelReason] = useState('')
+const [cancelDisposition, setCancelDisposition] = useState('')
+const [showDispositionDropdown, setShowDispositionDropdown] = useState(false)
   const [cancelling, setCancelling] = useState(false)
 
 // Merge modal
@@ -282,11 +284,12 @@ const [profileModal, setProfileModal] = useState(false)
       const res = await fetch(`${API_URL}/bookings/${cancelBookingId}/cancel`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: cancelReason })
+        body: JSON.stringify({ reason: cancelReason, disposition: cancelDisposition })
       })
       const data = await res.json()
       if (data.success) {
         setCancelModal(false)
+        setCancelDisposition('')
         setCancelReason('')
         fetchAll()
       } else {
@@ -1069,6 +1072,39 @@ const submitSendIntake = async () => {
                cancelStatus === 'confirmed' ? 'A tech has been assigned to this booking.' :
                'This booking has not been assigned yet.'}
             </Text>
+            <Text style={styles.reasonLabel}>Disposition</Text>
+            <TouchableOpacity
+              style={[styles.reasonInput, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 48 }]}
+              onPress={() => setShowDispositionDropdown(!showDispositionDropdown)}
+            >
+              <Text style={{ color: cancelDisposition ? '#fff' : '#666', fontSize: 14 }}>
+                {cancelDisposition || 'Select a disposition...'}
+              </Text>
+              <Text style={{ color: '#666' }}>{showDispositionDropdown ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
+            {showDispositionDropdown && (
+              <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                {[
+                  'Too long of a wait',
+                  'Patient went to the ER',
+                  'No techs available',
+                  'Price too high',
+                  'Not in our service area',
+                  'Unable to service due to medical condition',
+                  'Other'
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
+                    onPress={() => { setCancelDisposition(option); setShowDispositionDropdown(false) }}
+                  >
+                    <Text style={{ color: cancelDisposition === option ? primaryColor : '#fff', fontSize: 14 }}>
+                      {cancelDisposition === option ? '✓ ' : ''}{option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
             <Text style={styles.reasonLabel}>Reason for cancellation</Text>
             <TextInput
               style={[styles.reasonInput, { height: 80, textAlignVertical: 'top' }]}
@@ -1085,7 +1121,7 @@ const submitSendIntake = async () => {
             >
               {cancelling ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmCancelText}>Confirm Cancellation</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelModal} onPress={() => setCancelModal(false)}>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setCancelModal(false); setCancelDisposition('') }}>
               <Text style={styles.cancelModalText}>Keep booking</Text>
             </TouchableOpacity>
           </View>
@@ -1470,4 +1506,6 @@ const styles = StyleSheet.create({
   cancelModal: { marginTop: 8, padding: 16, alignItems: 'center' },
   cancelModalText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
   dateGroupHeader: { fontSize: 13, fontWeight: '700', letterSpacing: 0.5, marginTop: 16, marginBottom: 8, paddingHorizontal: 4 },
+  dispositionOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, marginBottom: 6 },
+  dispositionText: { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
 })
