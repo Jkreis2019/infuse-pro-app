@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, Vibration
 } from 'react-native'
+import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -29,6 +30,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
+  const [activeTab, setActiveTab] = useState('call')
   const [call, setCall] = useState(null)
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,6 +38,8 @@ export default function TechHomeScreen({ route, navigation }) {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [onSceneSeconds, setOnSceneSeconds] = useState(0)
   const [upcoming, setUpcoming] = useState([])
+  const [mySchedule, setMySchedule] = useState([])
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
@@ -48,14 +52,13 @@ export default function TechHomeScreen({ route, navigation }) {
         setCall(data.call)
         setPatients(data.patients || [])
         setUpcoming(data.upcoming || [])
-
-        // Start 60 min timer if on scene
-       if (data.call?.tech_status === 'on_scene' && data.call?.tech_onscene_at) {
-  const secondsOnScene = Math.floor(
-    (Date.now() - new Date(data.call.tech_onscene_at).getTime()) / 1000
-  )
-  setOnSceneSeconds(secondsOnScene)
-}
+        setMySchedule(data.mySchedule || [])
+        if (data.call?.tech_status === 'on_scene' && data.call?.tech_onscene_at) {
+          const secondsOnScene = Math.floor(
+            (Date.now() - new Date(data.call.tech_onscene_at).getTime()) / 1000
+          )
+          setOnSceneSeconds(secondsOnScene)
+        }
       }
     } catch (err) {
       console.error('Fetch call error:', err)
@@ -71,16 +74,12 @@ export default function TechHomeScreen({ route, navigation }) {
     return () => clearInterval(interval)
   }, [fetchCall])
 
-  // 60 minute on-scene timer
   useEffect(() => {
     if (call?.tech_status === 'on_scene') {
       timerRef.current = setInterval(() => {
         setOnSceneSeconds(prev => {
           const next = prev + 1
-          // Vibrate alert at 55 and 60 minutes
-          if (next === 3300 || next === 3600) {
-            Vibration.vibrate([500, 500, 500])
-          }
+          if (next === 3300 || next === 3600) Vibration.vibrate([500, 500, 500])
           return next
         })
       }, 1000)
@@ -91,10 +90,7 @@ export default function TechHomeScreen({ route, navigation }) {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [call?.status])
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    fetchCall()
-  }
+  const onRefresh = () => { setRefreshing(true); fetchCall() }
 
   const updateStatus = async (newStatus) => {
     if (!call) return
@@ -106,11 +102,8 @@ export default function TechHomeScreen({ route, navigation }) {
         body: JSON.stringify({ status: newStatus, bookingId: call.id })
       })
       const data = await res.json()
-      if (data.success) {
-        fetchCall()
-      } else {
-        Alert.alert('Error', data.message || 'Could not update status')
-      }
+      if (data.success) fetchCall()
+      else Alert.alert('Error', data.message || 'Could not update status')
     } catch (err) {
       Alert.alert('Error', 'Network error')
     } finally {
@@ -131,21 +124,16 @@ export default function TechHomeScreen({ route, navigation }) {
   }
 
   const handleEmergency = () => {
-    Alert.alert(
-      '🚨 Emergency',
-      'This will immediately alert your dispatcher and company admin. Are you sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'SEND EMERGENCY ALERT',
-          style: 'destructive',
-          onPress: () => {
-            Vibration.vibrate([200, 100, 200, 100, 200])
-            Alert.alert('Emergency Sent', 'Your dispatcher has been notified. Stay safe.')
-          }
+    Alert.alert('🚨 Emergency', 'This will immediately alert your dispatcher. Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'SEND EMERGENCY ALERT', style: 'destructive',
+        onPress: () => {
+          Vibration.vibrate([200, 100, 200, 100, 200])
+          Alert.alert('Emergency Sent', 'Your dispatcher has been notified. Stay safe.')
         }
-      ]
-    )
+      }
+    ])
   }
 
   const formatTimer = (seconds) => {
@@ -154,8 +142,26 @@ export default function TechHomeScreen({ route, navigation }) {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   }
 
-  const timerWarning = onSceneSeconds >= 3300 // 55 min
-  const timerDanger = onSceneSeconds >= 3600 // 60 min
+  const timerWarning = onSceneSeconds >= 3300
+  const timerDanger = onSceneSeconds >= 3600
+
+  // Build marked dates for calendar
+  const markedDates = mySchedule.reduce((acc, booking) => {
+    const date = new Date(booking.requested_time).toISOString().split('T')[0]
+    acc[date] = { marked: true, dotColor: primaryColor }
+    return acc
+  }, {})
+  if (selectedScheduleDate) {
+    markedDates[selectedScheduleDate] = {
+      ...markedDates[selectedScheduleDate],
+      selected: true,
+      selectedColor: primaryColor
+    }
+  }
+
+  const selectedDayBookings = selectedScheduleDate
+    ? mySchedule.filter(b => new Date(b.requested_time).toISOString().split('T')[0] === selectedScheduleDate)
+    : []
 
   if (loading) {
     return (
@@ -166,185 +172,234 @@ export default function TechHomeScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
-    >
+    <View style={styles.container}>
       {/* Header */}
-     <View style={[styles.header, { backgroundColor: secondaryColor }]}>
-  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-    <View>
-      <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
-      <Text style={styles.headerTitle}>My Call</Text>
-      <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
-    </View>
-    <TouchableOpacity
-      onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
-    >
-      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
-    </TouchableOpacity>
-  </View>
-</View>
-
-      {/* Emergency Button — only show when on scene */}
-      {call?.tech_status === 'on_scene' && (
-        <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
-          <Text style={styles.emergencyText}>🚨 EMERGENCY</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* No Call */}
-      {!call ? (
-        <View style={styles.noCall}>
-          <Text style={styles.noCallIcon}>📵</Text>
-          <Text style={styles.noCallText}>No active call</Text>
-          <Text style={styles.noCallSub}>You'll be notified when a call is assigned</Text>
-        </View>
-      ) : (
-        <>
-          {/* Status Banner */}
-          <View style={[styles.statusBanner, { backgroundColor: STATUS_COLORS[call.tech_status || call.status] + '33', borderColor: STATUS_COLORS[call.tech_status || call.status] }]}>
-            <Text style={[styles.statusBannerText, { color: STATUS_COLORS[call.tech_status || call.status] }]}>
-              {STATUS_LABELS[call.tech_status || call.status] || call.tech_status || call.status}
-            </Text>
+      <View style={[styles.header, { backgroundColor: secondaryColor }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <View>
+            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+            <Text style={styles.headerTitle}>My Call</Text>
+            <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
           </View>
-
-          {/* Call Details */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Call Details</Text>
-            <Text style={styles.service}>{call.service}</Text>
-            <Text style={styles.label}>📍 Address</Text>
-            <Text style={styles.value}>{call.address}</Text>
-            {call.address_note && <Text style={styles.valueNote}>{call.address_note}</Text>}
-            {call.notes && (
-              <>
-                <Text style={styles.label}>📝 Notes</Text>
-                <Text style={styles.value}>{call.notes}</Text>
-              </>
-            )}
-            <Text style={styles.label}>🕐 Dispatched</Text>
-            <Text style={styles.value}>
-              {new Date(call.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </View>
-
-          {/* Patient Info */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              Primary Patient {call.patient_count > 1 ? `(+${call.patient_count - 1} more)` : ''}
-            </Text>
-            <Text style={styles.service}>{call.patient_name}</Text>
-            {!call.has_valid_intake && (
-              <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginTop: 4 }}>⚠️ No intake on file</Text>
-            )}
-            {call.patient_phone && <Text style={styles.value}>📞 {call.patient_phone}</Text>}
-            {call.patient_dob && (
-              <Text style={styles.value}>
-                🎂 {new Date(call.patient_dob).toLocaleDateString()}
-              </Text>
-            )}
-          </View>
-
-          {/* Additional Patients */}
-          {patients.length > 0 && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Additional Patients</Text>
-              {patients.map(p => (
-                <View key={p.id} style={styles.patientRow}>
-                  <Text style={styles.patientName}>{p.patient_name}</Text>
-                  <Text style={styles.patientDetail}>
-                    {p.patient_phone || 'No phone'} · 
-                    Chart: {p.chart_completed ? '✅' : '⏳'}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* 60 Min Timer */}
-          {call.tech_status === 'on_scene' && (
-            <View style={[styles.timerCard, timerDanger && styles.timerDanger, timerWarning && !timerDanger && styles.timerWarning]}>
-              <Text style={styles.timerLabel}>⏱ Time On Scene</Text>
-              <Text style={[styles.timerValue, timerDanger && { color: '#f09090' }, timerWarning && !timerDanger && { color: '#E2C97E' }]}>
-                {formatTimer(onSceneSeconds)}
-              </Text>
-              {timerWarning && (
-                <Text style={styles.timerAlert}>
-                  {timerDanger ? '⚠️ 60 minutes reached — contact dispatch!' : '⚠️ Approaching 60 minutes'}
-                </Text>
-              )}
-            </View>
-          )}
-
-          {/* Status Controls */}
-          {call.status !== 'completed' && (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Update Status</Text>
-              {(call.tech_status === 'assigned' || call.tech_status === null) && (
-                <TouchableOpacity
-                  style={[styles.statusButton, { backgroundColor: '#2196F3' }]}
-                  onPress={() => handleStatusChange('en_route')}
-                  disabled={updatingStatus}
-                >
-                  {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>🚗 I'm En Route</Text>}
-                </TouchableOpacity>
-              )}
-              {call.tech_status === 'en_route' && (
-                <TouchableOpacity
-                  style={[styles.statusButton, { backgroundColor: '#4CAF50' }]}
-                  onPress={() => handleStatusChange('on_scene')}
-                  disabled={updatingStatus}
-                >
-                  {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>📍 I'm On Scene</Text>}
-                </TouchableOpacity>
-              )}
-              {call.tech_status === 'on_scene' && (
-                <TouchableOpacity
-                  style={[styles.statusButton, { backgroundColor: primaryColor }]}
-                  onPress={() => handleStatusChange('clear')}
-                  disabled={updatingStatus}
-                >
-                  {updatingStatus ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.statusButtonText, { color: secondaryColor }]}>✅ Call Complete — Go Clear</Text>}
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-
-{/* Up Next */}
-{upcoming.length > 0 && (
-  <View style={styles.card}>
-    <Text style={styles.cardTitle}>Up Next — {upcoming.length} more call{upcoming.length > 1 ? 's' : ''}</Text>
-    {upcoming.map((u, index) => (
-      <View key={u.id} style={[styles.patientRow, index > 0 && { marginTop: 8 }]}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.patientName}>{u.service}</Text>
-          <Text style={styles.patientDetail}>📍 {u.address}</Text>
-          <Text style={styles.patientDetail}>👤 {u.patient_name}</Text>
-          {u.requested_time && (
-            <Text style={styles.patientDetail}>
-              🕐 {new Date(u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          )}
+          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
+          </TouchableOpacity>
         </View>
       </View>
-    ))}
-  </View>
-)}
 
-          {/* Completed */}
-          {call.status === 'completed' && (
-            <View style={styles.completedCard}>
-              <Text style={styles.completedIcon}>⭐</Text>
-              <Text style={styles.completedText}>Call Complete!</Text>
-              <Text style={styles.completedSub}>Great work. Waiting for your next call.</Text>
-            </View>
+      {/* Tab Bar */}
+      <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+        <TouchableOpacity
+          style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'call' ? primaryColor : 'transparent' }}
+          onPress={() => setActiveTab('call')}
+        >
+          <Text style={{ color: activeTab === 'call' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📞 My Call</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'schedule' ? primaryColor : 'transparent' }}
+          onPress={() => setActiveTab('schedule')}
+        >
+          <Text style={{ color: activeTab === 'schedule' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>
+            📅 Schedule{mySchedule.length > 0 ? ` (${mySchedule.length})` : ''}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* My Call Tab */}
+      {activeTab === 'call' && (
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
+        >
+          {/* Emergency Button */}
+          {call?.tech_status === 'on_scene' && (
+            <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
+              <Text style={styles.emergencyText}>🚨 EMERGENCY</Text>
+            </TouchableOpacity>
           )}
-        </>
+
+          {/* No Call */}
+          {!call ? (
+            <View style={styles.noCall}>
+              <Text style={styles.noCallIcon}>📵</Text>
+              <Text style={styles.noCallText}>No active call</Text>
+              <Text style={styles.noCallSub}>You'll be notified when a call is assigned</Text>
+            </View>
+          ) : (
+            <>
+              {/* Status Banner */}
+              <View style={[styles.statusBanner, { backgroundColor: STATUS_COLORS[call.tech_status || call.status] + '33', borderColor: STATUS_COLORS[call.tech_status || call.status] }]}>
+                <Text style={[styles.statusBannerText, { color: STATUS_COLORS[call.tech_status || call.status] }]}>
+                  {STATUS_LABELS[call.tech_status || call.status] || call.tech_status || call.status}
+                </Text>
+              </View>
+
+              {/* Call Details */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Call Details</Text>
+                <Text style={styles.service}>{call.service}</Text>
+                <Text style={styles.label}>📍 Address</Text>
+                <Text style={styles.value}>{call.address}</Text>
+                {call.address_note && <Text style={styles.valueNote}>{call.address_note}</Text>}
+                {call.notes && (<><Text style={styles.label}>📝 Notes</Text><Text style={styles.value}>{call.notes}</Text></>)}
+                <Text style={styles.label}>🕐 Dispatched</Text>
+                <Text style={styles.value}>{new Date(call.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                {call.requested_time && (
+                  <>
+                    <Text style={styles.label}>📅 Confirmed For</Text>
+                    <Text style={[styles.value, { color: primaryColor, fontWeight: '600' }]}>
+                      {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                    </Text>
+                  </>
+                )}
+              </View>
+
+              {/* Patient Info */}
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Primary Patient {call.patient_count > 1 ? `(+${call.patient_count - 1} more)` : ''}</Text>
+                <Text style={styles.service}>{call.patient_name}</Text>
+                {!call.has_valid_intake && <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginTop: 4 }}>⚠️ No intake on file</Text>}
+                {call.patient_phone && <Text style={styles.value}>📞 {call.patient_phone}</Text>}
+                {call.patient_dob && <Text style={styles.value}>🎂 {new Date(call.patient_dob).toLocaleDateString()}</Text>}
+              </View>
+
+              {/* Additional Patients */}
+              {patients.length > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Additional Patients</Text>
+                  {patients.map(p => (
+                    <View key={p.id} style={styles.patientRow}>
+                      <Text style={styles.patientName}>{p.patient_name}</Text>
+                      <Text style={styles.patientDetail}>{p.patient_phone || 'No phone'} · Chart: {p.chart_completed ? '✅' : '⏳'}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* 60 Min Timer */}
+              {call.tech_status === 'on_scene' && (
+                <View style={[styles.timerCard, timerDanger && styles.timerDanger, timerWarning && !timerDanger && styles.timerWarning]}>
+                  <Text style={styles.timerLabel}>⏱ Time On Scene</Text>
+                  <Text style={[styles.timerValue, timerDanger && { color: '#f09090' }, timerWarning && !timerDanger && { color: '#E2C97E' }]}>
+                    {formatTimer(onSceneSeconds)}
+                  </Text>
+                  {timerWarning && (
+                    <Text style={styles.timerAlert}>
+                      {timerDanger ? '⚠️ 60 minutes reached — contact dispatch!' : '⚠️ Approaching 60 minutes'}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {/* Status Controls */}
+              {call.status !== 'completed' && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Update Status</Text>
+                  {(call.tech_status === 'assigned' || call.tech_status === null) && (
+                    <TouchableOpacity style={[styles.statusButton, { backgroundColor: '#2196F3' }]} onPress={() => handleStatusChange('en_route')} disabled={updatingStatus}>
+                      {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>🚗 I'm En Route</Text>}
+                    </TouchableOpacity>
+                  )}
+                  {call.tech_status === 'en_route' && (
+                    <TouchableOpacity style={[styles.statusButton, { backgroundColor: '#4CAF50' }]} onPress={() => handleStatusChange('on_scene')} disabled={updatingStatus}>
+                      {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>📍 I'm On Scene</Text>}
+                    </TouchableOpacity>
+                  )}
+                  {call.tech_status === 'on_scene' && (
+                    <TouchableOpacity style={[styles.statusButton, { backgroundColor: primaryColor }]} onPress={() => handleStatusChange('clear')} disabled={updatingStatus}>
+                      {updatingStatus ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.statusButtonText, { color: secondaryColor }]}>✅ Call Complete — Go Clear</Text>}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
+              {/* Up Next */}
+              {upcoming.length > 0 && (
+                <View style={styles.card}>
+                  <Text style={styles.cardTitle}>Up Next — {upcoming.length} more call{upcoming.length > 1 ? 's' : ''}</Text>
+                  {upcoming.map((u, index) => (
+                    <View key={u.id} style={[styles.patientRow, index > 0 && { marginTop: 8 }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.patientName}>{u.service}</Text>
+                        <Text style={styles.patientDetail}>📍 {u.address}</Text>
+                        <Text style={styles.patientDetail}>👤 {u.patient_name}</Text>
+                        {u.requested_time && (
+                          <Text style={styles.patientDetail}>🕐 {new Date(u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Completed */}
+              {call.status === 'completed' && (
+                <View style={styles.completedCard}>
+                  <Text style={styles.completedIcon}>⭐</Text>
+                  <Text style={styles.completedText}>Call Complete!</Text>
+                  <Text style={styles.completedSub}>Great work. Waiting for your next call.</Text>
+                </View>
+              )}
+            </>
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
       )}
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+      {/* Schedule Tab */}
+      {activeTab === 'schedule' && (
+        <ScrollView style={{ flex: 1 }}>
+          <Calendar
+            onDayPress={(day) => setSelectedScheduleDate(day.dateString)}
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: 'transparent',
+              calendarBackground: 'transparent',
+              textSectionTitleColor: 'rgba(255,255,255,0.5)',
+              selectedDayBackgroundColor: primaryColor,
+              selectedDayTextColor: secondaryColor,
+              todayTextColor: primaryColor,
+              dayTextColor: '#fff',
+              textDisabledColor: 'rgba(255,255,255,0.2)',
+              monthTextColor: '#fff',
+              arrowColor: primaryColor,
+              dotColor: primaryColor,
+            }}
+            style={{ marginBottom: 8 }}
+          />
+          {selectedScheduleDate && (
+            <View style={[styles.card, { marginHorizontal: 16 }]}>
+              <Text style={styles.cardTitle}>
+                {new Date(selectedScheduleDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              </Text>
+              {selectedDayBookings.length === 0 ? (
+                <Text style={styles.patientDetail}>No appointments on this day</Text>
+              ) : (
+                selectedDayBookings.map(b => (
+                  <View key={b.id} style={[styles.patientRow, { marginBottom: 8 }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.patientName}>{b.service}</Text>
+                      <Text style={styles.patientDetail}>👤 {b.patient_name}</Text>
+                      <Text style={styles.patientDetail}>📍 {b.address}</Text>
+                      <Text style={[styles.patientDetail, { color: primaryColor, fontWeight: '600' }]}>
+                        🕐 {new Date(b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                      </Text>
+                      {b.patient_count > 1 && <Text style={styles.patientDetail}>👥 {b.patient_count} patients</Text>}
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+          {mySchedule.length === 0 && (
+            <View style={{ alignItems: 'center', marginTop: 40 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No upcoming assignments</Text>
+            </View>
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+    </View>
   )
 }
 
@@ -352,19 +407,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   content: { paddingBottom: 48 },
   centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, marginBottom: 16 },
+  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
-  emergencyButton: { marginHorizontal: 16, marginBottom: 16, backgroundColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center' },
+  emergencyButton: { marginHorizontal: 16, marginTop: 16, marginBottom: 8, backgroundColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center' },
   emergencyText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 1 },
   noCall: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 32 },
   noCallIcon: { fontSize: 64, marginBottom: 16 },
   noCallText: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 8 },
   noCallSub: { fontSize: 14, color: 'rgba(255,255,255,0.4)', textAlign: 'center' },
-  statusBanner: { marginHorizontal: 16, marginBottom: 16, borderWidth: 2, borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
-statusBannerText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  card: { marginHorizontal: 16, marginBottom: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20 },
+  statusBanner: { marginHorizontal: 16, marginTop: 16, marginBottom: 16, borderWidth: 2, borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)' },
+  statusBannerText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  card: { marginHorizontal: 16, marginBottom: 16, marginTop: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20 },
   cardTitle: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.8)', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 },
   service: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 12 },
   label: { fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8, marginBottom: 4 },
