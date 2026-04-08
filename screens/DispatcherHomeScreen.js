@@ -100,6 +100,9 @@ const [detailBooking, setDetailBooking] = useState(null)
   const [nbNotes, setNbNotes] = useState('')
   const [showServiceList, setShowServiceList] = useState(false)
   const [submittingBooking, setSubmittingBooking] = useState(false)
+const [nbSearchQuery, setNbSearchQuery] = useState('')
+const [nbSearchResults, setNbSearchResults] = useState([])
+const [nbSelectedPatient, setNbSelectedPatient] = useState(null)
 
   // Add patient modal
   const [addPatientModal, setAddPatientModal] = useState(false)
@@ -377,6 +380,29 @@ const submitMerge = async (targetId) => {
   } finally {
     setMergingId(null)
   }
+}
+
+const searchPatients = async (query) => {
+  setNbSearchQuery(query)
+  if (query.length < 2) { setNbSearchResults([]); return }
+  try {
+    const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
+    const data = await res.json()
+    console.log('Search results:', JSON.stringify(data))
+setNbSearchResults(data.patients || [])
+  } catch (e) {
+    setNbSearchResults([])
+  }
+}
+
+const selectPatient = (patient) => {
+  const fullName = `${patient.first_name} ${patient.last_name}`
+  setNbSelectedPatient(patient)
+  setNbPatientName(fullName)
+  setNbPhone(patient.phone || '')
+  setNbAddress(patient.last_address || '')
+  setNbSearchQuery(fullName)
+  setNbSearchResults([])
 }
 
   const submitNewBooking = async () => {
@@ -1131,11 +1157,11 @@ const submitSendIntake = async () => {
 
       {/* New Booking Modal */}
 
-      {/* New Booking Modal */}
       <Modal visible={newBookingModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}>
-            <View style={styles.modalCard}>
+  <View style={styles.modalOverlay}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.modalCard}>
               <Text style={styles.modalTitle}>New Phone Booking</Text>
               <Text style={styles.modalSub}>Create a booking for a patient who called in</Text>
               <Text style={styles.reasonLabel}>Patient name *</Text>
@@ -1160,6 +1186,28 @@ const submitSendIntake = async () => {
                   ))}
                 </View>
               )}
+              <Text style={styles.reasonLabel}>Search existing patient</Text>
+<TextInput
+  style={styles.reasonInput}
+  placeholder="Search by name or phone..."
+  placeholderTextColor="#666"
+  value={nbSearchQuery}
+  onChangeText={searchPatients}
+/>
+{nbSearchResults.length > 0 && (
+  <View style={{ backgroundColor: '#1a1a1a', borderRadius: 8, marginBottom: 8 }}>
+    {nbSearchResults.map(p => (
+      <TouchableOpacity
+        key={p.id}
+        style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' }}
+        onPress={() => selectPatient(p)}
+      >
+        <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+        <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'} · {p.address || 'No address'}</Text>
+      </TouchableOpacity>
+    ))}
+  </View>
+)}
               <Text style={styles.reasonLabel}>Address *</Text>
               <TextInput style={styles.reasonInput} placeholder="Full address" placeholderTextColor="#666" value={nbAddress} onChangeText={setNbAddress} />
               <Text style={styles.reasonLabel}>Notes</Text>
@@ -1171,13 +1219,14 @@ const submitSendIntake = async () => {
               >
                 {submittingBooking ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>Add to Queue</Text>}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelModal} onPress={() => { setNewBookingModal(false); setShowServiceList(false); setNbService('') }}>
+              <TouchableOpacity style={styles.cancelModal} onPress={() => { setNewBookingModal(false); setShowServiceList(false); setNbService(''); setNbSearchQuery(''); setNbSearchResults([]); setNbSelectedPatient(null) }}>
                 <Text style={styles.cancelModalText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </View>
-      </Modal>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
 
       {/* Patient List Modal */}
       <Modal visible={patientListModal} transparent animationType="slide">

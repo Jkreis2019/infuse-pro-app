@@ -1,28 +1,343 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert, Vibration
+  ActivityIndicator, RefreshControl, Alert, Vibration, Modal, KeyboardAvoidingView, Platform, TextInput
 } from 'react-native'
 import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
 
 const STATUS_COLORS = {
-  confirmed: '#C9A84C',
-  assigned: '#C9A84C',
-  en_route: '#2196F3',
-  on_scene: '#4CAF50',
-  cleared: '#aaa',
-  completed: '#aaa'
+  confirmed: '#C9A84C', assigned: '#C9A84C', en_route: '#2196F3',
+  on_scene: '#4CAF50', cleared: '#aaa', completed: '#aaa'
 }
 
 const STATUS_LABELS = {
-  confirmed: 'Confirmed — Waiting to depart',
-  assigned: 'Confirmed — Waiting to depart',
-  en_route: 'En Route',
-  on_scene: 'On Scene',
-  cleared: 'Cleared',
-  completed: 'Completed'
+  confirmed: 'Confirmed — Waiting to depart', assigned: 'Confirmed — Waiting to depart',
+  en_route: 'En Route', on_scene: 'On Scene', cleared: 'Cleared', completed: 'Completed'
+}
+
+const IV_MEDICATIONS = [
+  { key: 'second_liter', label: '2nd Liter 1000ml (NS/LR)' },
+  { key: 'second_half_liter', label: '2nd Half-Liter 500ml (NS/LR)' },
+  { key: 'zofran_1', label: 'Zofran 4mg/2ml' },
+  { key: 'zofran_2', label: 'Zofran 4mg/2ml (2nd Dose)' },
+  { key: 'toradol_1', label: 'Toradol 15mg/0.5ml' },
+  { key: 'toradol_2', label: 'Toradol 15mg/0.5ml (2nd Dose)' },
+  { key: 'famotidine_1', label: 'Famotidine 20mg/2ml' },
+  { key: 'famotidine_2', label: 'Famotidine 20mg/2ml (2nd Dose)' },
+  { key: 'glutathione', label: 'Glutathione 200mg/ml (max 1200mg)' },
+  { key: 'benadryl_1', label: 'Benadryl 25mg/0.5ml' },
+  { key: 'benadryl_2', label: 'Benadryl 25mg/0.5ml (2nd Dose)' },
+  { key: 'decadron_1', label: 'Decadron 4mg/0.4ml' },
+  { key: 'decadron_2', label: 'Decadron 4mg/0.4ml (2nd Dose)' },
+]
+
+const BAG_ADDONS = [
+  { key: 'vitamin_c', label: 'Vitamin C 500mg/ml (500mg-5000mg)' },
+  { key: 'b_complex', label: 'B-Complex 1ml-3ml' },
+  { key: 'b6', label: 'B6 100mg (max 100mg)' },
+  { key: 'biotin', label: 'Biotin 1ml (max 3ml)' },
+  { key: 'zinc', label: 'Zinc 10mg (max 20mg)' },
+  { key: 'magnesium', label: 'Magnesium 200mg (max 800mg)' },
+  { key: 'l_carnitine', label: 'L-Carnitine 500mg (max 500mg)' },
+  { key: 'taurine', label: 'Taurine 50mg (max 100mg)' },
+  { key: 'b12', label: 'Methylcobalamin B12 1ml (max 2ml)' },
+  { key: 'tri_amino', label: 'Tri-Amino Blend 1ml (max 1ml)' },
+]
+
+const IM_INJECTIONS = [
+  { key: 'promethazine_1', label: 'Promethazine 12.5mg/0.5ml IM' },
+  { key: 'promethazine_2', label: 'Promethazine 12.5mg/0.5ml IM (2nd Dose)' },
+  { key: 'toradol_im_1', label: 'Toradol 15mg/0.5ml IM' },
+  { key: 'toradol_im_2', label: 'Toradol 15mg/0.5ml IM (2nd Dose)' },
+  { key: 'famotidine_im_1', label: 'Famotidine 20mg/2ml IM' },
+  { key: 'famotidine_im_2', label: 'Famotidine 20mg/2ml IM (2nd Dose)' },
+  { key: 'benadryl_im_1', label: 'Benadryl 25mg/0.5ml IM' },
+  { key: 'benadryl_im_2', label: 'Benadryl 25mg/0.5ml IM (2nd Dose)' },
+  { key: 'glutathione_im', label: 'Glutathione 200mg/ml IM (max 600mg/3ml)' },
+  { key: 'biotin_im', label: 'Biotin 2ml IM (Gluteal)' },
+  { key: 'b12_im', label: 'Methylcobalamin B12 5000mg/ml 1ml IM' },
+]
+
+const IV_SITES = ['L AC', 'R AC', 'L Hand', 'R Hand', 'L Forearm', 'R Forearm', 'L Wrist', 'R Wrist', 'Does Not Apply']
+const CATHETER_SIZES = ['18g', '20g', '22g', '24g', 'Does Not Apply']
+const IV_FLUIDS = ['Normal Saline 250mls', 'Normal Saline 500mls', 'Normal Saline 1000mls', 'Lactated Ringers 500mls', 'Lactated Ringers 1000mls']
+
+// ── MedRow defined at MODULE level to prevent remount on parent re-render ──
+const MedRow = ({ item, medSet, setMedSet, showDose, primaryColor, secondaryColor }) => {
+  const checked = !!medSet[item.key]
+  const toggle = () => setMedSet(prev => ({ ...prev, [item.key]: prev[item.key] ? null : { time: '', dose: '' } }))
+  const setTime = (t) => setMedSet(prev => ({ ...prev, [item.key]: { ...prev[item.key], time: t } }))
+  const setDose = (d) => setMedSet(prev => ({ ...prev, [item.key]: { ...prev[item.key], dose: d } }))
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+      <TouchableOpacity
+        style={[cStyles.checkbox, checked && { backgroundColor: primaryColor, borderColor: primaryColor }]}
+        onPress={toggle}
+      >
+        {checked && <Text style={{ color: secondaryColor, fontSize: 12 }}>✓</Text>}
+      </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: '#fff', fontSize: 13 }}>{item.label}</Text>
+        {checked && (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+            <TextInput
+              style={[cStyles.input, { flex: 1 }]}
+              placeholder="Time"
+              placeholderTextColor="#666"
+              value={medSet[item.key]?.time || ''}
+              onChangeText={setTime}
+            />
+            {showDose && (
+              <TextInput
+                style={[cStyles.input, { flex: 1 }]}
+                placeholder="Dose/Location"
+                placeholderTextColor="#666"
+                value={medSet[item.key]?.dose || ''}
+                onChangeText={setDose}
+              />
+            )}
+          </View>
+        )}
+      </View>
+    </View>
+  )
+}
+
+// ── SelectRow also at module level ──
+const SelectRow = ({ label, options, value, onSelect, primaryColor, secondaryColor }) => (
+  <View style={{ marginBottom: 14 }}>
+    <Text style={cStyles.fieldLabel}>{label}</Text>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(opt => (
+        <TouchableOpacity
+          key={opt}
+          style={[cStyles.optionBtn, value === opt && { backgroundColor: primaryColor, borderColor: primaryColor }]}
+          onPress={() => onSelect(opt)}
+        >
+          <Text style={[cStyles.optionText, value === opt && { color: secondaryColor }]}>{opt}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+)
+
+const cStyles = StyleSheet.create({
+  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  section: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, marginBottom: 12, padding: 16 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 16 },
+  fieldLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 14, color: '#fff', marginBottom: 10 },
+  optionBtn: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 8 },
+  optionText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
+  checkbox: { width: 22, height: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderRadius: 4, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+})
+
+function ChartModal({ visible, onClose, call, token, company }) {
+  const primaryColor = company?.primaryColor || '#C9A84C'
+  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const headers = { Authorization: `Bearer ${token}` }
+
+  const [saving, setSaving] = useState(false)
+  const [chartId, setChartId] = useState(null)
+  const [chiefComplaint, setChiefComplaint] = useState('')
+  const [medicalHistoryChanges, setMedicalHistoryChanges] = useState('')
+  const [allergiesDetail, setAllergiesDetail] = useState('')
+  const [bp, setBp] = useState('')
+  const [hr, setHr] = useState('')
+  const [o2, setO2] = useState('')
+  const [temp, setTemp] = useState('')
+  const [painScale, setPainScale] = useState('')
+  const [vitalTime, setVitalTime] = useState('')
+  const [ivSite, setIvSite] = useState('')
+  const [catheterSize, setCatheterSize] = useState('')
+  const [ivAttempts, setIvAttempts] = useState('1')
+  const [ivTimeInitiated, setIvTimeInitiated] = useState('')
+  const [ivFluids, setIvFluids] = useState([])
+  const [ivMeds, setIvMeds] = useState({})
+  const [bagAddons, setBagAddons] = useState({})
+  const [imInjections, setImInjections] = useState({})
+  const [postBp, setPostBp] = useState('')
+  const [postHr, setPostHr] = useState('')
+  const [postO2, setPostO2] = useState('')
+  const [postTime, setPostTime] = useState('')
+  const [complications, setComplications] = useState('No')
+  const [complicationsDetail, setComplicationsDetail] = useState('')
+  const [catheterStatus, setCatheterStatus] = useState('Normal and Intact')
+  const [ivTimeDiscontinued, setIvTimeDiscontinued] = useState('')
+  const [techNotes, setTechNotes] = useState('')
+
+  const toggleFluid = (fluid) => {
+    setIvFluids(prev => prev.includes(fluid) ? prev.filter(f => f !== fluid) : [...prev, fluid])
+  }
+
+  const saveChart = async (submit = false) => {
+    setSaving(true)
+    try {
+      const data = {
+        callId: call?.call_id, bookingId: call?.id,
+        patientName: call?.patient_name, patientDob: call?.patient_dob,
+        chiefComplaint, medicalHistoryChanges, allergiesDetail,
+        bloodPressure: bp, heartRate: hr ? parseInt(hr) : null,
+        oxygenSat: o2 ? parseInt(o2) : null, temperature: temp || null,
+        painScale: painScale ? parseInt(painScale) : null,
+        vitalsSets: [{ bp, hr, o2, temp, painScale, time: vitalTime }],
+        ivInsertionSite: ivSite, ivCatheterSize: catheterSize,
+        ivAttempts: ivAttempts ? parseInt(ivAttempts) : null,
+        ivTimeInitiated: ivTimeInitiated || null,
+        ivFluidsUsed: ivFluids,
+        prnIvMedications: ivMeds, prnBagAddons: bagAddons, prnImInjections: imInjections,
+        vitalsPost: { bp: postBp, hr: postHr, o2: postO2, time: postTime },
+        complications, complicationsDetail,
+        ivCatheterStatus: catheterStatus,
+        ivTimeDiscontinued: ivTimeDiscontinued || null,
+        techNotes, status: submit ? 'submitted' : 'open'
+      }
+
+      let res
+      if (chartId) {
+        res = await fetch(`${API_URL}/charts/${chartId}`, {
+          method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        })
+      } else {
+        res = await fetch(`${API_URL}/charts`, {
+          method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+        })
+      }
+
+      const responseData = await res.json()
+      if (responseData.success) {
+        if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
+        if (submit) { Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
+      } else {
+        Alert.alert('Error', responseData.message || 'Could not save chart')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={[cStyles.header, { backgroundColor: secondaryColor }]}>
+          <TouchableOpacity onPress={() => { saveChart(false); onClose() }}>
+            <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Save & Back</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Chart</Text>
+          <TouchableOpacity onPress={() => saveChart(false)}>
+            <Text style={{ color: primaryColor, fontSize: 14 }}>{saving ? '...' : 'Save'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16 }}>
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 4 }}>{call?.patient_name}</Text>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>NURSING ASSESSMENT</Text>
+            <Text style={cStyles.fieldLabel}>Chief Complaint *</Text>
+            <TextInput style={[cStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Chief complaint..." placeholderTextColor="#666" value={chiefComplaint} onChangeText={setChiefComplaint} multiline />
+            <Text style={cStyles.fieldLabel}>Changes to Medical History, Allergies or Medications?</Text>
+            <TextInput style={cStyles.input} placeholder="Any changes..." placeholderTextColor="#666" value={medicalHistoryChanges} onChangeText={setMedicalHistoryChanges} />
+            <Text style={cStyles.fieldLabel}>Allergies & Reactions</Text>
+            <TextInput style={cStyles.input} placeholder="Allergies..." placeholderTextColor="#666" value={allergiesDetail} onChangeText={setAllergiesDetail} />
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>INITIAL VITALS</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>BP (mmHg)</Text><TextInput style={cStyles.input} placeholder="120/80" placeholderTextColor="#666" value={bp} onChangeText={setBp} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pulse (BPM)</Text><TextInput style={cStyles.input} placeholder="72" placeholderTextColor="#666" value={hr} onChangeText={setHr} keyboardType="numeric" /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>O2 Sat (%)</Text><TextInput style={cStyles.input} placeholder="98" placeholderTextColor="#666" value={o2} onChangeText={setO2} keyboardType="numeric" /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Temp (°C)</Text><TextInput style={cStyles.input} placeholder="36.8" placeholderTextColor="#666" value={temp} onChangeText={setTemp} keyboardType="decimal-pad" /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pain Scale (1-10)</Text><TextInput style={cStyles.input} placeholder="0" placeholderTextColor="#666" value={painScale} onChangeText={setPainScale} keyboardType="numeric" /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Time</Text><TextInput style={cStyles.input} placeholder="2:30 PM" placeholderTextColor="#666" value={vitalTime} onChangeText={setVitalTime} /></View>
+            </View>
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>IV INSERTION</Text>
+            <SelectRow label="IV Site" options={IV_SITES} value={ivSite} onSelect={setIvSite} primaryColor={primaryColor} secondaryColor={secondaryColor} />
+            <SelectRow label="Catheter Size" options={CATHETER_SIZES} value={catheterSize} onSelect={setCatheterSize} primaryColor={primaryColor} secondaryColor={secondaryColor} />
+            <SelectRow label="Attempts" options={['1', '2', '3']} value={ivAttempts} onSelect={setIvAttempts} primaryColor={primaryColor} secondaryColor={secondaryColor} />
+            <Text style={cStyles.fieldLabel}>Time IV Initiated</Text>
+            <TextInput style={cStyles.input} placeholder="2:35 PM" placeholderTextColor="#666" value={ivTimeInitiated} onChangeText={setIvTimeInitiated} />
+            <Text style={cStyles.fieldLabel}>Fluids Used</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {IV_FLUIDS.map(fluid => (
+                <TouchableOpacity key={fluid} style={[cStyles.optionBtn, ivFluids.includes(fluid) && { backgroundColor: primaryColor, borderColor: primaryColor }]} onPress={() => toggleFluid(fluid)}>
+                  <Text style={[cStyles.optionText, ivFluids.includes(fluid) && { color: secondaryColor }]}>{fluid}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>PRN IV MEDICATIONS</Text>
+            {IV_MEDICATIONS.map(item => <MedRow key={item.key} item={item} medSet={ivMeds} setMedSet={setIvMeds} primaryColor={primaryColor} secondaryColor={secondaryColor} />)}
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>PRN BAG ADD-ONS</Text>
+            {BAG_ADDONS.map(item => <MedRow key={item.key} item={item} medSet={bagAddons} setMedSet={setBagAddons} showDose primaryColor={primaryColor} secondaryColor={secondaryColor} />)}
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>IM INJECTIONS</Text>
+            {IM_INJECTIONS.map(item => <MedRow key={item.key} item={item} medSet={imInjections} setMedSet={setImInjections} showDose primaryColor={primaryColor} secondaryColor={secondaryColor} />)}
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>POST INFUSION VITALS</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>BP (mmHg)</Text><TextInput style={cStyles.input} placeholder="120/80" placeholderTextColor="#666" value={postBp} onChangeText={setPostBp} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pulse (BPM)</Text><TextInput style={cStyles.input} placeholder="72" placeholderTextColor="#666" value={postHr} onChangeText={setPostHr} keyboardType="numeric" /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>O2 Sat (%)</Text><TextInput style={cStyles.input} placeholder="98" placeholderTextColor="#666" value={postO2} onChangeText={setPostO2} keyboardType="numeric" /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Time</Text><TextInput style={cStyles.input} placeholder="3:30 PM" placeholderTextColor="#666" value={postTime} onChangeText={setPostTime} /></View>
+            </View>
+          </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>POST INFUSION ASSESSMENT</Text>
+            <SelectRow label="Complications?" options={['No', 'Yes']} value={complications} onSelect={setComplications} primaryColor={primaryColor} secondaryColor={secondaryColor} />
+            {complications === 'Yes' && (
+              <>
+                <Text style={cStyles.fieldLabel}>Please explain</Text>
+                <TextInput style={[cStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Describe..." placeholderTextColor="#666" value={complicationsDetail} onChangeText={setComplicationsDetail} multiline />
+              </>
+            )}
+            <SelectRow label="Catheter Status on Removal" options={['Normal and Intact', 'Broken, Severed']} value={catheterStatus} onSelect={setCatheterStatus} primaryColor={primaryColor} secondaryColor={secondaryColor} />
+            <Text style={cStyles.fieldLabel}>Time IV Discontinued</Text>
+            <TextInput style={cStyles.input} placeholder="3:30 PM" placeholderTextColor="#666" value={ivTimeDiscontinued} onChangeText={setIvTimeDiscontinued} />
+            <Text style={cStyles.fieldLabel}>Tech Notes</Text>
+            <TextInput style={[cStyles.input, { height: 100, textAlignVertical: 'top' }]} placeholder="Any additional notes..." placeholderTextColor="#666" value={techNotes} onChangeText={setTechNotes} multiline />
+          </View>
+
+          <TouchableOpacity
+            style={[{ borderRadius: 14, padding: 18, alignItems: 'center', marginBottom: 16, backgroundColor: primaryColor }, saving && { opacity: 0.6 }]}
+            onPress={() => Alert.alert('Submit Chart', 'Submit this chart?', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Submit', onPress: () => saveChart(true) }
+            ])}
+            disabled={saving}
+          >
+            {saving ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ fontSize: 16, fontWeight: '700', color: secondaryColor }}>Submit Chart</Text>}
+          </TouchableOpacity>
+          <View style={{ height: 60 }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  )
 }
 
 export default function TechHomeScreen({ route, navigation }) {
@@ -40,6 +355,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [upcoming, setUpcoming] = useState([])
   const [mySchedule, setMySchedule] = useState([])
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
+  const [showChart, setShowChart] = useState(false)
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
@@ -54,9 +370,7 @@ export default function TechHomeScreen({ route, navigation }) {
         setUpcoming(data.upcoming || [])
         setMySchedule(data.mySchedule || [])
         if (data.call?.tech_status === 'on_scene' && data.call?.tech_onscene_at) {
-          const secondsOnScene = Math.floor(
-            (Date.now() - new Date(data.call.tech_onscene_at).getTime()) / 1000
-          )
+          const secondsOnScene = Math.floor((Date.now() - new Date(data.call.tech_onscene_at).getTime()) / 1000)
           setOnSceneSeconds(secondsOnScene)
         }
       }
@@ -145,18 +459,13 @@ export default function TechHomeScreen({ route, navigation }) {
   const timerWarning = onSceneSeconds >= 3300
   const timerDanger = onSceneSeconds >= 3600
 
-  // Build marked dates for calendar
   const markedDates = mySchedule.reduce((acc, booking) => {
     const date = new Date(booking.requested_time).toISOString().split('T')[0]
     acc[date] = { marked: true, dotColor: primaryColor }
     return acc
   }, {})
   if (selectedScheduleDate) {
-    markedDates[selectedScheduleDate] = {
-      ...markedDates[selectedScheduleDate],
-      selected: true,
-      selectedColor: primaryColor
-    }
+    markedDates[selectedScheduleDate] = { ...markedDates[selectedScheduleDate], selected: true, selectedColor: primaryColor }
   }
 
   const selectedDayBookings = selectedScheduleDate
@@ -164,16 +473,13 @@ export default function TechHomeScreen({ route, navigation }) {
     : []
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={primaryColor} size="large" />
-      </View>
-    )
+    return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      <ChartModal visible={showChart} onClose={() => setShowChart(false)} call={call} token={token} company={company} />
+
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
@@ -187,38 +493,23 @@ export default function TechHomeScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Tab Bar */}
       <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
-        <TouchableOpacity
-          style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'call' ? primaryColor : 'transparent' }}
-          onPress={() => setActiveTab('call')}
-        >
+        <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'call' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('call')}>
           <Text style={{ color: activeTab === 'call' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📞 My Call</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'schedule' ? primaryColor : 'transparent' }}
-          onPress={() => setActiveTab('schedule')}
-        >
-          <Text style={{ color: activeTab === 'schedule' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>
-            📅 Schedule{mySchedule.length > 0 ? ` (${mySchedule.length})` : ''}
-          </Text>
+        <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'schedule' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('schedule')}>
+          <Text style={{ color: activeTab === 'schedule' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📅 Schedule{mySchedule.length > 0 ? ` (${mySchedule.length})` : ''}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* My Call Tab */}
       {activeTab === 'call' && (
-        <ScrollView
-          contentContainerStyle={styles.content}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
-        >
-          {/* Emergency Button */}
+        <ScrollView contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
           {call?.tech_status === 'on_scene' && (
             <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
               <Text style={styles.emergencyText}>🚨 EMERGENCY</Text>
             </TouchableOpacity>
           )}
 
-          {/* No Call */}
           {!call ? (
             <View style={styles.noCall}>
               <Text style={styles.noCallIcon}>📵</Text>
@@ -227,14 +518,12 @@ export default function TechHomeScreen({ route, navigation }) {
             </View>
           ) : (
             <>
-              {/* Status Banner */}
               <View style={[styles.statusBanner, { backgroundColor: STATUS_COLORS[call.tech_status || call.status] + '33', borderColor: STATUS_COLORS[call.tech_status || call.status] }]}>
                 <Text style={[styles.statusBannerText, { color: STATUS_COLORS[call.tech_status || call.status] }]}>
                   {STATUS_LABELS[call.tech_status || call.status] || call.tech_status || call.status}
                 </Text>
               </View>
 
-              {/* Call Details */}
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Call Details</Text>
                 <Text style={styles.service}>{call.service}</Text>
@@ -254,7 +543,6 @@ export default function TechHomeScreen({ route, navigation }) {
                 )}
               </View>
 
-              {/* Patient Info */}
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Primary Patient {call.patient_count > 1 ? `(+${call.patient_count - 1} more)` : ''}</Text>
                 <Text style={styles.service}>{call.patient_name}</Text>
@@ -263,7 +551,6 @@ export default function TechHomeScreen({ route, navigation }) {
                 {call.patient_dob && <Text style={styles.value}>🎂 {new Date(call.patient_dob).toLocaleDateString()}</Text>}
               </View>
 
-              {/* Additional Patients */}
               {patients.length > 0 && (
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Additional Patients</Text>
@@ -276,7 +563,12 @@ export default function TechHomeScreen({ route, navigation }) {
                 </View>
               )}
 
-              {/* 60 Min Timer */}
+              {call.tech_status === 'on_scene' && (
+                <TouchableOpacity style={[styles.chartButton, { backgroundColor: primaryColor }]} onPress={() => setShowChart(true)}>
+                  <Text style={[styles.chartButtonText, { color: secondaryColor }]}>📋 Start Chart — {call.patient_name}</Text>
+                </TouchableOpacity>
+              )}
+
               {call.tech_status === 'on_scene' && (
                 <View style={[styles.timerCard, timerDanger && styles.timerDanger, timerWarning && !timerDanger && styles.timerWarning]}>
                   <Text style={styles.timerLabel}>⏱ Time On Scene</Text>
@@ -291,7 +583,6 @@ export default function TechHomeScreen({ route, navigation }) {
                 </View>
               )}
 
-              {/* Status Controls */}
               {call.status !== 'completed' && (
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Update Status</Text>
@@ -313,7 +604,6 @@ export default function TechHomeScreen({ route, navigation }) {
                 </View>
               )}
 
-              {/* Up Next */}
               {upcoming.length > 0 && (
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Up Next — {upcoming.length} more call{upcoming.length > 1 ? 's' : ''}</Text>
@@ -323,16 +613,13 @@ export default function TechHomeScreen({ route, navigation }) {
                         <Text style={styles.patientName}>{u.service}</Text>
                         <Text style={styles.patientDetail}>📍 {u.address}</Text>
                         <Text style={styles.patientDetail}>👤 {u.patient_name}</Text>
-                        {u.requested_time && (
-                          <Text style={styles.patientDetail}>🕐 {new Date(u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                        )}
+                        {u.requested_time && <Text style={styles.patientDetail}>🕐 {new Date(u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>}
                       </View>
                     </View>
                   ))}
                 </View>
               )}
 
-              {/* Completed */}
               {call.status === 'completed' && (
                 <View style={styles.completedCard}>
                   <Text style={styles.completedIcon}>⭐</Text>
@@ -346,24 +633,18 @@ export default function TechHomeScreen({ route, navigation }) {
         </ScrollView>
       )}
 
-      {/* Schedule Tab */}
       {activeTab === 'schedule' && (
         <ScrollView style={{ flex: 1 }}>
           <Calendar
             onDayPress={(day) => setSelectedScheduleDate(day.dateString)}
             markedDates={markedDates}
             theme={{
-              backgroundColor: 'transparent',
-              calendarBackground: 'transparent',
+              backgroundColor: 'transparent', calendarBackground: 'transparent',
               textSectionTitleColor: 'rgba(255,255,255,0.5)',
-              selectedDayBackgroundColor: primaryColor,
-              selectedDayTextColor: secondaryColor,
-              todayTextColor: primaryColor,
-              dayTextColor: '#fff',
-              textDisabledColor: 'rgba(255,255,255,0.2)',
-              monthTextColor: '#fff',
-              arrowColor: primaryColor,
-              dotColor: primaryColor,
+              selectedDayBackgroundColor: primaryColor, selectedDayTextColor: secondaryColor,
+              todayTextColor: primaryColor, dayTextColor: '#fff',
+              textDisabledColor: 'rgba(255,255,255,0.2)', monthTextColor: '#fff',
+              arrowColor: primaryColor, dotColor: primaryColor,
             }}
             style={{ marginBottom: 8 }}
           />
@@ -440,4 +721,6 @@ const styles = StyleSheet.create({
   completedIcon: { fontSize: 48, marginBottom: 12 },
   completedText: { fontSize: 22, fontWeight: '700', color: '#4CAF50', marginBottom: 8 },
   completedSub: { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },
+  chartButton: { borderRadius: 12, padding: 16, alignItems: 'center', marginHorizontal: 16, marginBottom: 10 },
+  chartButtonText: { fontSize: 15, fontWeight: '700' },
 })

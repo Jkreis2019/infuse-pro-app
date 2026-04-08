@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -29,6 +29,9 @@ export default function ClinicHomeScreen({ route, navigation }) {
   const [wNotes, setWNotes] = useState('')
   const [showServiceList, setShowServiceList] = useState(false)
   const [submittingWalkin, setSubmittingWalkin] = useState(false)
+  const [wSearchQuery, setWSearchQuery] = useState('')
+  const [wSearchResults, setWSearchResults] = useState([])
+  const [wSelectedPatient, setWSelectedPatient] = useState(null)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -59,6 +62,27 @@ export default function ClinicHomeScreen({ route, navigation }) {
 
   const onRefresh = () => { setRefreshing(true); fetchAll() }
 
+  const searchWalkinPatients = async (query) => {
+    setWSearchQuery(query)
+    if (query.length < 2) { setWSearchResults([]); return }
+    try {
+      const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
+      const data = await res.json()
+      setWSearchResults(data.patients || [])
+    } catch (e) {
+      setWSearchResults([])
+    }
+  }
+
+  const selectWalkinPatient = (patient) => {
+    const fullName = `${patient.first_name} ${patient.last_name}`
+    setWSelectedPatient(patient)
+    setWName(fullName)
+    setWPhone(patient.phone || '')
+    setWSearchQuery(fullName)
+    setWSearchResults([])
+  }
+
   const submitWalkin = async () => {
     if (!wName.trim() || !wService) return Alert.alert('Please enter patient name and select a service')
     setSubmittingWalkin(true)
@@ -72,6 +96,7 @@ export default function ClinicHomeScreen({ route, navigation }) {
       if (data.success) {
         setWalkinModal(false)
         setWName(''); setWPhone(''); setWService(''); setWNotes('')
+        setWSearchQuery(''); setWSearchResults([]); setWSelectedPatient(null)
         fetchAll()
         Alert.alert('✅ Checked In', `${wName} has been added to the queue`)
       } else {
@@ -228,9 +253,10 @@ export default function ClinicHomeScreen({ route, navigation }) {
               <View key={entry.id} style={styles.card}>
                 <Text style={styles.cardService}>{entry.service}</Text>
                 <Text style={styles.cardPatient}>👤 {entry.patient_name}</Text>
-                <Text style={[styles.cardTime, { color: entry.status === 'cancelled' ? '#e53e3e' : '#aaa' }]}>
-                  {entry.status === 'cancelled' ? '❌ Cancelled' : '✅ Completed'}
-                </Text>
+{entry.tech_first && <Text style={styles.cardTech}>🧑‍⚕️ {entry.tech_first} {entry.tech_last}</Text>}
+<Text style={[styles.cardTime, { color: entry.status === 'cancelled' ? '#e53e3e' : '#aaa' }]}>
+  {entry.status === 'cancelled' ? '❌ Cancelled' : '✅ Completed'}
+</Text>
               </View>
             ))
           )}
@@ -241,61 +267,97 @@ export default function ClinicHomeScreen({ route, navigation }) {
       {/* Walk-In Modal */}
       <Modal visible={walkinModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Walk-In Patient</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Patient name *"
-              placeholderTextColor="#666"
-              value={wName}
-              onChangeText={setWName}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Phone number (optional)"
-              placeholderTextColor="#666"
-              value={wPhone}
-              onChangeText={setWPhone}
-              keyboardType="phone-pad"
-            />
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => setShowServiceList(!showServiceList)}
-            >
-              <Text style={{ color: wService ? '#fff' : '#666' }}>{wService || 'Select service *'}</Text>
-            </TouchableOpacity>
-            {showServiceList && (
-              <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10 }}>
-                {SERVICES.map(s => (
-                  <TouchableOpacity
-                    key={s}
-                    style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
-                    onPress={() => { setWService(s); setShowServiceList(false) }}
-                  >
-                    <Text style={{ color: '#fff' }}>{s}</Text>
-                  </TouchableOpacity>
-                ))}
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>Walk-In Patient</Text>
+                <Text style={styles.sectionLabel}>Search existing patient</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Search by name or phone..."
+                  placeholderTextColor="#666"
+                  value={wSearchQuery}
+                  onChangeText={searchWalkinPatients}
+                />
+                {wSearchResults.length > 0 && (
+                  <View style={{ backgroundColor: '#1a1a1a', borderRadius: 8, marginBottom: 10 }}>
+                    {wSearchResults.map(p => (
+                      <TouchableOpacity
+                        key={p.id}
+                        style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' }}
+                        onPress={() => selectWalkinPatient(p)}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+                        <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'} · {p.last_address || 'No address'}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                <Text style={styles.sectionLabel}>Patient name *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Full name"
+                  placeholderTextColor="#666"
+                  value={wName}
+                  onChangeText={setWName}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Phone number (optional)"
+                  placeholderTextColor="#666"
+                  value={wPhone}
+                  onChangeText={setWPhone}
+                  keyboardType="phone-pad"
+                />
+                <TouchableOpacity
+                  style={styles.input}
+                  onPress={() => setShowServiceList(!showServiceList)}
+                >
+                  <Text style={{ color: wService ? '#fff' : '#666' }}>{wService || 'Select service *'}</Text>
+                </TouchableOpacity>
+                {showServiceList && (
+                  <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10 }}>
+                    {SERVICES.map(s => (
+                      <TouchableOpacity
+                        key={s}
+                        style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
+                        onPress={() => { setWService(s); setShowServiceList(false) }}
+                      >
+                        <Text style={{ color: '#fff' }}>{s}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+                <TextInput
+                  style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
+                  placeholder="Notes (optional)"
+                  placeholderTextColor="#666"
+                  value={wNotes}
+                  onChangeText={setWNotes}
+                  multiline
+                />
+                <TouchableOpacity
+                  style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10 }]}
+                  onPress={submitWalkin}
+                  disabled={submittingWalkin}
+                >
+                  {submittingWalkin ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.submitBtnText, { color: secondaryColor }]}>Check In Patient</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelModal} onPress={() => {
+                  setWalkinModal(false)
+                  setWSearchQuery('')
+                  setWSearchResults([])
+                  setWSelectedPatient(null)
+                  setWName('')
+                  setWPhone('')
+                  setWService('')
+                  setWNotes('')
+                }}>
+                  <Text style={styles.cancelModalText}>Cancel</Text>
+                </TouchableOpacity>
               </View>
-            )}
-            <TextInput
-              style={[styles.input, { height: 70, textAlignVertical: 'top' }]}
-              placeholder="Notes (optional)"
-              placeholderTextColor="#666"
-              value={wNotes}
-              onChangeText={setWNotes}
-              multiline
-            />
-            <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10 }]}
-              onPress={submitWalkin}
-              disabled={submittingWalkin}
-            >
-              {submittingWalkin ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.submitBtnText, { color: secondaryColor }]}>Check In Patient</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelModal} onPress={() => setWalkinModal(false)}>
-              <Text style={styles.cancelModalText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
       </Modal>
     </View>
@@ -333,6 +395,7 @@ const styles = StyleSheet.create({
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   modalCard: { backgroundColor: '#0a2420', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 16 },
+  sectionLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '600', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff', marginBottom: 10 },
   submitBtn: { borderRadius: 12, padding: 16, alignItems: 'center' },
   submitBtnText: { fontSize: 15, fontWeight: '700' },

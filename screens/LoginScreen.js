@@ -54,6 +54,7 @@ export default function LoginScreen({ route, navigation }) {
               routes: [{ name: destination, params: { token: data.token, user: data.user, company } }]
             })
           }
+          console.log('serviceType:', company?.serviceType, 'role:', role)
         } else if (role === 'tech') {
           if (!data.user.passwordChanged) {
             navigation.reset({
@@ -61,10 +62,9 @@ export default function LoginScreen({ route, navigation }) {
               routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
             })
           } else {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'TechHome', params: { token: data.token, user: data.user, company } }]
-            })
+            const serviceType = company?.serviceType || 'mobile'
+            const destination = serviceType === 'clinic' ? 'ClinicTechHome' : 'TechHome'
+            navigation.replace(destination, { token: data.token, user: data.user, company })
           }
         } else if (role === 'np') {
           if (!data.user.passwordChanged) {
