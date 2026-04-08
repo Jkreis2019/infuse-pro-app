@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
 import { useState } from 'react'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -25,10 +25,31 @@ export default function BookingScreen({ route, navigation }) {
   const [error, setError] = useState('')
 
   // Scheduling
-  const [scheduleType, setScheduleType] = useState('now') // 'now' or 'later'
-  const [scheduledDate, setScheduledDate] = useState(new Date())
-  const [showDatePicker, setShowDatePicker] = useState(false)
-  const [showTimePicker, setShowTimePicker] = useState(false)
+ const [scheduleType, setScheduleType] = useState('now')
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
+  })
+  const [slots, setSlots] = useState([])
+  const [selectedSlot, setSelectedSlot] = useState(null)
+  const [loadingSlots, setLoadingSlots] = useState(false)
+
+  const fetchSlots = async (date) => {
+    setLoadingSlots(true)
+    setSelectedSlot(null)
+    try {
+      const res = await fetch(`${API_URL}/schedule/available?date=${date}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      setSlots(data.slots || [])
+    } catch (err) {
+      setSlots([])
+    } finally {
+      setLoadingSlots(false)
+    }
+  }
 
   const submitBooking = async () => {
     if (!selectedService) {
@@ -39,8 +60,8 @@ export default function BookingScreen({ route, navigation }) {
       setError('Please enter your address')
       return
     }
-    if (scheduleType === 'later' && scheduledDate <= new Date()) {
-      setError('Please select a future date and time')
+    if (scheduleType === 'later' && !selectedSlot) {
+      setError('Please select a time slot')
       return
     }
     setLoading(true)
@@ -59,23 +80,33 @@ export default function BookingScreen({ route, navigation }) {
           addressNote,
           notes,
           patientCount: ivCount,
-          requestedTime: scheduleType === 'later' ? scheduledDate.toISOString() : null
+          requestedTime: scheduleType === 'later' && selectedSlot ? selectedSlot.datetime : null
         })
       })
       const data = await response.json()
       if (data.success) {
+       setSelectedService(null)
+        setAddress('')
+        setAddressNote('')
+        setNotes('')
+        setIvCount(1)
+        setScheduleType('now')
+        setSelectedSlot(null)
+        setError('')
+        navigation.goBack()
         navigation.navigate('HomeTab', {
           token,
           user,
           company,
           message: scheduleType === 'later' 
-            ? `Appointment scheduled for ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            ? `Appointment scheduled for ${new Date(selectedSlot?.datetime).toLocaleDateString()} at ${new Date(selectedSlot?.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
             : 'Booking submitted! We will confirm shortly.'
         })
       } else {
         setError(data.message || 'Something went wrong')
       }
     } catch (err) {
+      console.log('Booking error:', err)
       setError('Connection error. Please try again.')
     }
     setLoading(false)
@@ -120,63 +151,71 @@ export default function BookingScreen({ route, navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.scheduleBtn, scheduleType === 'later' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
-          onPress={() => setScheduleType('later')}
+          onPress={() => { setScheduleType('later'); fetchSlots(selectedScheduleDate) }}
         >
           <Text style={[styles.scheduleBtnText, scheduleType === 'later' && { color: company.secondaryColor }]}>📅 Schedule</Text>
         </TouchableOpacity>
       </View>
 
       {scheduleType === 'later' && (
-        <View style={styles.dateTimeRow}>
-          <TouchableOpacity
-            style={styles.dateTimeBtn}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={styles.dateTimeBtnText}>
-              📅 {scheduledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.dateTimeBtn}
-            onPress={() => setShowTimePicker(true)}
-          >
-            <Text style={styles.dateTimeBtnText}>
-              🕐 {scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </Text>
-          </TouchableOpacity>
+        <View>
+          <Calendar
+            minDate={new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]}
+            onDayPress={(day) => { setSelectedScheduleDate(day.dateString); fetchSlots(day.dateString) }}
+            markedDates={{
+              [selectedScheduleDate]: { selected: true, selectedColor: company.primaryColor }
+            }}
+            theme={{
+              backgroundColor: 'transparent',
+              calendarBackground: 'rgba(255,255,255,0.05)',
+              textSectionTitleColor: 'rgba(255,255,255,0.5)',
+              selectedDayBackgroundColor: company.primaryColor,
+              selectedDayTextColor: company.secondaryColor,
+              todayTextColor: company.primaryColor,
+              dayTextColor: '#fff',
+              textDisabledColor: 'rgba(255,255,255,0.2)',
+              monthTextColor: '#fff',
+              arrowColor: company.primaryColor,
+              borderRadius: 12,
+            }}
+            style={{ borderRadius: 12, marginBottom: 16, overflow: 'hidden' }}
+          />
+
+          {/* Time slots */}
+          {loadingSlots ? (
+            <ActivityIndicator color={company.primaryColor} style={{ marginVertical: 16 }} />
+          ) : !selectedScheduleDate ? (
+            <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginVertical: 16 }}>Select a date to see available times</Text>
+          ) : slots.length === 0 ? (
+            <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginVertical: 16 }}>No availability on this day</Text>
+          ) : (
+            <ScrollView style={{ maxHeight: 200 }} showsVerticalScrollIndicator={false} nestedScrollEnabled>
+              {slots.map(slot => (
+                <TouchableOpacity
+                  key={slot.time}
+                  disabled={!slot.available}
+                  style={[
+                    styles.slotRow,
+                    selectedSlot?.time === slot.time && { backgroundColor: company.primaryColor + '22', borderColor: company.primaryColor },
+                    !slot.available && { opacity: 0.3 }
+                  ]}
+                  onPress={() => setSelectedSlot(slot)}
+                >
+                  <Text style={[styles.slotRowTime, selectedSlot?.time === slot.time && { color: company.primaryColor }]}>
+                    {new Date(`2000-01-01T${slot.time}:00`).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </Text>
+                  <Text style={styles.slotRowStatus}>
+                    {!slot.available ? (slot.reason === 'too_soon' ? 'Too soon' : 'Full') : `${slot.maxPerSlot - slot.booked} spot${slot.maxPerSlot - slot.booked !== 1 ? 's' : ''} left`}
+                  </Text>
+                  {selectedSlot?.time === slot.time && <Text style={{ color: company.primaryColor, fontWeight: '700' }}>✓</Text>}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       )}
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={scheduledDate}
-          mode="date"
-          minimumDate={new Date()}
-          onChange={(event, date) => {
-            setShowDatePicker(false)
-            if (date) {
-              const updated = new Date(scheduledDate)
-              updated.setFullYear(date.getFullYear(), date.getMonth(), date.getDate())
-              setScheduledDate(updated)
-            }
-          }}
-        />
-      )}
-
-      {showTimePicker && (
-        <DateTimePicker
-          value={scheduledDate}
-          mode="time"
-          onChange={(event, date) => {
-            setShowTimePicker(false)
-            if (date) {
-              const updated = new Date(scheduledDate)
-              updated.setHours(date.getHours(), date.getMinutes())
-              setScheduledDate(updated)
-            }
-          }}
-        />
-      )}
+      
 
       <Text style={styles.sectionLabel}>Your location</Text>
       <TextInput
@@ -261,4 +300,12 @@ const styles = StyleSheet.create({
   error: { color: '#f09090', fontSize: 13, marginTop: 8, marginBottom: 4 },
   button: { borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16 },
   buttonText: { fontSize: 15, fontWeight: '600', letterSpacing: 0.5 },
+  dateChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 10, marginRight: 8, alignItems: 'center', minWidth: 64 },
+  dateChipDay: { fontSize: 11, color: 'rgba(255,255,255,0.5)', marginBottom: 2 },
+  dateChipDate: { fontSize: 13, color: '#fff', fontWeight: '600' },
+  slotBtn: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 14 },
+  slotBtnText: { fontSize: 13, color: '#fff', fontWeight: '500' },
+  slotRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, marginBottom: 8, backgroundColor: 'rgba(255,255,255,0.04)' },
+  slotRowTime: { fontSize: 15, color: '#fff', fontWeight: '600' },
+  slotRowStatus: { fontSize: 12, color: 'rgba(255,255,255,0.4)' },
 })

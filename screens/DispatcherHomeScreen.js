@@ -574,7 +574,10 @@ const submitSendIntake = async () => {
                 {booking.patient_phone && <Text style={styles.cardPhone}>📞 {booking.patient_phone}</Text>}
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
                 <Text style={styles.cardTime}>
-                  🕐 {new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {booking.requested_time
+                    ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                    : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                  }
                 </Text>
                 <View style={styles.cardActions}>
   <TouchableOpacity

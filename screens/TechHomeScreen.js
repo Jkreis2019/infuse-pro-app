@@ -187,10 +187,12 @@ export default function TechHomeScreen({ route, navigation }) {
   </View>
 </View>
 
-      {/* Emergency Button */}
-      <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
-        <Text style={styles.emergencyText}>🚨 EMERGENCY</Text>
-      </TouchableOpacity>
+      {/* Emergency Button — only show when on scene */}
+      {call?.tech_status === 'on_scene' && (
+        <TouchableOpacity style={styles.emergencyButton} onPress={handleEmergency}>
+          <Text style={styles.emergencyText}>🚨 EMERGENCY</Text>
+        </TouchableOpacity>
+      )}
 
       {/* No Call */}
       {!call ? (

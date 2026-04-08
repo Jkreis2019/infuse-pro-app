@@ -84,16 +84,6 @@ function MainTabs({ route }) {
       </Tab.Screen>
 
       <Tab.Screen
-        name="BookingTab"
-        options={{
-          tabBarLabel: 'Book',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 18, color }}>💉</Text>
-        }}
-      >
-        {(props) => <BookingScreen {...props} route={{ ...props.route, params }} />}
-      </Tab.Screen>
-
-      <Tab.Screen
         name="ProfileTab"
         options={{
           tabBarLabel: 'Profile',
@@ -124,6 +114,7 @@ export default function App() {
         <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} options={{ title: 'Appointment', headerShown: true }} />
         <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
+        <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Book Appointment', headerShown: true }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="TechHome" component={TechHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
