@@ -169,6 +169,46 @@ function ChartModal({ visible, onClose, call, token, company }) {
   const [ivTimeDiscontinued, setIvTimeDiscontinued] = useState('')
   const [techNotes, setTechNotes] = useState('')
 
+// Load existing chart when modal opens
+  useEffect(() => {
+    if (visible && call?.call_id) {
+      fetch(`${API_URL}/charts/call/${call.call_id}`, { headers })
+        .then(r => r.json())
+        .then(data => {
+          if (data.chart) {
+            const c = data.chart
+            setChartId(c.id)
+            setChiefComplaint(c.chief_complaint || '')
+            setMedicalHistoryChanges(c.medical_history_changes || '')
+            setAllergiesDetail(c.allergies_detail || '')
+            setBp(c.blood_pressure || '')
+            setHr(c.heart_rate?.toString() || '')
+            setO2(c.oxygen_sat?.toString() || '')
+            setTemp(c.temperature?.toString() || '')
+            setPainScale(c.pain_scale?.toString() || '')
+            setIvSite(c.iv_insertion_site || '')
+            setCatheterSize(c.iv_catheter_size || '')
+            setIvAttempts(c.iv_attempts?.toString() || '1')
+            setIvTimeInitiated(c.iv_time_initiated || '')
+            setIvFluids(c.iv_fluids_used || [])
+            setIvMeds(c.prn_iv_medications || {})
+            setBagAddons(c.prn_bag_addons || {})
+            setImInjections(c.prn_im_injections || {})
+            setPostBp(c.vitals_post?.bp || '')
+            setPostHr(c.vitals_post?.hr || '')
+            setPostO2(c.vitals_post?.o2 || '')
+            setPostTime(c.vitals_post?.time || '')
+            setComplications(c.complications || 'No')
+            setComplicationsDetail(c.complications_detail || '')
+            setCatheterStatus(c.iv_catheter_status || 'Normal and Intact')
+            setIvTimeDiscontinued(c.iv_time_discontinued || '')
+            setTechNotes(c.tech_notes || '')
+          }
+        })
+        .catch(err => console.error('Load chart error:', err))
+    }
+  }, [visible, call?.call_id])
+
   const toggleFluid = (fluid) => {
     setIvFluids(prev => prev.includes(fluid) ? prev.filter(f => f !== fluid) : [...prev, fluid])
   }
@@ -208,6 +248,7 @@ function ChartModal({ visible, onClose, call, token, company }) {
       }
 
       const responseData = await res.json()
+      console.log('Chart save response:', JSON.stringify(responseData))
       if (responseData.success) {
         if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
         if (submit) { Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
