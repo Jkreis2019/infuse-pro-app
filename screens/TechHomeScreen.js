@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert, Vibration, Modal, KeyboardAvoidingView, Platform, TextInput
+  ActivityIndicator, RefreshControl, Alert, Vibration, Modal, KeyboardAvoidingView, Platform, TextInput, Image
 } from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
 import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
@@ -424,9 +425,107 @@ export default function TechHomeScreen({ route, navigation }) {
   const [showChart, setShowChart] = useState(false)
   const [showNpOrders, setShowNpOrders] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
+  const [techProfile, setTechProfile] = useState(null)
+const [uploadingPhoto, setUploadingPhoto] = useState(false)
+const [techChangePasswordModal, setTechChangePasswordModal] = useState(false)
+const [techCurrentPassword, setTechCurrentPassword] = useState('')
+const [techNewPassword, setTechNewPassword] = useState('')
+const [techConfirmPassword, setTechConfirmPassword] = useState('')
+const [techChangingPassword, setTechChangingPassword] = useState(false)
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
+
+const fetchTechProfile = useCallback(async () => {
+  try {
+    const res = await fetch(`${API_URL}/auth/me`, { headers })
+    const data = await res.json()
+    if (data.success) setTechProfile(data.user)
+  } catch (err) {
+    console.error('Fetch tech profile error:', err)
+  }
+}, [token])
+
+useEffect(() => {
+  fetchTechProfile()
+}, [fetchTechProfile])
+
+const pickAndUploadPhoto = async () => {
+  try {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Please allow access to your photo library')
+      return
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.2,
+      base64: true,
+      exif: false
+    })
+    if (!result.canceled && result.assets[0]) {
+      setUploadingPhoto(true)
+      const base64 = result.assets[0].base64
+      console.log('Base64 size (chars):', base64?.length, 'bytes approx:', Math.round(base64?.length * 0.75 / 1024), 'KB')
+      const res = await fetch(`${API_URL}/auth/upload-photo`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo: `data:image/jpeg;base64,${base64}` })
+      })
+      const text = await res.text()
+      console.log('Upload response:', text.substring(0, 200))
+      const data = JSON.parse(text)
+      if (data.success) {
+        fetchTechProfile()
+        Alert.alert('✅ Photo Updated', 'Your profile photo has been saved.')
+      } else {
+        Alert.alert('Error', data.message || 'Could not upload photo')
+      }
+    }
+  } catch (err) {
+    console.error('Photo picker error:', err)
+    Alert.alert('Error', err.message || 'Could not open photo library')
+  } finally {
+    setUploadingPhoto(false)
+  }
+}
+
+const techChangePassword = async () => {
+  if (!techCurrentPassword || !techNewPassword || !techConfirmPassword) {
+    Alert.alert('Required', 'Please fill in all fields')
+    return
+  }
+  if (techNewPassword !== techConfirmPassword) {
+    Alert.alert('Error', 'New passwords do not match')
+    return
+  }
+  if (techNewPassword.length < 8) {
+    Alert.alert('Error', 'New password must be at least 8 characters')
+    return
+  }
+  setTechChangingPassword(true)
+  try {
+    const res = await fetch(`${API_URL}/auth/change-password`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: techCurrentPassword, newPassword: techNewPassword })
+    })
+    const data = await res.json()
+    if (data.success) {
+      Alert.alert('✅ Password Changed', 'Your password has been updated.')
+      setTechChangePasswordModal(false)
+      setTechCurrentPassword(''); setTechNewPassword(''); setTechConfirmPassword('')
+    } else {
+      Alert.alert('Error', data.message || 'Could not change password')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setTechChangingPassword(false)
+  }
+}
 
   const fetchCall = useCallback(async () => {
     try {
@@ -576,6 +675,9 @@ export default function TechHomeScreen({ route, navigation }) {
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'schedule' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('schedule')}>
           <Text style={{ color: activeTab === 'schedule' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📅 Schedule{mySchedule.length > 0 ? ` (${mySchedule.length})` : ''}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'profile' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('profile')}>
+          <Text style={{ color: activeTab === 'profile' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>👤 Profile</Text>
         </TouchableOpacity>
       </View>
 
@@ -769,6 +871,71 @@ export default function TechHomeScreen({ route, navigation }) {
               )}
             </>
           )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {activeTab === 'profile' && (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24, alignItems: 'center' }}>
+          {/* Change Password Modal */}
+          <Modal visible={techChangePasswordModal} animationType="slide" presentationStyle="fullScreen">
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+              <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+                <TouchableOpacity onPress={() => { setTechChangePasswordModal(false); setTechCurrentPassword(''); setTechNewPassword(''); setTechConfirmPassword('') }}>
+                  <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Change Password</Text>
+                <View style={{ width: 60 }} />
+              </View>
+              <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 32, textAlign: 'center' }}>Enter your current password before setting a new one.</Text>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Current Password</Text>
+                <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 20 }} placeholder="Current password" placeholderTextColor="#444" value={techCurrentPassword} onChangeText={setTechCurrentPassword} secureTextEntry />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>New Password</Text>
+                <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 20 }} placeholder="At least 8 characters" placeholderTextColor="#444" value={techNewPassword} onChangeText={setTechNewPassword} secureTextEntry />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Confirm New Password</Text>
+                <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 20 }} placeholder="Re-enter new password" placeholderTextColor="#444" value={techConfirmPassword} onChangeText={setTechConfirmPassword} secureTextEntry />
+                {techConfirmPassword.length > 0 && techNewPassword !== techConfirmPassword && <Text style={{ color: '#f09090', fontSize: 13, marginBottom: 12 }}>⚠️ Passwords do not match</Text>}
+                {techConfirmPassword.length > 0 && techNewPassword === techConfirmPassword && <Text style={{ color: '#4CAF50', fontSize: 13, marginBottom: 12 }}>✅ Passwords match</Text>}
+                <TouchableOpacity style={[{ borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 8, backgroundColor: primaryColor }, techChangingPassword && { opacity: 0.6 }]} onPress={techChangePassword} disabled={techChangingPassword}>
+                  {techChangingPassword ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Update Password</Text>}
+                </TouchableOpacity>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </Modal>
+
+          {/* Photo */}
+          <TouchableOpacity onPress={pickAndUploadPhoto} disabled={uploadingPhoto} style={{ marginBottom: 16 }}>
+            {techProfile?.profilePhoto ? (
+              <Image source={{ uri: techProfile.profilePhoto }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: primaryColor }} />
+            ) : (
+              <View style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: primaryColor, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' }}>
+                {uploadingPhoto ? <ActivityIndicator color={primaryColor} /> : <Text style={{ color: primaryColor, fontSize: 36, fontWeight: '600' }}>{user?.firstName?.[0]}{user?.lastName?.[0]}</Text>}
+              </View>
+            )}
+            <Text style={{ color: primaryColor, fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+              {uploadingPhoto ? 'Uploading...' : 'Tap to change photo'}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 4 }}>{user?.firstName} {user?.lastName}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 8 }}>{user?.email}</Text>
+          <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600', marginBottom: 32 }}>{company?.name} · TECH</Text>
+
+          <TouchableOpacity
+            style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}
+            onPress={() => setTechChangePasswordModal(true)}
+          >
+            <Text style={{ color: '#fff', fontSize: 15 }}>Change Password</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 20 }}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={{ width: '100%', marginTop: 16, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', alignItems: 'center', backgroundColor: 'rgba(220,80,80,0.08)' }}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+          >
+            <Text style={{ color: '#f09090', fontSize: 15, fontWeight: '500' }}>Log out</Text>
+          </TouchableOpacity>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}

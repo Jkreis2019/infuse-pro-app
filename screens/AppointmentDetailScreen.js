@@ -6,7 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert
+  Alert,
+  Image
 } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -219,12 +220,25 @@ export default function AppointmentDetailScreen({ route, navigation }) {
       {booking.tech_first && (
         <View style={styles.detailCard}>
           <Text style={styles.cardTitle}>Your Tech</Text>
-          <Text style={styles.techName}>
-            {booking.tech_first} {booking.tech_last}
-          </Text>
-          {booking.tech_phone && (
-            <Text style={styles.techPhone}>📞 {booking.tech_phone}</Text>
-          )}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            {booking.tech_photo ? (
+              <Image
+                source={{ uri: booking.tech_photo }}
+                style={{ width: 64, height: 64, borderRadius: 32, marginRight: 16, borderWidth: 2, borderColor: primaryColor }}
+              />
+            ) : (
+              <View style={{ width: 64, height: 64, borderRadius: 32, marginRight: 16, borderWidth: 2, borderColor: primaryColor, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '700' }}>
+                  {booking.tech_first?.[0]}{booking.tech_last?.[0]}
+                </Text>
+              </View>
+            )}
+            <View>
+              <Text style={styles.techName}>{booking.tech_first} {booking.tech_last}</Text>
+              {booking.tech_phone && <Text style={styles.techPhone}>📞 {booking.tech_phone}</Text>}
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>Your IV Therapy Tech</Text>
+            </View>
+          </View>
         </View>
       )}
 
