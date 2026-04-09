@@ -40,6 +40,15 @@ const [wcEmail, setWcEmail] = useState('')
 const [wcPhone, setWcPhone] = useState('')
 const [wcDob, setWcDob] = useState('')
 const [creatingWalkin, setCreatingWalkin] = useState(false)
+const [clinicPatientSearchModal, setClinicPatientSearchModal] = useState(false)
+const [cpsQuery, setCpsQuery] = useState('')
+const [cpsResults, setCpsResults] = useState([])
+const [cpsSearching, setCpsSearching] = useState(false)
+const [cpsSelectedPatient, setCpsSelectedPatient] = useState(null)
+const [cpsProfileData, setCpsProfileData] = useState(null)
+const [cpsLoadingProfile, setCpsLoadingProfile] = useState(false)
+const [cpsActiveTab, setCpsActiveTab] = useState('bookings')
+const [cpsProfileModal, setCpsProfileModal] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -81,6 +90,38 @@ const [creatingWalkin, setCreatingWalkin] = useState(false)
     setWSearchNoResults(data.patients?.length === 0)
   } catch (e) {
     setWSearchResults([])
+  }
+}
+
+const searchCpsPatients = useCallback(async (q) => {
+  setCpsQuery(q)
+  if (q.length < 2) { setCpsResults([]); return }
+  setCpsSearching(true)
+  try {
+    const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
+    const data = await res.json()
+    setCpsResults(data.patients || [])
+  } catch (err) {
+    console.error('CPS Search error:', err)
+  } finally {
+    setCpsSearching(false)
+  }
+}, [token])
+
+const openCpsProfile = async (patient) => {
+  setCpsSelectedPatient(patient)
+  setCpsProfileModal(true)
+  setCpsLoadingProfile(true)
+  setCpsActiveTab('bookings')
+  try {
+    const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
+    const data = await res.json()
+    if (data.success) setCpsProfileData(data)
+    else Alert.alert('Error', 'Could not load patient profile')
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setCpsLoadingProfile(false)
   }
 }
 
@@ -195,6 +236,9 @@ const createWalkinPatient = async () => {
               onPress={() => setWalkinModal(true)}
             >
               <Text style={[styles.walkinBtnText, { color: secondaryColor }]}>+ Walk-In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setClinicPatientSearchModal(true)}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>🔍 Patients</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
@@ -355,6 +399,179 @@ const createWalkinPatient = async () => {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+  </View>
+</Modal>
+
+{/* Clinic Patient Search Modal */}
+<Modal visible={clinicPatientSearchModal} animationType="slide" presentationStyle="fullScreen">
+  <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+    {/* Profile Modal */}
+    <Modal visible={cpsProfileModal} animationType="slide" presentationStyle="fullScreen">
+      <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+        <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+          <TouchableOpacity onPress={() => { setCpsProfileModal(false); setCpsProfileData(null) }}>
+            <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{cpsSelectedPatient?.first_name} {cpsSelectedPatient?.last_name}</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <View style={{ backgroundColor: secondaryColor, paddingHorizontal: 20, paddingBottom: 16 }}>
+          {cpsSelectedPatient?.phone && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>📞 {cpsSelectedPatient.phone}</Text>}
+          {cpsSelectedPatient?.email && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>✉️ {cpsSelectedPatient.email}</Text>}
+          {cpsProfileData && <Text style={{ color: primaryColor, fontSize: 13, marginTop: 4 }}>{cpsProfileData.totalBookings} total visits</Text>}
+        </View>
+        <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+          {['bookings', 'intake', 'gfe'].map(tab => (
+            <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: cpsActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => setCpsActiveTab(tab)}>
+              <Text style={{ color: cpsActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600' }}>
+                {tab === 'bookings' ? '📅 Bookings' : tab === 'intake' ? '📋 Intake' : '🩺 GFE'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {cpsLoadingProfile ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={primaryColor} size="large" />
+          </View>
+        ) : (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+            {cpsActiveTab === 'bookings' && (
+              <>
+                {!cpsProfileData?.bookings?.length ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No bookings on record</Text>
+                ) : (
+                  cpsProfileData.bookings.map(b => (
+                    <View key={b.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{b.service}</Text>
+                        <Text style={{ color: '#aaa', fontSize: 11, fontWeight: '700' }}>{b.status?.toUpperCase()}</Text>
+                      </View>
+                      {b.requested_time && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📅 {new Date(b.requested_time).toLocaleDateString()}</Text>}
+                      {b.address && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📍 {b.address}</Text>}
+                      {b.tech_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>🧑‍⚕️ {b.tech_name}</Text>}
+                    </View>
+                  ))
+                )}
+              </>
+            )}
+            {cpsActiveTab === 'intake' && (
+              <>
+                {!cpsProfileData?.intake ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake form on file</Text>
+                ) : (
+                  <>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>SUBMITTED</Text>
+                      <Text style={{ color: '#fff', fontSize: 13 }}>{new Date(cpsProfileData.intake.submitted_at).toLocaleDateString()}</Text>
+                    </View>
+                    {cpsProfileData.intake.medications && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>MEDICATIONS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{cpsProfileData.intake.medications}</Text>
+                      </View>
+                    )}
+                    {cpsProfileData.intake.allergies_detail?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>ALLERGIES</Text>
+                        {(Array.isArray(cpsProfileData.intake.allergies_detail) ? cpsProfileData.intake.allergies_detail : []).map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}
+                      </View>
+                    )}
+                    {cpsProfileData.intake.important_history?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>IMPORTANT HISTORY</Text>
+                        {(Array.isArray(cpsProfileData.intake.important_history) ? cpsProfileData.intake.important_history : []).map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}
+                      </View>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {cpsActiveTab === 'gfe' && (
+              <>
+                {!cpsProfileData?.gfe ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No GFE on file</Text>
+                ) : (
+                  <>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: cpsProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
+                      <Text style={{ color: cpsProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>
+                        {cpsProfileData.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED'}
+                      </Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {cpsProfileData.gfe.npName} · Valid until {new Date(cpsProfileData.gfe.validUntil).toLocaleDateString()}</Text>
+                    </View>
+                    {cpsProfileData.gfe.approvedServices?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>APPROVED SERVICES</Text>
+                        {cpsProfileData.gfe.approvedServices.map((s, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {s}</Text>)}
+                      </View>
+                    )}
+                    {cpsProfileData.gfe.restrictions && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>RESTRICTIONS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{cpsProfileData.gfe.restrictions}</Text>
+                      </View>
+                    )}
+                    {cpsProfileData.gfe.npOrders && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>NP ORDERS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{cpsProfileData.gfe.npOrders}</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        )}
+      </View>
+    </Modal>
+
+    {/* Search Header */}
+    <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+      <TouchableOpacity onPress={() => { setClinicPatientSearchModal(false); setCpsQuery(''); setCpsResults([]) }}>
+        <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+      </TouchableOpacity>
+      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Patient Search</Text>
+      <View style={{ width: 60 }} />
+    </View>
+
+    <View style={{ backgroundColor: secondaryColor, paddingHorizontal: 16, paddingBottom: 16 }}>
+      <TextInput
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff' }}
+        placeholder="Search by name or phone..."
+        placeholderTextColor="#666"
+        value={cpsQuery}
+        onChangeText={searchCpsPatients}
+        autoFocus
+      />
+    </View>
+
+    <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+      {cpsSearching && <View style={{ alignItems: 'center', padding: 20 }}><ActivityIndicator color={primaryColor} /></View>}
+      {!cpsSearching && cpsQuery.length >= 2 && cpsResults.length === 0 && (
+        <View style={{ alignItems: 'center', padding: 40 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>No patients found for "{cpsQuery}"</Text>
+        </View>
+      )}
+      {cpsResults.map(patient => (
+        <TouchableOpacity key={patient.id} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }} onPress={() => openCpsProfile(patient)}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{patient.first_name} {patient.last_name}</Text>
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{patient.phone || 'No phone'} · {patient.email}</Text>
+            {patient.last_address && <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>📍 {patient.last_address}</Text>}
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{patient.total_bookings || 0} visits</Text>
+          </View>
+          <Text style={{ color: primaryColor, fontSize: 18 }}>›</Text>
+        </TouchableOpacity>
+      ))}
+      {!cpsSearching && cpsQuery.length < 2 && (
+        <View style={{ alignItems: 'center', paddingTop: 60 }}>
+          <Text style={{ fontSize: 40, marginBottom: 16 }}>🔍</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>Search by name or phone</Text>
+        </View>
+      )}
+      <View style={{ height: 40 }} />
+    </ScrollView>
   </View>
 </Modal>
 
