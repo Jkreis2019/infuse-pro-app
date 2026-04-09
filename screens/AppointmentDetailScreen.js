@@ -9,6 +9,9 @@ import {
   Alert,
   Image
 } from 'react-native'
+import { Platform } from 'react-native'
+const MapView = Platform.OS === 'web' ? null : require('react-native-maps').default
+const Marker = Platform.OS === 'web' ? null : require('react-native-maps').Marker
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -37,6 +40,20 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
+const fetchTechLocation = async () => {
+    if (!bookingId || !token) return
+    try {
+      const res = await fetch(`${API_URL}/tech/location/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success && data.available) setTechLocation(data)
+      else setTechLocation(null)
+    } catch (err) {
+      console.error('Tech location error:', err)
+    }
+  }
+
   const fetchBooking = async () => {
     try {
       const res = await fetch(`${API_URL}/bookings/${bookingId}`, {
@@ -53,7 +70,11 @@ export default function AppointmentDetailScreen({ route, navigation }) {
 
   useEffect(() => {
     fetchBooking()
-    const interval = setInterval(fetchBooking, 15000)
+    fetchTechLocation()
+    const interval = setInterval(() => {
+      fetchBooking()
+      fetchTechLocation()
+    }, 15000)
     return () => clearInterval(interval)
   }, [])
 
@@ -224,6 +245,31 @@ export default function AppointmentDetailScreen({ route, navigation }) {
             : 'As soon as possible'}
         </Text>
       </View>
+
+{/* Live Tracking Map */}
+      {booking.status === 'en_route' && techLocation && MapView && (
+        <View style={styles.detailCard}>
+          <Text style={styles.cardTitle}>Tech En Route</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 12 }}>
+            {booking.tech_first} is on the way · Updated {new Date(techLocation.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          </Text>
+          <MapView
+            style={{ height: 200, borderRadius: 10, overflow: 'hidden' }}
+            region={{
+              latitude: techLocation.lat,
+              longitude: techLocation.lng,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: techLocation.lat, longitude: techLocation.lng }}
+              title={`${booking.tech_first} ${booking.tech_last}`}
+              description="Your tech"
+            />
+          </MapView>
+        </View>
+      )}
 
       {/* Tech Info */}
       {booking.tech_first && (

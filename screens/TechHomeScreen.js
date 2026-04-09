@@ -4,6 +4,7 @@ import {
   ActivityIndicator, RefreshControl, Alert, Vibration, Modal, KeyboardAvoidingView, Platform, TextInput, Image
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
+import * as Location from 'expo-location'
 import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
@@ -435,6 +436,44 @@ const [techChangingPassword, setTechChangingPassword] = useState(false)
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
+
+const startLocationTracking = useCallback(async () => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync()
+    if (status !== 'granted') return
+
+    const interval = setInterval(async () => {
+      if (call?.tech_status !== 'en_route') {
+        clearInterval(interval)
+        return
+      }
+      try {
+        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+        await fetch(`${API_URL}/tech/location`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat: location.coords.latitude,
+            lng: location.coords.longitude
+          })
+        })
+      } catch (err) {
+        console.error('Location update error:', err)
+      }
+    }, 30000) // every 30 seconds
+
+    return () => clearInterval(interval)
+  } catch (err) {
+    console.error('Location permission error:', err)
+  }
+}, [call?.tech_status, token])
+
+useEffect(() => {
+  if (call?.tech_status === 'en_route') {
+    const cleanup = startLocationTracking()
+    return () => { if (cleanup) cleanup.then(fn => fn && fn()) }
+  }
+}, [call?.tech_status])
 
 const fetchTechProfile = useCallback(async () => {
   try {
