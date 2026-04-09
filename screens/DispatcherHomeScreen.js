@@ -706,7 +706,8 @@ const submitSendIntake = async () => {
                tab === 'upcoming' ? `Upcoming ${upcoming.length > 0 ? `(${upcoming.length})` : ''}` :
                tab === 'active' ? `Active ${active.length > 0 ? `(${active.length})` : ''}` :
                tab === 'team' ? `Team (${techs.length})` :
-               `Log (${log.length})`}
+               tab === 'log' ? `Log${needsAttention.length > 0 ? ` · ${needsAttention.length} issues` : ` (${log.length})`}` :
+               `Attention${needsAttention.length > 0 ? ` (${needsAttention.length})` : ''}`}
             </Text>
           </TouchableOpacity>
         ))}
@@ -1019,7 +1020,73 @@ const submitSendIntake = async () => {
     style={styles.scroll}
     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
   >
-    {log.length === 0 ? (
+    {/* Needs Attention Section */}
+    {needsAttention.length > 0 && (
+      <View style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 4 }}>
+        <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Needs Attention ({needsAttention.length})</Text>
+        {needsAttention.map(booking => (
+          <View key={booking.id} style={[styles.card, { borderLeftWidth: 3, borderLeftColor: '#e53e3e', marginBottom: 8 }]}>
+            <View style={styles.cardTop}>
+              <Text style={styles.cardService}>{booking.service}</Text>
+              <View style={[styles.newBadge, { backgroundColor: booking.status === 'expired' ? '#e53e3e' : '#888' }]}>
+                <Text style={styles.newBadgeText}>{booking.status === 'expired' ? 'EXPIRED' : 'NO SHOW'}</Text>
+              </View>
+            </View>
+            <Text style={styles.cardPatient}>{booking.patient_name}</Text>
+            {booking.tech_first && <Text style={styles.cardTime}>Tech: {booking.tech_first} {booking.tech_last}</Text>}
+            {booking.requested_time && <Text style={styles.cardTime}>{new Date(booking.requested_time).toLocaleString()}</Text>}
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center' }}
+                onPress={() => { setSelectedBooking(booking); setAssignModal(true) }}
+              >
+                <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>Reschedule</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center' }}
+                onPress={() => Alert.alert('Mark as No Show', `Mark ${booking.patient_name} as no show?`, [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Confirm', onPress: async () => {
+                    try {
+                      const res = await fetch(`${API_URL}/dispatch/no-show`, {
+                        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ bookingId: booking.id, reason: 'No show' })
+                      })
+                      const data = await res.json()
+                      if (data.success) fetchAll()
+                      else Alert.alert('Error', data.message)
+                    } catch (err) { Alert.alert('Error', 'Network error') }
+                  }}
+                ])}
+              >
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>No Show</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: 'rgba(229,62,62,0.15)', borderRadius: 8, padding: 10, alignItems: 'center' }}
+                onPress={() => Alert.alert('Cancel Booking', `Cancel ${booking.patient_name}'s booking?`, [
+                  { text: 'Keep', style: 'cancel' },
+                  { text: 'Cancel', style: 'destructive', onPress: async () => {
+                    try {
+                      const res = await fetch(`${API_URL}/bookings/${booking.id}/cancel`, {
+                        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }
+                      })
+                      const data = await res.json()
+                      if (data.success) fetchAll()
+                      else Alert.alert('Error', data.message)
+                    } catch (err) { Alert.alert('Error', 'Network error') }
+                  }}
+                ])}
+              >
+                <Text style={{ color: '#e53e3e', fontWeight: '700', fontSize: 13 }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+        <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 12 }} />
+      </View>
+    )}
+
+    {log.length === 0 && needsAttention.length === 0 ? (
       <View style={styles.emptyState}>
         <Text style={styles.emptyIcon}>📋</Text>
         <Text style={styles.emptyText}>No calls logged today</Text>

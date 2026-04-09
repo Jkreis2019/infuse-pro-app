@@ -10,7 +10,8 @@ import SignupScreen from './screens/SignupScreen'
 import HomeScreen from './screens/HomeScreen'
 import BookingScreen from './screens/BookingScreen'
 import ProfileScreen from './screens/ProfileScreen'
-import MapScreen from './screens/MapScreen'
+import { Platform } from 'react-native'
+const MapScreen = () => null
 import EmailVerificationScreen from './screens/EmailVerificationScreen'
 import AppointmentDetailScreen from './screens/AppointmentDetailScreen'
 import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
@@ -19,6 +20,7 @@ import NPHomeScreen from './screens/NPHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
 import ClinicHomeScreen from './screens/ClinicHomeScreen'
 import ClinicTechScreen from './screens/ClinicTechScreen'
+import ChartScreen from './screens/ChartScreen'
 
 const Stack = createNativeStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -120,7 +122,10 @@ export default function App() {
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicHome" component={ClinicHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicTechHome" component={ClinicTechScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="TechHome" component={TechHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Chart" component={ChartScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="TechHome" options={{ headerShown: false }}>
+  {(props) => <TechHomeScreen {...props} rootNavigation={props.navigation} />}
+</Stack.Screen>
         <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Map" component={MapScreen} options={{ title: 'Find a company' }} />
