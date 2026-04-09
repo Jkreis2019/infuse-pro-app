@@ -363,7 +363,32 @@ function ChartModal({ visible, onClose, call, token, company }) {
             <Text style={cStyles.fieldLabel}>Tech Notes</Text>
             <TextInput style={[cStyles.input, { height: 100, textAlignVertical: 'top' }]} placeholder="Any additional notes..." placeholderTextColor="#666" value={techNotes} onChangeText={setTechNotes} multiline />
           </View>
-
+<TouchableOpacity
+            style={{ borderRadius: 14, padding: 16, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: primaryColor }}
+            onPress={async () => {
+              if (!chartId) {
+                Alert.alert('Save First', 'Please save the chart before requesting a GFE')
+                return
+              }
+              try {
+                const res = await fetch(`${API_URL}/gfe/request`, {
+                  method: 'POST',
+                  headers: { ...headers, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ callId: call?.call_id, chartId })
+                })
+                const data = await res.json()
+                if (data.success) {
+                  Alert.alert('✅ GFE Requested', 'The NP has been notified')
+                } else {
+                  Alert.alert('Error', data.message || 'Could not request GFE')
+                }
+              } catch (err) {
+                Alert.alert('Error', 'Network error')
+              }
+            }}
+          >
+            <Text style={{ color: primaryColor, fontSize: 15, fontWeight: '700' }}>🩺 Request GFE from NP</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[{ borderRadius: 14, padding: 18, alignItems: 'center', marginBottom: 16, backgroundColor: primaryColor }, saving && { opacity: 0.6 }]}
             onPress={() => Alert.alert('Submit Chart', 'Submit this chart?', [
@@ -397,6 +422,8 @@ export default function TechHomeScreen({ route, navigation }) {
   const [mySchedule, setMySchedule] = useState([])
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const [showChart, setShowChart] = useState(false)
+  const [showNpOrders, setShowNpOrders] = useState(false)
+  const [npOrders, setNpOrders] = useState(null)
   const timerRef = useRef(null)
 
   const headers = { Authorization: `Bearer ${token}` }
@@ -407,6 +434,15 @@ export default function TechHomeScreen({ route, navigation }) {
       const data = await res.json()
       if (data.success) {
         setCall(data.call)
+        if (data.call?.user_id) {
+          fetch(`${API_URL}/gfe/patient-orders/${data.call.user_id}`, { headers })
+            .then(r => r.json())
+            .then(ordersData => {
+              if (ordersData.hasActiveGFE) setNpOrders(ordersData.orders)
+              else setNpOrders(null)
+            })
+            .catch(() => setNpOrders(null))
+        }
         setPatients(data.patients || [])
         setUpcoming(data.upcoming || [])
         setMySchedule(data.mySchedule || [])
@@ -603,6 +639,69 @@ export default function TechHomeScreen({ route, navigation }) {
                   ))}
                 </View>
               )}
+
+{npOrders && (
+                <TouchableOpacity
+                  style={[styles.card, { borderWidth: 1, borderColor: npOrders.notACandidate ? '#e53e3e' : '#4CAF50' }]}
+                  onPress={() => setShowNpOrders(true)}
+                >
+                  <Text style={[styles.cardTitle, { color: npOrders.notACandidate ? '#e53e3e' : '#4CAF50' }]}>
+                    {npOrders.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ NP ORDERS ON FILE'}
+                  </Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
+                    Signed by {npOrders.npName} · Tap to view orders
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* NP Orders Modal */}
+              <Modal visible={showNpOrders} transparent animationType="slide">
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
+                  <View style={{ backgroundColor: '#0D1B4B', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: '80%' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 4 }}>NP Orders</Text>
+                    <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>
+                      Signed by {npOrders?.npName} · Valid until {npOrders ? new Date(npOrders.validUntil).toLocaleDateString() : ''}
+                    </Text>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                      {npOrders?.notACandidate ? (
+                        <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+                          <Text style={{ color: '#e53e3e', fontWeight: '700', fontSize: 15, marginBottom: 8 }}>🚫 Not a Candidate</Text>
+                          <Text style={{ color: '#fff', fontSize: 14 }}>{npOrders.notACandidateReason}</Text>
+                        </View>
+                      ) : (
+                        <>
+                          {npOrders?.approvedServices && npOrders.approvedServices.length > 0 && (
+                            <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+                              <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13, marginBottom: 8 }}>✅ APPROVED SERVICES</Text>
+                              {npOrders.approvedServices.map((s, i) => (
+                                <Text key={i} style={{ color: '#fff', fontSize: 14, marginBottom: 4 }}>• {s}</Text>
+                              ))}
+                            </View>
+                          )}
+                          {npOrders?.restrictions && (
+                            <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+                              <Text style={{ color: '#e53e3e', fontWeight: '700', fontSize: 13, marginBottom: 8 }}>❌ RESTRICTIONS</Text>
+                              <Text style={{ color: '#fff', fontSize: 14 }}>{npOrders.restrictions}</Text>
+                            </View>
+                          )}
+                          {npOrders?.npOrders && (
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 16, marginBottom: 12 }}>
+                              <Text style={{ color: primaryColor, fontWeight: '700', fontSize: 13, marginBottom: 8 }}>📝 NP ORDERS & NOTES</Text>
+                              <Text style={{ color: '#fff', fontSize: 14, lineHeight: 22 }}>{npOrders.npOrders}</Text>
+                            </View>
+                          )}
+                        </>
+                      )}
+                    </ScrollView>
+                    <TouchableOpacity
+                      style={{ marginTop: 16, alignItems: 'center', padding: 12 }}
+                      onPress={() => setShowNpOrders(false)}
+                    >
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Close</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
 
               {call.tech_status === 'on_scene' && (
                 <TouchableOpacity style={[styles.chartButton, { backgroundColor: primaryColor }]} onPress={() => setShowChart(true)}>

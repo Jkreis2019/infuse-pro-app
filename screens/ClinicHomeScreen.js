@@ -32,6 +32,14 @@ export default function ClinicHomeScreen({ route, navigation }) {
   const [wSearchQuery, setWSearchQuery] = useState('')
   const [wSearchResults, setWSearchResults] = useState([])
   const [wSelectedPatient, setWSelectedPatient] = useState(null)
+  const [wSearchNoResults, setWSearchNoResults] = useState(false)
+const [showCreateWalkin, setShowCreateWalkin] = useState(false)
+const [wcFirstName, setWcFirstName] = useState('')
+const [wcLastName, setWcLastName] = useState('')
+const [wcEmail, setWcEmail] = useState('')
+const [wcPhone, setWcPhone] = useState('')
+const [wcDob, setWcDob] = useState('')
+const [creatingWalkin, setCreatingWalkin] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -63,25 +71,74 @@ export default function ClinicHomeScreen({ route, navigation }) {
   const onRefresh = () => { setRefreshing(true); fetchAll() }
 
   const searchWalkinPatients = async (query) => {
-    setWSearchQuery(query)
-    if (query.length < 2) { setWSearchResults([]); return }
-    try {
-      const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
-      const data = await res.json()
-      setWSearchResults(data.patients || [])
-    } catch (e) {
-      setWSearchResults([])
-    }
-  }
-
-  const selectWalkinPatient = (patient) => {
-    const fullName = `${patient.first_name} ${patient.last_name}`
-    setWSelectedPatient(patient)
-    setWName(fullName)
-    setWPhone(patient.phone || '')
-    setWSearchQuery(fullName)
+  setWSearchQuery(query)
+  setWSearchNoResults(false)
+  if (query.length < 2) { setWSearchResults([]); return }
+  try {
+    const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
+    const data = await res.json()
+    setWSearchResults(data.patients || [])
+    setWSearchNoResults(data.patients?.length === 0)
+  } catch (e) {
     setWSearchResults([])
   }
+}
+
+const createWalkinPatient = async () => {
+  if (!wcFirstName || !wcLastName || !wcEmail || !wcDob) {
+    Alert.alert('Required', 'First name, last name, email and date of birth are required')
+    return
+  }
+  setCreatingWalkin(true)
+  try {
+    const dobParts = wcDob.split('/')
+    const formattedDob = dobParts.length === 3
+      ? `${dobParts[2]}-${dobParts[0].padStart(2,'0')}-${dobParts[1].padStart(2,'0')}`
+      : wcDob
+    const res = await fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: wcEmail.toLowerCase(),
+        password: Math.random().toString(36).slice(-10) + 'Aa1!',
+        firstName: wcFirstName,
+        lastName: wcLastName,
+        phone: wcPhone || null,
+        dob: formattedDob,
+        companyCode: company?.code
+      })
+    })
+    const data = await res.json()
+    if (data.success) {
+      selectWalkinPatient({
+        id: data.user.id,
+        first_name: wcFirstName,
+        last_name: wcLastName,
+        phone: wcPhone || '',
+        last_address: ''
+      })
+      setShowCreateWalkin(false)
+      setWalkinModal(true)
+      setWcFirstName(''); setWcLastName(''); setWcEmail(''); setWcPhone(''); setWcDob('')
+      Alert.alert('✅ Patient Created', `${wcFirstName} ${wcLastName} has been added to the system`)
+    } else {
+      Alert.alert('Error', data.message || 'Could not create patient')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setCreatingWalkin(false)
+  }
+}
+
+  const selectWalkinPatient = (patient) => {
+  setWSelectedPatient(patient)
+  setWName(`${patient.first_name} ${patient.last_name}`)
+  setWPhone(patient.phone || '')
+  setWSearchQuery('')
+  setWSearchResults([])
+  setWSearchNoResults(false)
+}
 
   const submitWalkin = async () => {
     if (!wName.trim() || !wService) return Alert.alert('Please enter patient name and select a service')
@@ -264,6 +321,43 @@ export default function ClinicHomeScreen({ route, navigation }) {
         </ScrollView>
       )}
 
+{/* Create Walkin Patient Modal */}
+<Modal visible={showCreateWalkin} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>New Patient</Text>
+          <Text style={styles.sectionLabel}>First Name *</Text>
+          <TextInput style={styles.input} placeholder="First name" placeholderTextColor="#666" value={wcFirstName} onChangeText={setWcFirstName} />
+          <Text style={styles.sectionLabel}>Last Name *</Text>
+          <TextInput style={styles.input} placeholder="Last name" placeholderTextColor="#666" value={wcLastName} onChangeText={setWcLastName} />
+          <Text style={styles.sectionLabel}>Email *</Text>
+          <TextInput style={styles.input} placeholder="email@example.com" placeholderTextColor="#666" value={wcEmail} onChangeText={setWcEmail} keyboardType="email-address" autoCapitalize="none" />
+          <Text style={styles.sectionLabel}>Phone</Text>
+          <TextInput style={styles.input} placeholder="(602) 555-0100" placeholderTextColor="#666" value={wcPhone} onChangeText={setWcPhone} keyboardType="phone-pad" />
+          <Text style={styles.sectionLabel}>Date of Birth *</Text>
+          <TextInput style={styles.input} placeholder="MM/DD/YYYY" placeholderTextColor="#666" value={wcDob} onChangeText={setWcDob} />
+          <TouchableOpacity
+            style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10 }, creatingWalkin && { opacity: 0.6 }]}
+            onPress={createWalkinPatient}
+            disabled={creatingWalkin}
+          >
+            {creatingWalkin ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.submitBtnText, { color: secondaryColor }]}>Create Patient</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelModal} onPress={() => {
+            setShowCreateWalkin(false)
+            setWalkinModal(true)
+            setWcFirstName(''); setWcLastName(''); setWcEmail(''); setWcPhone(''); setWcDob('')
+          }}>
+            <Text style={styles.cancelModalText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </View>
+</Modal>
+
       {/* Walk-In Modal */}
       <Modal visible={walkinModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -291,6 +385,17 @@ export default function ClinicHomeScreen({ route, navigation }) {
                         <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'} · {p.last_address || 'No address'}</Text>
                       </TouchableOpacity>
                     ))}
+                  </View>
+                )}
+                {wSearchNoResults && wSearchQuery.length >= 2 && (
+                  <View style={{ backgroundColor: '#1a1a1a', borderRadius: 8, marginBottom: 10, padding: 12 }}>
+                    <Text style={{ color: '#aaa', fontSize: 13, marginBottom: 8 }}>No patients found for "{wSearchQuery}"</Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center' }}
+                      onPress={() => { setWalkinModal(false); setShowCreateWalkin(true) }}
+                    >
+                      <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>+ Create New Patient</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
                 <Text style={styles.sectionLabel}>Patient name *</Text>

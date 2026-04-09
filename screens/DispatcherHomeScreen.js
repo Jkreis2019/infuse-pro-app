@@ -103,6 +103,14 @@ const [detailBooking, setDetailBooking] = useState(null)
 const [nbSearchQuery, setNbSearchQuery] = useState('')
 const [nbSearchResults, setNbSearchResults] = useState([])
 const [nbSelectedPatient, setNbSelectedPatient] = useState(null)
+const [showCreatePatient, setShowCreatePatient] = useState(false)
+const [nbSearchNoResults, setNbSearchNoResults] = useState(false)
+const [cpFirstName, setCpFirstName] = useState('')
+const [cpLastName, setCpLastName] = useState('')
+const [cpEmail, setCpEmail] = useState('')
+const [cpPhone, setCpPhone] = useState('')
+const [cpDob, setCpDob] = useState('')
+const [creatingPatient, setCreatingPatient] = useState(false)
 
   // Add patient modal
   const [addPatientModal, setAddPatientModal] = useState(false)
@@ -384,14 +392,66 @@ const submitMerge = async (targetId) => {
 
 const searchPatients = async (query) => {
   setNbSearchQuery(query)
+  setNbSearchNoResults(false)
   if (query.length < 2) { setNbSearchResults([]); return }
   try {
     const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
     const data = await res.json()
-    console.log('Search results:', JSON.stringify(data))
-setNbSearchResults(data.patients || [])
+    setNbSearchResults(data.patients || [])
+    setNbSearchNoResults(data.patients?.length === 0)
   } catch (e) {
     setNbSearchResults([])
+  }
+}
+
+const createNewPatient = async () => {
+  if (!cpFirstName || !cpLastName || !cpEmail || !cpDob) {
+    Alert.alert('Required', 'First name, last name, email and date of birth are required')
+    return
+  }
+  setCreatingPatient(true)
+  try {
+    // Format DOB from MM/DD/YYYY to YYYY-MM-DD
+    const dobParts = cpDob.split('/')
+    const formattedDob = dobParts.length === 3 
+      ? `${dobParts[2]}-${dobParts[0].padStart(2,'0')}-${dobParts[1].padStart(2,'0')}` 
+      : cpDob
+
+    const res = await fetch(`${API_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cpEmail.toLowerCase(),
+        password: Math.random().toString(36).slice(-10) + 'Aa1!',
+        firstName: cpFirstName,
+        lastName: cpLastName,
+        phone: cpPhone || null,
+        dob: formattedDob,
+        companyCode: company?.code
+      })
+    })
+    const data = await res.json()
+    if (data.success) {
+      // Auto-select the new patient
+      selectPatient({
+        id: data.user.id,
+        first_name: cpFirstName,
+        last_name: cpLastName,
+        phone: cpPhone || '',
+        last_address: ''
+      })
+      setShowCreatePatient(false)
+      setNewBookingModal(true)
+      setCpFirstName(''); setCpLastName(''); setCpEmail('')
+      setCpPhone(''); setCpDob('')
+      Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added to the system`)
+    } else {
+      Alert.alert('Error', data.message || 'Could not create patient')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setCreatingPatient(false)
   }
 }
 
@@ -401,8 +461,9 @@ const selectPatient = (patient) => {
   setNbPatientName(fullName)
   setNbPhone(patient.phone || '')
   setNbAddress(patient.last_address || '')
-  setNbSearchQuery(fullName)
+  setNbSearchQuery('')
   setNbSearchResults([])
+  setNbSearchNoResults(false)
 }
 
   const submitNewBooking = async () => {
@@ -1155,6 +1216,56 @@ const submitSendIntake = async () => {
         </KeyboardAvoidingView>
       </Modal>
 
+{/* Create New Patient Modal */}
+<Modal visible={showCreatePatient} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.modalCard}>
+          <Text style={styles.modalTitle}>New Patient</Text>
+          <Text style={styles.modalSub}>Create a new patient profile</Text>
+
+          <Text style={styles.reasonLabel}>First Name *</Text>
+          <TextInput style={styles.reasonInput} placeholder="First name" placeholderTextColor="#666"
+            value={cpFirstName} onChangeText={setCpFirstName} />
+
+          <Text style={styles.reasonLabel}>Last Name *</Text>
+          <TextInput style={styles.reasonInput} placeholder="Last name" placeholderTextColor="#666"
+            value={cpLastName} onChangeText={setCpLastName} />
+
+          <Text style={styles.reasonLabel}>Email *</Text>
+          <TextInput style={styles.reasonInput} placeholder="email@example.com" placeholderTextColor="#666"
+            value={cpEmail} onChangeText={setCpEmail} keyboardType="email-address" autoCapitalize="none" />
+
+          <Text style={styles.reasonLabel}>Phone</Text>
+          <TextInput style={styles.reasonInput} placeholder="(602) 555-0100" placeholderTextColor="#666"
+            value={cpPhone} onChangeText={setCpPhone} keyboardType="phone-pad" />
+
+          <Text style={styles.reasonLabel}>Date of Birth *</Text>
+          <TextInput style={styles.reasonInput} placeholder="MM/DD/YYYY" placeholderTextColor="#666"
+            value={cpDob} onChangeText={setCpDob} />
+
+          <TouchableOpacity
+            style={[styles.confirmCancelBtn, { backgroundColor: primaryColor }, creatingPatient && { opacity: 0.6 }]}
+            onPress={createNewPatient}
+            disabled={creatingPatient}
+          >
+            {creatingPatient ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>Create Patient</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.cancelModal} onPress={() => {
+            setShowCreatePatient(false)
+            setNewBookingModal(true)
+            setCpFirstName(''); setCpLastName(''); setCpEmail('')
+            setCpPhone(''); setCpDob('')
+          }}>
+            <Text style={styles.cancelModalText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </View>
+</Modal>
+
       {/* New Booking Modal */}
 
       <Modal visible={newBookingModal} transparent animationType="slide">
@@ -1203,9 +1314,20 @@ const submitSendIntake = async () => {
         onPress={() => selectPatient(p)}
       >
         <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
-        <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'} · {p.address || 'No address'}</Text>
+        <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'} · {p.last_address || 'No address'}</Text>
       </TouchableOpacity>
     ))}
+  </View>
+)}
+{nbSearchNoResults && nbSearchQuery.length >= 2 && (
+  <View style={{ backgroundColor: '#1a1a1a', borderRadius: 8, marginBottom: 8, padding: 12 }}>
+    <Text style={{ color: '#aaa', fontSize: 13, marginBottom: 8 }}>No patients found for "{nbSearchQuery}"</Text>
+    <TouchableOpacity
+      style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center' }}
+      onPress={() => { setNewBookingModal(false); setShowCreatePatient(true) }}
+    >
+      <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>+ Create New Patient</Text>
+    </TouchableOpacity>
   </View>
 )}
               <Text style={styles.reasonLabel}>Address *</Text>
