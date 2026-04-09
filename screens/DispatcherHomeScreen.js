@@ -1287,7 +1287,7 @@ const submitSendIntake = async () => {
       {/* Cancel Booking Modal */}
       <Modal visible={cancelModal} transparent animationType="slide">
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
+        <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Cancel Booking</Text>
             <Text style={styles.modalSub}>
@@ -1348,7 +1348,7 @@ const submitSendIntake = async () => {
               <Text style={styles.cancelModalText}>Keep booking</Text>
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
         </KeyboardAvoidingView>
       </Modal>
 

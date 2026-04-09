@@ -105,7 +105,8 @@ export default function AppointmentDetailScreen({ route, navigation }) {
     try {
       const res = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Cancelled by patient' })
       })
       const data = await res.json()
       if (data.success) {

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
@@ -18,6 +18,7 @@ export default function BookingScreen({ route, navigation }) {
 
   const [selectedService, setSelectedService] = useState(null)
   const [address, setAddress] = useState('')
+  const [loadingAddress, setLoadingAddress] = useState(true)
   const [addressNote, setAddressNote] = useState('')
   const [notes, setNotes] = useState('')
   const [ivCount, setIvCount] = useState(1)
@@ -34,6 +35,26 @@ export default function BookingScreen({ route, navigation }) {
   const [slots, setSlots] = useState([])
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
+
+useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (data.success && data.user?.homeAddress) {
+          const parts = [data.user.homeAddress, data.user.city, data.user.state, data.user.zip].filter(Boolean)
+          setAddress(parts.join(', '))
+        }
+      } catch (err) {
+        console.error('Fetch profile error:', err)
+      } finally {
+        setLoadingAddress(false)
+      }
+    }
+    fetchProfile()
+  }, [token])
 
   const fetchSlots = async (date) => {
     setLoadingSlots(true)
@@ -210,13 +231,20 @@ export default function BookingScreen({ route, navigation }) {
       
 
       <Text style={styles.sectionLabel}>Your location</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Street address"
-        placeholderTextColor="#666"
-        value={address}
-        onChangeText={setAddress}
-      />
+      {loadingAddress ? (
+        <ActivityIndicator color={company.primaryColor} style={{ marginBottom: 10 }} />
+      ) : (
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Street address"
+            placeholderTextColor="#666"
+            value={address}
+            onChangeText={setAddress}
+          />
+          {address ? <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: -6, marginBottom: 8 }}>Pre-filled from your profile — tap to edit</Text> : null}
+        </>
+      )}
       <TextInput
         style={styles.input}
         placeholder="Apt, suite, room number (optional)"
