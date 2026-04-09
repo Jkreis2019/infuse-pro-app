@@ -11,10 +11,11 @@ import HomeScreen from './screens/HomeScreen'
 import BookingScreen from './screens/BookingScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import { Platform } from 'react-native'
-const MapScreen = () => null
+const MapScreen = Platform.OS === 'web' ? () => null : require('./screens/MapScreen').default
 import EmailVerificationScreen from './screens/EmailVerificationScreen'
 import AppointmentDetailScreen from './screens/AppointmentDetailScreen'
 import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
+import AdminHomeScreen from './screens/AdminHomeScreen'
 import TechHomeScreen from './screens/TechHomeScreen'
 import NPHomeScreen from './screens/NPHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
@@ -120,6 +121,7 @@ export default function App() {
         <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Book Appointment', headerShown: true }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicHome" component={ClinicHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicTechHome" component={ClinicTechScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chart" component={ChartScreen} options={{ headerShown: false }} />

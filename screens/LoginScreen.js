@@ -58,7 +58,10 @@ export default function LoginScreen({ route, navigation }) {
               routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
             })
           } else {
-            navigation.replace('AdminHome', { token: data.token, user: data.user, company })
+            const { CommonActions } = require('@react-navigation/native')
+            navigation.dispatch(
+              CommonActions.reset({ index: 0, routes: [{ name: 'AdminHome', params: { token: data.token, user: data.user, company } }] })
+            )
           }
           console.log('serviceType:', company?.serviceType, 'role:', role)
         } else if (role === 'tech') {
