@@ -144,22 +144,24 @@ const [patientListEmail, setPatientListEmail] = useState('')
 const [intakeBookingId, setIntakeBookingId] = useState(null)
 const [sendingIntake, setSendingIntake] = useState(false)
 const [profileModal, setProfileModal] = useState(false)
+const [needsAttention, setNeedsAttention] = useState([])
 
   const headers = { Authorization: `Bearer ${token}` }
 
   const fetchAll = useCallback(async () => {
     try {
-    const [qRes, aRes, tRes, sRes, lRes, schRes, upRes] = await Promise.all([
+    const [qRes, aRes, tRes, sRes, lRes, schRes, upRes, naRes] = await Promise.all([
       fetch(`${API_URL}/dispatch/queue`, { headers }),
       fetch(`${API_URL}/dispatch/active`, { headers }),
       fetch(`${API_URL}/dispatch/techs`, { headers }),
       fetch(`${API_URL}/dispatch/stats`, { headers }),
       fetch(`${API_URL}/dispatch/log`, { headers }),
       fetch(`${API_URL}/dispatch/scheduled`, { headers }),
-      fetch(`${API_URL}/dispatch/upcoming`, { headers })
+      fetch(`${API_URL}/dispatch/upcoming`, { headers }),
+      fetch(`${API_URL}/dispatch/needs-attention`, { headers })
     ])
-    const [qData, aData, tData, sData, lData, schData, upData] = await Promise.all([
-      qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json(), schRes.json(), upRes.json()
+    const [qData, aData, tData, sData, lData, schData, upData, naData] = await Promise.all([
+      qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json(), schRes.json(), upRes.json(), naRes.json()
     ])
     if (qData.queue) setQueue(qData.queue)
     if (aData.active) setActive(aData.active)
@@ -168,6 +170,7 @@ const [profileModal, setProfileModal] = useState(false)
     if (lData.log) setLog(lData.log)
     if (schData.scheduled) setScheduled(schData.scheduled)
     if (upData.upcoming) setUpcoming(upData.upcoming)
+        if (naData.bookings) setNeedsAttention(naData.bookings)
     } catch (err) {
       console.error('Fetch error:', err)
     } finally {

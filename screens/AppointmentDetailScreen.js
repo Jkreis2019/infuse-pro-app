@@ -139,11 +139,19 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   }
 
   const currentStep = STATUS_STEPS.indexOf(booking.status)
-  const canCancel = ['pending', 'confirmed', 'en_route'].includes(booking.status)
+  const isPast = booking.requested_time && new Date(booking.requested_time) < new Date() && booking.status === 'confirmed'
+  const canCancel = ['pending', 'confirmed', 'en_route'].includes(booking.status) && !isPast
   const canMessage = ['en_route', 'on_scene'].includes(booking.status)
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+
+      {isPast && (
+        <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <Text style={{ color: '#f09090', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>⚠️ Appointment Not Completed</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>This appointment passed without being completed. Please contact the company to reschedule.</Text>
+        </View>
+      )}
 
       {/* Status Stepper */}
       <View style={styles.stepperCard}>
