@@ -185,6 +185,36 @@ const [needsAttention, setNeedsAttention] = useState([])
     return () => clearInterval(interval)
   }, [fetchAll])
 
+const markNoShow = async (bookingId) => {
+  console.log('markNoShow called for booking:', bookingId)
+  try {
+    const res = await fetch(`${API_URL}/dispatch/no-show`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bookingId, reason: 'No show' })
+    })
+    const data = await res.json()
+    if (data.success) fetchAll()
+    else Alert.alert('Error', data.message)
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  }
+}
+
+const cancelAttentionBooking = async (bookingId) => {
+  try {
+    const res = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' }
+    })
+    const data = await res.json()
+    if (data.success) fetchAll()
+    else Alert.alert('Error', data.message)
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  }
+}
+
   const onRefresh = () => {
     setRefreshing(true)
     fetchAll()
@@ -1018,6 +1048,7 @@ const submitSendIntake = async () => {
 {activeTab === 'log' && (
   <ScrollView
     style={styles.scroll}
+    keyboardShouldPersistTaps="handled"
     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
   >
     {/* Needs Attention Section */}
@@ -1043,39 +1074,34 @@ const submitSendIntake = async () => {
                 <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>Reschedule</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                activeOpacity={0.7}
                 style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center' }}
-                onPress={() => Alert.alert('Mark as No Show', `Mark ${booking.patient_name} as no show?`, [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Confirm', onPress: async () => {
-                    try {
-                      const res = await fetch(`${API_URL}/dispatch/no-show`, {
-                        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ bookingId: booking.id, reason: 'No show' })
-                      })
-                      const data = await res.json()
-                      if (data.success) fetchAll()
-                      else Alert.alert('Error', data.message)
-                    } catch (err) { Alert.alert('Error', 'Network error') }
-                  }}
-                ])}
+                onPress={() => {
+                  if (Platform.OS === 'web') {
+                    if (window.confirm(`Mark ${booking.patient_name} as no show?`)) markNoShow(booking.id)
+                  } else {
+                    Alert.alert('Mark as No Show', `Mark ${booking.patient_name} as no show?`, [
+                      { text: 'Keep', style: 'cancel' },
+                      { text: 'Confirm', onPress: () => markNoShow(booking.id) }
+                    ])
+                  }
+                }}
               >
                 <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>No Show</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={{ flex: 1, backgroundColor: 'rgba(229,62,62,0.15)', borderRadius: 8, padding: 10, alignItems: 'center' }}
-                onPress={() => Alert.alert('Cancel Booking', `Cancel ${booking.patient_name}'s booking?`, [
-                  { text: 'Keep', style: 'cancel' },
-                  { text: 'Cancel', style: 'destructive', onPress: async () => {
-                    try {
-                      const res = await fetch(`${API_URL}/bookings/${booking.id}/cancel`, {
-                        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }
-                      })
-                      const data = await res.json()
-                      if (data.success) fetchAll()
-                      else Alert.alert('Error', data.message)
-                    } catch (err) { Alert.alert('Error', 'Network error') }
-                  }}
-                ])}
+                activeOpacity={0.7}
+                style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center' }}
+                onPress={() => {
+                  if (Platform.OS === 'web') {
+                    if (window.confirm(`Cancel ${booking.patient_name}'s booking?`)) cancelAttentionBooking(booking.id)
+                  } else {
+                    Alert.alert('Cancel Booking', `Cancel ${booking.patient_name}'s booking?`, [
+                      { text: 'Keep', style: 'cancel' },
+                      { text: 'Cancel', style: 'destructive', onPress: () => cancelAttentionBooking(booking.id) }
+                    ])
+                  }
+                }}
               >
                 <Text style={{ color: '#e53e3e', fontWeight: '700', fontSize: 13 }}>Cancel</Text>
               </TouchableOpacity>
