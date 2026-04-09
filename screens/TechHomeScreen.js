@@ -440,6 +440,7 @@ const [techChangingPassword, setTechChangingPassword] = useState(false)
 const startLocationTracking = useCallback(async () => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync()
+    console.log('Location permission status:', status)
     if (status !== 'granted') return
 
     const interval = setInterval(async () => {

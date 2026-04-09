@@ -36,6 +36,7 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
+  const [techLocation, setTechLocation] = useState(null)
 
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
