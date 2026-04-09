@@ -40,7 +40,7 @@ export default function LoginScreen({ route, navigation }) {
             index: 0,
             routes: [{ name: 'Home', params: { token: data.token, user: data.user, company } }]
           })
-        } else if (role === 'dispatcher' || role === 'admin') {
+        } else if (role === 'dispatcher') {
           if (!data.user.passwordChanged) {
             navigation.reset({
               index: 0,
@@ -49,10 +49,16 @@ export default function LoginScreen({ route, navigation }) {
           } else {
             const serviceType = company?.serviceType || 'mobile'
             const destination = serviceType === 'clinic' ? 'ClinicHome' : 'DispatcherHome'
+            navigation.replace(destination, { token: data.token, user: data.user, company })
+          }
+        } else if (role === 'admin') {
+          if (!data.user.passwordChanged) {
             navigation.reset({
               index: 0,
-              routes: [{ name: destination, params: { token: data.token, user: data.user, company } }]
+              routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
             })
+          } else {
+            navigation.replace('AdminHome', { token: data.token, user: data.user, company })
           }
           console.log('serviceType:', company?.serviceType, 'role:', role)
         } else if (role === 'tech') {
