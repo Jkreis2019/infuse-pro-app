@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 
@@ -105,6 +105,15 @@ const [nbSearchResults, setNbSearchResults] = useState([])
 const [nbSelectedPatient, setNbSelectedPatient] = useState(null)
 const [showCreatePatient, setShowCreatePatient] = useState(false)
 const [nbSearchNoResults, setNbSearchNoResults] = useState(false)
+const [patientSearchModal, setPatientSearchModal] = useState(false)
+const [psQuery, setPsQuery] = useState('')
+const [psResults, setPsResults] = useState([])
+const [psSearching, setPsSearching] = useState(false)
+const [psSelectedPatient, setPsSelectedPatient] = useState(null)
+const [psProfileData, setPsProfileData] = useState(null)
+const [psLoadingProfile, setPsLoadingProfile] = useState(false)
+const [psActiveTab, setPsActiveTab] = useState('bookings')
+const [psProfileModal, setPsProfileModal] = useState(false)
 const [cpFirstName, setCpFirstName] = useState('')
 const [cpLastName, setCpLastName] = useState('')
 const [cpEmail, setCpEmail] = useState('')
@@ -404,6 +413,38 @@ const searchPatients = async (query) => {
   }
 }
 
+const searchPsPatients = useCallback(async (q) => {
+  setPsQuery(q)
+  if (q.length < 2) { setPsResults([]); return }
+  setPsSearching(true)
+  try {
+    const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
+    const data = await res.json()
+    setPsResults(data.patients || [])
+  } catch (err) {
+    console.error('PS Search error:', err)
+  } finally {
+    setPsSearching(false)
+  }
+}, [token])
+
+const openPsProfile = async (patient) => {
+  setPsSelectedPatient(patient)
+  setPsProfileModal(true)
+  setPsLoadingProfile(true)
+  setPsActiveTab('bookings')
+  try {
+    const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
+    const data = await res.json()
+    if (data.success) setPsProfileData(data)
+    else Alert.alert('Error', 'Could not load patient profile')
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setPsLoadingProfile(false)
+  }
+}
+
 const createNewPatient = async () => {
   if (!cpFirstName || !cpLastName || !cpEmail || !cpDob) {
     Alert.alert('Required', 'First name, last name, email and date of birth are required')
@@ -630,10 +671,9 @@ const submitSendIntake = async () => {
     </View>
     <View style={{ alignItems: 'flex-end', gap: 8 }}>
       <TouchableOpacity
-  style={[styles.newBookingBtn, { backgroundColor: primaryColor }]}
-  onPress={() => setNewBookingModal(true)}
+  onPress={() => setPatientSearchModal(true)}
 >
-  <Text style={[styles.newBookingBtnText, { color: secondaryColor }]}>+ New</Text>
+  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🔍 Patients</Text>
 </TouchableOpacity>
 <TouchableOpacity
   onPress={() => setProfileModal(true)}
@@ -1215,6 +1255,180 @@ const submitSendIntake = async () => {
         </TouchableOpacity>
         </KeyboardAvoidingView>
       </Modal>
+
+{/* Patient Search Modal */}
+<Modal visible={patientSearchModal} animationType="slide" presentationStyle="fullScreen">
+  <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+    {/* Profile Modal inside Patient Search */}
+    <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
+      <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+        <View style={[styles.modalHeader || { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, { backgroundColor: secondaryColor }]}>
+          <TouchableOpacity onPress={() => { setPsProfileModal(false); setPsProfileData(null) }}>
+            <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <View style={{ backgroundColor: secondaryColor, paddingHorizontal: 20, paddingBottom: 16 }}>
+          {psSelectedPatient?.phone && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>📞 {psSelectedPatient.phone}</Text>}
+          {psSelectedPatient?.email && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>✉️ {psSelectedPatient.email}</Text>}
+          {psProfileData && <Text style={{ color: primaryColor, fontSize: 13, marginTop: 4 }}>{psProfileData.totalBookings} total visits</Text>}
+        </View>
+        <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+          {['bookings', 'intake', 'gfe'].map(tab => (
+            <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => setPsActiveTab(tab)}>
+              <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600' }}>
+                {tab === 'bookings' ? '📅 Bookings' : tab === 'intake' ? '📋 Intake' : '🩺 GFE'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        {psLoadingProfile ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={primaryColor} size="large" />
+          </View>
+        ) : (
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+            {psActiveTab === 'bookings' && (
+              <>
+                {!psProfileData?.bookings?.length ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No bookings on record</Text>
+                ) : (
+                  psProfileData.bookings.map(b => (
+                    <View key={b.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{b.service}</Text>
+                        <Text style={{ color: '#aaa', fontSize: 11, fontWeight: '700' }}>{b.status?.toUpperCase()}</Text>
+                      </View>
+                      {b.requested_time && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📅 {new Date(b.requested_time).toLocaleDateString()}</Text>}
+                      {b.address && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📍 {b.address}</Text>}
+                      {b.tech_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>🧑‍⚕️ {b.tech_name}</Text>}
+                    </View>
+                  ))
+                )}
+              </>
+            )}
+            {psActiveTab === 'intake' && (
+              <>
+                {!psProfileData?.intake ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake form on file</Text>
+                ) : (
+                  <>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>SUBMITTED</Text>
+                      <Text style={{ color: '#fff', fontSize: 13 }}>{new Date(psProfileData.intake.submitted_at).toLocaleDateString()}</Text>
+                    </View>
+                    {psProfileData.intake.medications && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>MEDICATIONS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.medications}</Text>
+                      </View>
+                    )}
+                    {psProfileData.intake.allergies_detail?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>ALLERGIES</Text>
+                        {(Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail : []).map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}
+                      </View>
+                    )}
+                    {psProfileData.intake.important_history?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>IMPORTANT HISTORY</Text>
+                        {(Array.isArray(psProfileData.intake.important_history) ? psProfileData.intake.important_history : []).map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}
+                      </View>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {psActiveTab === 'gfe' && (
+              <>
+                {!psProfileData?.gfe ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No GFE on file</Text>
+                ) : (
+                  <>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
+                      <Text style={{ color: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>
+                        {psProfileData.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED'}
+                      </Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {psProfileData.gfe.npName} · Valid until {new Date(psProfileData.gfe.validUntil).toLocaleDateString()}</Text>
+                    </View>
+                    {psProfileData.gfe.approvedServices?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>APPROVED SERVICES</Text>
+                        {psProfileData.gfe.approvedServices.map((s, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {s}</Text>)}
+                      </View>
+                    )}
+                    {psProfileData.gfe.restrictions && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>RESTRICTIONS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.restrictions}</Text>
+                      </View>
+                    )}
+                    {psProfileData.gfe.npOrders && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>NP ORDERS</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.npOrders}</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        )}
+      </View>
+    </Modal>
+
+    {/* Patient Search Header */}
+    <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+      <TouchableOpacity onPress={() => { setPatientSearchModal(false); setPsQuery(''); setPsResults([]) }}>
+        <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+      </TouchableOpacity>
+      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Patient Search</Text>
+      <View style={{ width: 60 }} />
+    </View>
+
+    {/* Search Input */}
+    <View style={{ backgroundColor: secondaryColor, paddingHorizontal: 16, paddingBottom: 16 }}>
+      <TextInput
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff' }}
+        placeholder="Search by name or phone..."
+        placeholderTextColor="#666"
+        value={psQuery}
+        onChangeText={searchPsPatients}
+        autoFocus
+      />
+    </View>
+
+    <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+      {psSearching && <View style={{ alignItems: 'center', padding: 20 }}><ActivityIndicator color={primaryColor} /></View>}
+      {!psSearching && psQuery.length >= 2 && psResults.length === 0 && (
+        <View style={{ alignItems: 'center', padding: 40 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>No patients found for "{psQuery}"</Text>
+        </View>
+      )}
+      {psResults.map(patient => (
+        <TouchableOpacity key={patient.id} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }} onPress={() => openPsProfile(patient)}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{patient.first_name} {patient.last_name}</Text>
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{patient.phone || 'No phone'} · {patient.email}</Text>
+            {patient.last_address && <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>📍 {patient.last_address}</Text>}
+            <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{patient.total_bookings || 0} visits</Text>
+          </View>
+          <Text style={{ color: primaryColor, fontSize: 18 }}>›</Text>
+        </TouchableOpacity>
+      ))}
+      {!psSearching && psQuery.length < 2 && (
+        <View style={{ alignItems: 'center', paddingTop: 60 }}>
+          <Text style={{ fontSize: 40, marginBottom: 16 }}>🔍</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>Search by name or phone</Text>
+        </View>
+      )}
+      <View style={{ height: 40 }} />
+    </ScrollView>
+  </View>
+</Modal>
 
 {/* Create New Patient Modal */}
 <Modal visible={showCreatePatient} transparent animationType="slide">
