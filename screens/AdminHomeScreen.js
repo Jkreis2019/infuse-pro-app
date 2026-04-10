@@ -80,7 +80,10 @@ export default function AdminHomeScreen({ route, navigation }) {
         statsRes.json(), staffRes.json(), svcRes.json(), regRes.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
-      if (staffData.staff) setStaff(staffData.staff)
+      if (staffData.staff) {
+        console.log('Staff data:', JSON.stringify(staffData.staff.map(s => ({ id: s.id, name: s.first_name, region_id: s.region_id }))))
+        setStaff(staffData.staff)
+      }
       if (svcData.services) setServices(svcData.services)
       if (regData.regions) setRegions(regData.regions)
     } catch (err) {

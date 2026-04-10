@@ -757,13 +757,20 @@ const submitSendIntake = async () => {
             </View>
           ) : (
             queue.map(booking => (
-              <TouchableOpacity key={booking.id} style={styles.card} onPress={() => openDetailModal(booking)} activeOpacity={0.8}>
+              <TouchableOpacity key={booking.id} style={[styles.card, booking.region_color && { borderLeftWidth: 4, borderLeftColor: booking.region_color }]} onPress={() => openDetailModal(booking)} activeOpacity={0.8}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardService}>{booking.service}</Text>
-                  <View style={[styles.newBadge, { backgroundColor: booking.source === 'phone' ? '#2196F3' : primaryColor }]}>
-                    <Text style={styles.newBadgeText}>
-                      {booking.source === 'phone' ? 'PHONE' : 'APP'}
-                    </Text>
+                  <View style={{ flexDirection: 'row', gap: 6 }}>
+                    {booking.region_name && (
+                      <View style={[styles.newBadge, { backgroundColor: booking.region_color || '#aaa' }]}>
+                        <Text style={styles.newBadgeText}>{booking.region_name.toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <View style={[styles.newBadge, { backgroundColor: booking.source === 'phone' ? '#2196F3' : primaryColor }]}>
+                      <Text style={styles.newBadgeText}>
+                        {booking.source === 'phone' ? 'PHONE' : 'APP'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
