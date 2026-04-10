@@ -204,7 +204,7 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const assignStaffRegion = async (userId, regionId) => {
   try {
-    const res = await fetch(`${API_URL}/admin/regions/${regionId || 0}/assign-staff`, {
+    const res = await fetch(`${API_URL}/admin/staff/${userId}/region`, {
       method: 'PUT',
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, regionId })
