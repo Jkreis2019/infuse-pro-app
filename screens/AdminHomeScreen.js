@@ -27,6 +27,19 @@ export default function AdminHomeScreen({ route, navigation }) {
   // Services
   const [services, setServices] = useState([])
 
+// Announcements
+  const [announcements, setAnnouncements] = useState([])
+  const [announcementModal, setAnnouncementModal] = useState(false)
+  const [editingAnnouncement, setEditingAnnouncement] = useState(null)
+  const [anTitle, setAnTitle] = useState('')
+  const [anBody, setAnBody] = useState('')
+  const [anEmoji, setAnEmoji] = useState('📢')
+  const [anCtaLabel, setAnCtaLabel] = useState('')
+  const [anCtaUrl, setAnCtaUrl] = useState('')
+  const [anBgStyle, setAnBgStyle] = useState('solid')
+  const [anActive, setAnActive] = useState(true)
+  const [savingAnnouncement, setSavingAnnouncement] = useState(false)
+
   // Branding
   const [brandingLogo, setBrandingLogo] = useState(company?.logo || null)
   const [brandingPrimary, setBrandingPrimary] = useState(company?.primaryColor || '#C9A84C')
@@ -70,21 +83,21 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes, regRes] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes, anRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
-        fetch(`${API_URL}/admin/regions`, { headers })
+        fetch(`${API_URL}/admin/regions`, { headers }),
+        fetch(`${API_URL}/admin/announcements`, { headers })
       ])
-      const [statsData, staffData, svcData, regData] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json()
+      const [statsData, staffData, svcData, regData, anData] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
-      if (staffData.staff) {
-        setStaff(staffData.staff)
-      }
+      if (staffData.staff) setStaff(staffData.staff)
       if (svcData.services) setServices(svcData.services)
       if (regData.regions) setRegions(regData.regions)
+      if (anData.announcements) setAnnouncements(anData.announcements)
     } catch (err) {
       console.error('Admin fetch error:', err)
     } finally {
@@ -314,7 +327,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'regions', 'branding', 'settings'].map(tab => (
+          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -565,6 +578,233 @@ const saveRegion = async () => {
         </ScrollView>
       )}
 
+      {/* Announcements Tab */}
+      {activeTab === 'announcements' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: primaryColor }]}
+            onPress={() => {
+              setEditingAnnouncement(null)
+              setAnTitle(''); setAnBody(''); setAnEmoji('📢')
+              setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnActive(true)
+              setAnnouncementModal(true)
+            }}
+          >
+            <Text style={[styles.addButtonText, { color: secondaryColor }]}>+ New Announcement</Text>
+          </TouchableOpacity>
+
+          {announcements.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📢</Text>
+              <Text style={styles.emptyText}>No announcements yet</Text>
+              <Text style={styles.emptySub}>Create one to show patients when they log in</Text>
+            </View>
+          ) : (
+            announcements.map(an => (
+              <View key={an.id} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: an.active ? primaryColor : '#aaa' }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 24, marginBottom: 4 }}>{an.emoji}</Text>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{an.title}</Text>
+                    {an.body && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 8 }}>{an.body}</Text>}
+                    {an.cta_label && (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>🔗 {an.cta_label}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View style={{ alignItems: 'flex-end', gap: 8 }}>
+                    <View style={[{ borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: an.active ? '#4CAF50' : '#aaa' }]}>
+                      <Text style={{ color: an.active ? '#4CAF50' : '#aaa', fontSize: 10, fontWeight: '700' }}>
+                        {an.active ? 'ACTIVE' : 'INACTIVE'}
+                      </Text>
+                    </View>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{an.bg_style}</Text>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { borderColor: primaryColor }]}
+                    onPress={() => {
+                      setEditingAnnouncement(an)
+                      setAnTitle(an.title)
+                      setAnBody(an.body || '')
+                      setAnEmoji(an.emoji || '📢')
+                      setAnCtaLabel(an.cta_label || '')
+                      setAnCtaUrl(an.cta_url || '')
+                      setAnBgStyle(an.bg_style || 'solid')
+                      setAnActive(an.active)
+                      setAnnouncementModal(true)
+                    }}
+                  >
+                    <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { borderColor: an.active ? '#aaa' : '#4CAF50' }]}
+                    onPress={async () => {
+                      try {
+                        await fetch(`${API_URL}/admin/announcements/${an.id}`, {
+                          method: 'PUT',
+                          headers: { ...headers, 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ ...an, active: !an.active, ctaLabel: an.cta_label, ctaUrl: an.cta_url, bgStyle: an.bg_style, sortOrder: an.sort_order })
+                        })
+                        fetchAll()
+                      } catch (err) {
+                        Alert.alert('Error', 'Could not update')
+                      }
+                    }}
+                  >
+                    <Text style={{ color: an.active ? '#aaa' : '#4CAF50', fontSize: 13, fontWeight: '600' }}>
+                      {an.active ? 'Deactivate' : 'Activate'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionBtn, { borderColor: '#f09090' }]}
+                    onPress={() => {
+                      Alert.alert('Delete', 'Delete this announcement?', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', style: 'destructive', onPress: async () => {
+                          await fetch(`${API_URL}/admin/announcements/${an.id}`, { method: 'DELETE', headers })
+                          fetchAll()
+                        }}
+                      ])
+                    }}
+                  >
+                    <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Announcement Modal */}
+      <Modal visible={announcementModal} animationType="slide" presentationStyle="fullScreen">
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+            <TouchableOpacity onPress={() => setAnnouncementModal(false)}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingAnnouncement ? 'Edit Announcement' : 'New Announcement'}</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+
+            <Text style={styles.fieldLabel}>Emoji</Text>
+            <TextInput
+              style={styles.input}
+              value={anEmoji}
+              onChangeText={setAnEmoji}
+              placeholder="📢"
+              placeholderTextColor="#666"
+            />
+
+            <Text style={styles.fieldLabel}>Title *</Text>
+            <TextInput
+              style={styles.input}
+              value={anTitle}
+              onChangeText={setAnTitle}
+              placeholder="Spring Special!"
+              placeholderTextColor="#666"
+            />
+
+            <Text style={styles.fieldLabel}>Message</Text>
+            <TextInput
+              style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+              value={anBody}
+              onChangeText={setAnBody}
+              placeholder="Tell your patients something exciting..."
+              placeholderTextColor="#666"
+              multiline
+            />
+
+            <Text style={styles.fieldLabel}>Background Style</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+              {['solid', 'gradient', 'dark', 'light'].map(style => (
+                <TouchableOpacity
+                  key={style}
+                  style={{ flex: 1, borderWidth: 1, borderRadius: 8, padding: 10, alignItems: 'center', borderColor: anBgStyle === style ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: anBgStyle === style ? primaryColor + '20' : 'transparent' }}
+                  onPress={() => setAnBgStyle(style)}
+                >
+                  <Text style={{ color: anBgStyle === style ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600', textTransform: 'capitalize' }}>{style}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.fieldLabel}>CTA Button Label (optional)</Text>
+            <TextInput
+              style={styles.input}
+              value={anCtaLabel}
+              onChangeText={setAnCtaLabel}
+              placeholder="Learn More"
+              placeholderTextColor="#666"
+            />
+
+            <Text style={styles.fieldLabel}>CTA Button URL (optional)</Text>
+            <TextInput
+              style={styles.input}
+              value={anCtaUrl}
+              onChangeText={setAnCtaUrl}
+              placeholder="https://yoursite.com/event"
+              placeholderTextColor="#666"
+              autoCapitalize="none"
+              keyboardType="url"
+            />
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <Text style={{ color: '#fff', fontSize: 15 }}>Active</Text>
+              <TouchableOpacity
+                style={{ width: 52, height: 30, borderRadius: 15, backgroundColor: anActive ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                onPress={() => setAnActive(!anActive)}
+              >
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: anActive ? 'flex-end' : 'flex-start' }} />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor }, savingAnnouncement && { opacity: 0.6 }]}
+              onPress={async () => {
+                if (!anTitle.trim()) { Alert.alert('Required', 'Title is required'); return }
+                setSavingAnnouncement(true)
+                try {
+                  const payload = {
+                    title: anTitle, body: anBody, emoji: anEmoji,
+                    ctaLabel: anCtaLabel, ctaUrl: anCtaUrl,
+                    bgStyle: anBgStyle, active: anActive,
+                    sortOrder: editingAnnouncement?.sort_order || 0
+                  }
+                  if (editingAnnouncement) {
+                    await fetch(`${API_URL}/admin/announcements/${editingAnnouncement.id}`, {
+                      method: 'PUT',
+                      headers: { ...headers, 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                    })
+                  } else {
+                    await fetch(`${API_URL}/admin/announcements`, {
+                      method: 'POST',
+                      headers: { ...headers, 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload)
+                    })
+                  }
+                  setAnnouncementModal(false)
+                  fetchAll()
+                } catch (err) {
+                  Alert.alert('Error', 'Could not save announcement')
+                } finally {
+                  setSavingAnnouncement(false)
+                }
+              }}
+              disabled={savingAnnouncement}
+            >
+              {savingAnnouncement ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Announcement</Text>}
+            </TouchableOpacity>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {/* Settings Tab */}
       {activeTab === 'settings' && (
         <ScrollView style={styles.scroll}>
@@ -730,7 +970,14 @@ const styles = StyleSheet.create({
   cardSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 2 },
   roleBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   roleBadgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
-  actionBtn: { borderRadius: 12, padding: 16, alignItems: 'center' },
+  actionBtn: { flex: 1, borderWidth: 1, borderRadius: 8, padding: 10, alignItems: 'center' },
+  emptyState: { alignItems: 'center', paddingTop: 60 },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyText: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 8 },
+  emptySub: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
+  addButton: { borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 },
+  addButtonText: { fontSize: 15, fontWeight: '700' },
+  card: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 },
   actionBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
   fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
   input: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 8 },
