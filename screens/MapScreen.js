@@ -1,6 +1,15 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
 import { useState, useEffect } from 'react'
-import MapView, { Marker } from 'react-native-maps'
+import { Platform } from 'react-native'
+let MapView, Marker
+if (Platform.OS !== 'web') {
+  const Maps = require('react-native-maps')
+  MapView = Maps.default
+  Marker = Maps.Marker
+} else {
+  MapView = () => null
+  Marker = () => null
+}
 
 const API_URL = 'https://api.infusepro.app'
 

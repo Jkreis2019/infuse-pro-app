@@ -707,11 +707,6 @@ const submitSendIntake = async () => {
 >
   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>📞 New Booking</Text>
 </TouchableOpacity>
-      <TouchableOpacity
-  onPress={() => setPatientSearchModal(true)}
->
-  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🔍 Patients</Text>
-</TouchableOpacity>
 <TouchableOpacity
   onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
 >
