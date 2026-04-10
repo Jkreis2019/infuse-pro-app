@@ -186,7 +186,6 @@ const [needsAttention, setNeedsAttention] = useState([])
   }, [fetchAll])
 
 const markNoShow = async (bookingId) => {
-  console.log('markNoShow called for booking:', bookingId)
   try {
     const res = await fetch(`${API_URL}/dispatch/no-show`, {
       method: 'POST',
@@ -709,7 +708,7 @@ const submitSendIntake = async () => {
   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🔍 Patients</Text>
 </TouchableOpacity>
 <TouchableOpacity
-  onPress={() => navigation.navigate('ChatContacts', { token, user, company })}
+  onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
 >
   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>💬 Messages</Text>
 </TouchableOpacity>

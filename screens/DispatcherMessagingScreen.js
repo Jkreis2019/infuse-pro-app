@@ -7,6 +7,7 @@ import {
 const API_URL = 'https://api.infusepro.app'
 
 export default function DispatcherMessagingScreen({ route, navigation }) {
+    console.log('DispatcherMessagingScreen loaded')
   const { token, user, company } = route.params || {}
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
@@ -68,8 +69,8 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     return () => clearInterval(interval)
   }, [fetchContacts, fetchPatientChats])
 
-  const fetchDMMessages = useCallback(async (contactId) => {
-    setMessagesLoading(true)
+  const fetchDMMessages = useCallback(async (contactId, showLoader = false) => {
+    if (showLoader) setMessagesLoading(true)
     try {
       const res = await fetch(`${API_URL}/chat/dm/${contactId}`, { headers })
       const data = await res.json()
@@ -77,12 +78,12 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     } catch (err) {
       console.error('Fetch DM error:', err)
     } finally {
-      setMessagesLoading(false)
+      if (showLoader) setMessagesLoading(false)
     }
   }, [token])
 
-  const fetchPatientMessages = useCallback(async (bookingId) => {
-    setMessagesLoading(true)
+  const fetchPatientMessages = useCallback(async (bookingId, showLoader = false) => {
+    if (showLoader) setMessagesLoading(true)
     try {
       const res = await fetch(`${API_URL}/dispatch/chat/${bookingId}/messages`, { headers })
       const data = await res.json()
@@ -90,37 +91,39 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     } catch (err) {
       console.error('Fetch patient messages error:', err)
     } finally {
-      setMessagesLoading(false)
+      if (showLoader) setMessagesLoading(false)
     }
   }, [token])
 
   useEffect(() => {
     if (!selectedContact && !selectedPatient) return
     const interval = setInterval(() => {
-      if (selectedContact) fetchDMMessages(selectedContact.id)
-      if (selectedPatient) fetchPatientMessages(selectedPatient.booking_id)
+      if (selectedContact) fetchDMMessages(selectedContact.id, false)
+      if (selectedPatient) fetchPatientMessages(selectedPatient.booking_id, false)
     }, 5000)
     return () => clearInterval(interval)
   }, [selectedContact, selectedPatient])
 
+  const prevMessageCount = useRef(0)
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > prevMessageCount.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100)
     }
+    prevMessageCount.current = messages.length
   }, [messages])
 
   const selectContact = (contact) => {
     setSelectedContact(contact)
     setSelectedPatient(null)
     setMessages([])
-    fetchDMMessages(contact.id)
+    fetchDMMessages(contact.id, true)
   }
 
   const selectPatient = (chat) => {
     setSelectedPatient(chat)
     setSelectedContact(null)
     setMessages([])
-    fetchPatientMessages(chat.booking_id)
+    fetchPatientMessages(chat.booking_id, true)
   }
 
   const sendDM = async () => {
