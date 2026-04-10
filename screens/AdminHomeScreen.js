@@ -692,15 +692,6 @@ const saveRegion = async () => {
           </View>
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
 
-            <Text style={styles.fieldLabel}>Emoji</Text>
-            <TextInput
-              style={styles.input}
-              value={anEmoji}
-              onChangeText={setAnEmoji}
-              placeholder="📢"
-              placeholderTextColor="#666"
-            />
-
             <Text style={styles.fieldLabel}>Title *</Text>
             <TextInput
               style={styles.input}
