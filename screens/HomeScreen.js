@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 
@@ -10,11 +10,14 @@ export default function HomeScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true)
   const [hasPendingIntake, setHasPendingIntake] = useState(false)
   const [intakeUrl, setIntakeUrl] = useState(null)
+  const [announcements, setAnnouncements] = useState([])
+  const [currentAnnouncement, setCurrentAnnouncement] = useState(0)
 
   useFocusEffect(
   React.useCallback(() => {
     fetchBookings()
     fetchIntakeStatus()
+    fetchAnnouncements()
     
     const interval = setInterval(() => {
       fetchIntakeStatus()
@@ -40,6 +43,18 @@ export default function HomeScreen({ route, navigation }) {
     setLoading(false)
   }
 
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch(`${API_URL}/announcements`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) setAnnouncements(data.announcements)
+    } catch (err) {
+      console.error('Error fetching announcements:', err)
+    }
+  }
+
   const fetchIntakeStatus = async () => {
     try {
       const res = await fetch(`${API_URL}/patient/intake-status`, {
@@ -58,6 +73,14 @@ export default function HomeScreen({ route, navigation }) {
     }
   }
 
+  useEffect(() => {
+    if (announcements.length <= 1) return
+    const timer = setInterval(() => {
+      setCurrentAnnouncement(prev => (prev + 1) % announcements.length)
+    }, 4000)
+    return () => clearInterval(timer)
+  }, [announcements])
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'confirmed': return '#8fda74'
@@ -75,6 +98,43 @@ export default function HomeScreen({ route, navigation }) {
         <Text style={styles.greeting}>Good morning, {user.firstName}</Text>
         <Text style={styles.location}>{company.location}</Text>
       </View>
+
+{/* Announcements Carousel */}
+      {announcements.length > 0 && (
+        <View style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 8 }}>
+          {announcements.map((an, index) => {
+            if (index !== currentAnnouncement) return null
+            const bgColor = an.bg_style === 'dark' ? '#0a0a1a' :
+                           an.bg_style === 'light' ? 'rgba(255,255,255,0.15)' :
+                           an.bg_style === 'gradient' ? company.secondaryColor :
+                           company.primaryColor + '22'
+            const borderColor = company.primaryColor
+            return (
+              <View key={an.id} style={{ backgroundColor: bgColor, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: borderColor + '44' }}>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 6 }}>{an.title}</Text>
+                {an.body && <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 20, marginBottom: an.cta_label ? 14 : 0 }}>{an.body}</Text>}
+                {an.cta_label && an.cta_url && (
+                  <TouchableOpacity
+                    style={{ backgroundColor: company.primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 4 }}
+                    onPress={() => Linking.openURL(an.cta_url)}
+                  >
+                    <Text style={{ color: company.secondaryColor, fontSize: 14, fontWeight: '700' }}>{an.cta_label}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )
+          })}
+          {announcements.length > 1 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+              {announcements.map((_, index) => (
+                <TouchableOpacity key={index} onPress={() => setCurrentAnnouncement(index)}>
+                  <View style={{ width: index === currentAnnouncement ? 20 : 8, height: 8, borderRadius: 4, backgroundColor: index === currentAnnouncement ? company.primaryColor : 'rgba(255,255,255,0.3)' }} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Intake Banner */}
       {hasPendingIntake && (
