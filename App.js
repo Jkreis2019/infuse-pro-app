@@ -11,7 +11,6 @@ import HomeScreen from './screens/HomeScreen'
 import BookingScreen from './screens/BookingScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import { Platform } from 'react-native'
-import { Platform } from 'react-native'
 const MapScreen = Platform.OS === 'web' 
   ? () => null 
   : require('./screens/MapScreen').default
