@@ -10,8 +10,7 @@ import {
   Image
 } from 'react-native'
 import { Platform } from 'react-native'
-const MapView = Platform.OS === 'web' ? null : require('react-native-maps').default
-const Marker = Platform.OS === 'web' ? null : require('react-native-maps').Marker
+import MapComponent from './MapComponent'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -248,27 +247,13 @@ const fetchTechLocation = async () => {
       </View>
 
 {/* Live Tracking Map */}
-      {booking.status === 'en_route' && techLocation && MapView && (
+      {booking.status === 'en_route' && techLocation && (
         <View style={styles.detailCard}>
           <Text style={styles.cardTitle}>Tech En Route</Text>
           <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 12 }}>
             {booking.tech_first} is on the way · Updated {new Date(techLocation.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
-          <MapView
-            style={{ height: 200, borderRadius: 10, overflow: 'hidden' }}
-            region={{
-              latitude: techLocation.lat,
-              longitude: techLocation.lng,
-              latitudeDelta: 0.05,
-              longitudeDelta: 0.05
-            }}
-          >
-            <Marker
-              coordinate={{ latitude: techLocation.lat, longitude: techLocation.lng }}
-              title={`${booking.tech_first} ${booking.tech_last}`}
-              description="Your tech"
-            />
-          </MapView>
+          <MapComponent lat={techLocation.lat} lng={techLocation.lng} techFirst={booking.tech_first} techLast={booking.tech_last} />
         </View>
       )}
 
