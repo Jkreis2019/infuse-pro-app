@@ -101,7 +101,7 @@ export default function HomeScreen({ route, navigation }) {
 
 {/* Announcements Carousel */}
       {announcements.length > 0 && (
-        <View style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 8 }}>
+        <View style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 20 }}>
           {announcements.map((an, index) => {
             if (index !== currentAnnouncement) return null
             const bgColor = an.bg_style === 'dark' ? '#0a0a1a' :
