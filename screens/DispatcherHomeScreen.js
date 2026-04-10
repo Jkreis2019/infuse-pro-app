@@ -1021,22 +1021,37 @@ const submitSendIntake = async () => {
           {techs.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>👥</Text>
-              <Text style={styles.emptyText}>No techs found</Text>
-              <Text style={styles.emptySub}>Add techs from the admin panel</Text>
+              <Text style={styles.emptyText}>No techs in service</Text>
+              <Text style={styles.emptySub}>Techs will appear here when they go in service</Text>
             </View>
           ) : (
-            techs.map(tech => (
-              <View key={tech.id} style={[styles.card, { borderLeftWidth: 3, borderLeftColor: STATUS_COLORS[tech.status] || '#aaa' }]}>
-                <View style={styles.cardTop}>
-                  <Text style={styles.cardService}>{tech.first_name} {tech.last_name}</Text>
-                  <View style={[styles.statusBadge, { borderColor: STATUS_COLORS[tech.status] || '#aaa' }]}>
-                    <Text style={[styles.statusBadgeText, { color: STATUS_COLORS[tech.status] || '#aaa' }]}>
-                      {STATUS_LABELS[tech.status] || tech.status?.toUpperCase()}
-                    </Text>
-                  </View>
+            Object.entries(
+              techs.reduce((groups, tech) => {
+                const region = tech.region_name || 'Unassigned'
+                if (!groups[region]) groups[region] = { color: tech.region_color || '#aaa', techs: [] }
+                groups[region].techs.push(tech)
+                return groups
+              }, {})
+            ).map(([regionName, regionData]) => (
+              <View key={regionName}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, marginTop: 8 }}>
+                  <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: regionData.color }} />
+                  <Text style={[styles.dateGroupHeader, { color: regionData.color, marginTop: 0, marginBottom: 0 }]}>{regionName}</Text>
                 </View>
-                {tech.phone && <Text style={styles.cardPhone}>📞 {tech.phone}</Text>}
-                <Text style={styles.cardTimer}>⏱ {formatTime(tech.seconds_in_status)} in status</Text>
+                {regionData.techs.map(tech => (
+                  <View key={tech.id} style={[styles.card, { borderLeftWidth: 3, borderLeftColor: regionData.color }]}>
+                    <View style={styles.cardTop}>
+                      <Text style={styles.cardService}>{tech.first_name} {tech.last_name}</Text>
+                      <View style={[styles.statusBadge, { borderColor: STATUS_COLORS[tech.status] || '#aaa' }]}>
+                        <Text style={[styles.statusBadgeText, { color: STATUS_COLORS[tech.status] || '#aaa' }]}>
+                          {STATUS_LABELS[tech.status] || tech.status?.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+                    {tech.phone && <Text style={styles.cardPhone}>{tech.phone}</Text>}
+                    <Text style={styles.cardTimer}>{formatTime(tech.seconds_in_status)} in status</Text>
+                  </View>
+                ))}
               </View>
             ))
           )}
