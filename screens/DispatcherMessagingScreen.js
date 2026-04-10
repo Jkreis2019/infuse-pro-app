@@ -148,7 +148,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
 
   const sendPatientMessage = async () => {
     if (!message.trim() || !selectedPatient) return
-    console.log('Sending patient message to booking:', selectedPatient.booking_id)
     setSending(true)
     const text = message.trim()
     setMessage('')
@@ -174,7 +173,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     try {
       const res = await fetch(`${API_URL}${endpoint}`, { method: 'POST', headers })
       const data = await res.json()
-      console.log('Toggle chat response:', JSON.stringify(data))
       fetchPatientChats()
       if (selectedPatient?.booking_id === chat.booking_id) {
         setSelectedPatient(prev => ({ ...prev, status: chat.status === 'open' ? 'closed' : 'open' }))
@@ -185,7 +183,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   }
 
   const sendMessage = () => {
-    console.log('sendMessage called, selectedContact:', selectedContact?.id, 'selectedPatient:', selectedPatient?.booking_id)
     if (selectedContact) sendDM()
     else if (selectedPatient) sendPatientMessage()
   }
@@ -436,7 +433,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                 />
                 <TouchableOpacity
                   style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}
-                  onPress={() => { console.log('Send button pressed'); sendMessage() }}
+                  onPress={() => { ; sendMessage() }}
                   disabled={!message.trim() || sending}
                 >
                   {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}

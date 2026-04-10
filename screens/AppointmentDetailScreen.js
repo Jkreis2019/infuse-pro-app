@@ -321,7 +321,7 @@ const fetchChatSession = async () => {
           })}
         >
           <Text style={[styles.messageButtonText, { color: primaryColor }]}>
-            💬 Message Support
+            💬 Message Dispatch
           </Text>
         </TouchableOpacity>
       )}
