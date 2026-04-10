@@ -50,6 +50,16 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [nsRole, setNsRole] = useState('tech')
   const [creatingStaff, setCreatingStaff] = useState(false)
 
+// Regions
+  const [regions, setRegions] = useState([])
+  const [newRegionModal, setNewRegionModal] = useState(false)
+  const [editRegionModal, setEditRegionModal] = useState(false)
+  const [selectedRegion, setSelectedRegion] = useState(null)
+  const [rName, setRName] = useState('')
+  const [rColor, setRColor] = useState('#C9A84C')
+  const [rCities, setRCities] = useState('')
+  const [savingRegion, setSavingRegion] = useState(false)
+
   // New service modal
   const [newServiceModal, setNewServiceModal] = useState(false)
   const [svcName, setSvcName] = useState('')
@@ -60,17 +70,19 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
-        fetch(`${API_URL}/admin/services`, { headers })
+        fetch(`${API_URL}/admin/services`, { headers }),
+        fetch(`${API_URL}/admin/regions`, { headers })
       ])
-      const [statsData, staffData, svcData] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json()
+      const [statsData, staffData, svcData, regData] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
       if (svcData.services) setServices(svcData.services)
+      if (regData.regions) setRegions(regData.regions)
     } catch (err) {
       console.error('Admin fetch error:', err)
     } finally {
@@ -190,6 +202,48 @@ export default function AdminHomeScreen({ route, navigation }) {
     }
   }
 
+const saveRegion = async () => {
+    if (!rName) { Alert.alert('Required', 'Region name is required'); return }
+    setSavingRegion(true)
+    try {
+      const isEdit = !!selectedRegion
+      const url = isEdit ? `${API_URL}/admin/regions/${selectedRegion.id}` : `${API_URL}/admin/regions`
+      const method = isEdit ? 'PUT' : 'POST'
+      const res = await fetch(url, {
+        method,
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: rName, color: rColor, cities: rCities })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setNewRegionModal(false)
+        setEditRegionModal(false)
+        setSelectedRegion(null)
+        setRName(''); setRColor('#C9A84C'); setRCities('')
+        fetchAll()
+      } else {
+        Alert.alert('Error', data.message || 'Could not save region')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setSavingRegion(false)
+    }
+  }
+
+  const deleteRegion = async (regionId) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/regions/${regionId}`, {
+        method: 'DELETE', headers
+      })
+      const data = await res.json()
+      if (data.success) fetchAll()
+      else Alert.alert('Error', data.message || 'Could not delete region')
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    }
+  }
+
   const createService = async () => {
     if (!svcName || !svcPrice) {
       Alert.alert('Required', 'Service name and price are required')
@@ -241,7 +295,7 @@ export default function AdminHomeScreen({ route, navigation }) {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'branding', 'settings'].map(tab => (
+          {['dashboard', 'staff', 'services', 'regions', 'branding', 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -412,6 +466,57 @@ export default function AdminHomeScreen({ route, navigation }) {
         </ScrollView>
       )}
 
+{/* Regions Tab */}
+      {activeTab === 'regions' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 20 }]} onPress={() => { setRName(''); setRColor('#C9A84C'); setRCities(''); setSelectedRegion(null); setNewRegionModal(true) }}>
+            <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ Add Region</Text>
+          </TouchableOpacity>
+          {regions.length === 0 ? (
+            <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No regions yet — add one to get started</Text>
+          ) : (
+            regions.map(region => (
+              <View key={region.id} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: region.color }]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardName}>{region.name}</Text>
+                    <Text style={styles.cardSub} numberOfLines={2}>{region.cities || 'No cities assigned'}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+                      onPress={() => { setSelectedRegion(region); setRName(region.name); setRColor(region.color); setRCities(region.cities || ''); setEditRegionModal(true) }}
+                    >
+                      <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ borderWidth: 1, borderColor: '#e53e3e', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+                      onPress={() => {
+                        if (Platform.OS === 'web') {
+                          if (window.confirm(`Delete ${region.name}?`)) deleteRegion(region.id)
+                        } else {
+                          Alert.alert('Delete Region', `Delete ${region.name}?`, [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Delete', style: 'destructive', onPress: () => deleteRegion(region.id) }
+                          ])
+                        }
+                      }}
+                    >
+                      <Text style={{ color: '#e53e3e', fontSize: 13, fontWeight: '600' }}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8 }}>
+                  <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: region.color }} />
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{region.color}</Text>
+                </View>
+              </View>
+            ))
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
       {/* Settings Tab */}
       {activeTab === 'settings' && (
         <ScrollView style={styles.scroll}>
@@ -444,6 +549,47 @@ export default function AdminHomeScreen({ route, navigation }) {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Region Modal */}
+      <Modal visible={newRegionModal || editRegionModal} animationType="slide" presentationStyle="fullScreen">
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <TouchableOpacity onPress={() => { setNewRegionModal(false); setEditRegionModal(false) }}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{selectedRegion ? 'Edit Region' : 'Add Region'}</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+            <Text style={styles.fieldLabel}>Region Name *</Text>
+            <TextInput style={styles.input} value={rName} onChangeText={setRName} placeholder="e.g. Phoenix Metro" placeholderTextColor="#444" />
+
+            <Text style={styles.fieldLabel}>Color</Text>
+            <TextInput style={[styles.input, { borderColor: rColor }]} value={rColor} onChangeText={setRColor} placeholder="#C9A84C" placeholderTextColor="#444" autoCapitalize="characters" />
+            <View style={{ height: 40, borderRadius: 8, backgroundColor: rColor, marginBottom: 16 }} />
+
+            <Text style={styles.fieldLabel}>Cities (comma separated)</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginBottom: 8 }}>e.g. Phoenix, Scottsdale, Tempe, Mesa, Chandler</Text>
+            <TextInput
+              style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
+              value={rCities}
+              onChangeText={setRCities}
+              placeholder="Phoenix, Glendale, Surprise, Tolleson, Avondale, Buckeye, Goodyear, Tempe, Scottsdale..."
+              placeholderTextColor="#444"
+              multiline
+            />
+
+            <TouchableOpacity
+              style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor, marginTop: 8 }, savingRegion && { opacity: 0.6 }]}
+              onPress={saveRegion}
+              disabled={savingRegion}
+            >
+              {savingRegion ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{selectedRegion ? 'Save Changes' : 'Create Region'}</Text>}
+            </TouchableOpacity>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* New Staff Modal */}
       <Modal visible={newStaffModal} animationType="slide" presentationStyle="fullScreen">
