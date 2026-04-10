@@ -250,7 +250,6 @@ function ChartModal({ visible, onClose, call, token, company }) {
       }
 
       const responseData = await res.json()
-      console.log('Chart save response:', JSON.stringify(responseData))
       if (responseData.success) {
         if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
         if (submit) { Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
@@ -440,7 +439,6 @@ const [techChangingPassword, setTechChangingPassword] = useState(false)
 const startLocationTracking = useCallback(async () => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync()
-    console.log('Location permission status:', status)
     if (status !== 'granted') return
 
     const interval = setInterval(async () => {
@@ -508,14 +506,12 @@ const pickAndUploadPhoto = async () => {
     if (!result.canceled && result.assets[0]) {
       setUploadingPhoto(true)
       const base64 = result.assets[0].base64
-      console.log('Base64 size (chars):', base64?.length, 'bytes approx:', Math.round(base64?.length * 0.75 / 1024), 'KB')
       const res = await fetch(`${API_URL}/auth/upload-photo`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ photo: `data:image/jpeg;base64,${base64}` })
       })
       const text = await res.text()
-      console.log('Upload response:', text.substring(0, 200))
       const data = JSON.parse(text)
       if (data.success) {
         fetchTechProfile()
@@ -592,7 +588,6 @@ const techChangePassword = async () => {
       const data = await res.json()
       if (data.success) {
         setCall(data.call)
-        console.log('call tech_status:', data.call?.tech_status, 'call status:', data.call?.status)
         if (data.call?.user_id) {
           fetch(`${API_URL}/gfe/patient-orders/${data.call.user_id}`, { headers })
             .then(r => r.json())

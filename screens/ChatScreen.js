@@ -63,7 +63,7 @@ export default function ChatScreen({ route, navigation }) {
   }
 
   const renderMessage = ({ item }) => {
-    const isMe = item.sender_id === user.id
+    const isMe = item.sender_id === (user?.id || user?.userId)
     return (
       <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
         {!isMe && (
@@ -138,6 +138,8 @@ export default function ChatScreen({ route, navigation }) {
           placeholderTextColor="rgba(255,255,255,0.3)"
           multiline
           maxLength={500}
+          blurOnSubmit={true}
+          onSubmitEditing={sendMessage}
         />
         <TouchableOpacity
           style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}

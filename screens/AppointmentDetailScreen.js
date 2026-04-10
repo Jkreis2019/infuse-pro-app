@@ -36,6 +36,19 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [techLocation, setTechLocation] = useState(null)
+  const [userId, setUserId] = useState(null)
+
+useEffect(() => {
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      console.log('TOKEN PAYLOAD:', JSON.stringify(payload))
+      setUserId(payload.userId)
+    } catch (e) {
+      console.error('Token decode error', e)
+    }
+  }
+}, [token])
 
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
@@ -289,7 +302,7 @@ const fetchTechLocation = async () => {
           style={[styles.messageButton, { backgroundColor: primaryColor }]}
           onPress={() => navigation.navigate('BookingChat', {
             token,
-            user,
+            userId,
             company,
             bookingId,
             patientName: booking.tech_first ? `${booking.tech_first} ${booking.tech_last}` : 'Your Tech'

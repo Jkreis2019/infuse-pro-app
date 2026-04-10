@@ -12,7 +12,6 @@ export default function WelcomeScreen({ navigation }) {
         <Pressable
           style={styles.primaryButton}
           onPress={() => {
-            console.log('Log in pressed')
             navigation.navigate('Login', {})
           }}
         >
@@ -22,7 +21,6 @@ export default function WelcomeScreen({ navigation }) {
         <Pressable
           style={styles.secondaryButton}
           onPress={() => {
-            console.log('Signup pressed')
             navigation.navigate('Signup')
           }}
         >

@@ -81,7 +81,6 @@ export default function AdminHomeScreen({ route, navigation }) {
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) {
-        console.log('Staff data:', JSON.stringify(staffData.staff.map(s => ({ id: s.id, name: s.first_name, region_id: s.region_id }))))
         setStaff(staffData.staff)
       }
       if (svcData.services) setServices(svcData.services)
@@ -206,7 +205,6 @@ export default function AdminHomeScreen({ route, navigation }) {
   }
 
   const assignStaffRegion = async (userId, regionId) => {
-  console.log('assignStaffRegion called:', userId, regionId)
   try {
     const res = await fetch(`${API_URL}/admin/staff/${userId}/region`, {
       method: 'PUT',

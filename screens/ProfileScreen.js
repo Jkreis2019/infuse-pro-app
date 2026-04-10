@@ -36,7 +36,6 @@ const [profileInfo, setProfileInfo] = useState(null)
       const res = await fetch(`${API_URL}/auth/me`, { headers })
       const data = await res.json()
       if (data.success) {
-        console.log('Profile data:', JSON.stringify(data.user))
         setProfileInfo(data.user)
         setEditFirstName(data.user.firstName || '')
         setEditLastName(data.user.lastName || '')

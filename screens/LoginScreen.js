@@ -63,7 +63,6 @@ export default function LoginScreen({ route, navigation }) {
               CommonActions.reset({ index: 0, routes: [{ name: 'AdminHome', params: { token: data.token, user: data.user, company } }] })
             )
           }
-          console.log('serviceType:', company?.serviceType, 'role:', role)
         } else if (role === 'tech') {
           if (!data.user.passwordChanged) {
             navigation.reset({
