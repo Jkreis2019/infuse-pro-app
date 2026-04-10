@@ -1030,7 +1030,7 @@ const techChangePassword = async () => {
 
 <TouchableOpacity
             style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}
-            onPress={() => navigation.navigate('ChatContacts', { token, user, company })}
+            onPress={() => navigation.navigate('TechMessaging', { token, user, company })}
           >
             <View>
               <Text style={{ color: '#fff', fontSize: 15 }}>Messages</Text>
