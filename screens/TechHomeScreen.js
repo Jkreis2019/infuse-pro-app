@@ -532,6 +532,25 @@ const pickAndUploadPhoto = async () => {
   }
 }
 
+const toggleInService = async () => {
+  const newValue = !techProfile?.inService
+  try {
+    const res = await fetch(`${API_URL}/tech/in-service`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inService: newValue })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setTechProfile(prev => ({ ...prev, inService: newValue }))
+    } else {
+      Alert.alert('Error', data.message || 'Could not update status')
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  }
+}
+
 const techChangePassword = async () => {
   if (!techCurrentPassword || !techNewPassword || !techConfirmPassword) {
     Alert.alert('Required', 'Please fill in all fields')
@@ -943,6 +962,43 @@ const techChangePassword = async () => {
               </ScrollView>
             </KeyboardAvoidingView>
           </Modal>
+
+{/* In/Out of Service Toggle */}
+          <TouchableOpacity
+            style={{
+              width: '100%',
+              backgroundColor: techProfile?.inService ? 'rgba(76,175,80,0.15)' : 'rgba(255,255,255,0.06)',
+              borderWidth: 2,
+              borderColor: techProfile?.inService ? '#4CAF50' : 'rgba(255,255,255,0.15)',
+              borderRadius: 14,
+              padding: 16,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: 24
+            }}
+            onPress={toggleInService}
+          >
+            <View>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                {techProfile?.inService ? 'In Service' : 'Out of Service'}
+              </Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>
+                {techProfile?.inService ? 'You are visible to dispatch' : 'Tap to go in service'}
+              </Text>
+            </View>
+            <View style={{
+              width: 52, height: 30, borderRadius: 15,
+              backgroundColor: techProfile?.inService ? '#4CAF50' : 'rgba(255,255,255,0.2)',
+              justifyContent: 'center',
+              paddingHorizontal: 3
+            }}>
+              <View style={{
+                width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff',
+                alignSelf: techProfile?.inService ? 'flex-end' : 'flex-start'
+              }} />
+            </View>
+          </TouchableOpacity>
 
           {/* Photo */}
           <TouchableOpacity onPress={pickAndUploadPhoto} disabled={uploadingPhoto} style={{ marginBottom: 16 }}>
