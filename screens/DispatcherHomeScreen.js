@@ -511,7 +511,9 @@ const createNewPatient = async () => {
         first_name: cpFirstName,
         last_name: cpLastName,
         phone: cpPhone || '',
-        last_address: ''
+        last_address: '',
+        email: cpEmail.toLowerCase(),
+        isNew: true
       })
       setShowCreatePatient(false)
       setNewBookingModal(true)
@@ -523,7 +525,22 @@ const createNewPatient = async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cpEmail.toLowerCase() })
       })
-      Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added to the system`)
+      // Send intake form
+      if (data.user?.id) {
+        try {
+          await fetch(`${API_URL}/intake/send-form`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              patientEmail: cpEmail.toLowerCase(),
+              patientName: `${cpFirstName} ${cpLastName}`
+            })
+          })
+        } catch (e) {
+          console.error('Intake send error:', e)
+        }
+      }
+      Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added and intake form sent!`)
     } else {
       Alert.alert('Error', data.message || 'Could not create patient')
     }
@@ -566,6 +583,16 @@ const selectPatient = (patient) => {
       })
       const data = await res.json()
       if (data.success) {
+        // Send welcome email if this is a newly created patient
+        if (nbSelectedPatient?.isNew && nbSelectedPatient?.email) {
+          try {
+            await fetch(`${API_URL}/auth/forgot-password`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: nbSelectedPatient.email })
+            })
+          } catch (e) {}
+        }
         setNewBookingModal(false)
         setNbPatientName('')
         setNbPhone('')
@@ -573,6 +600,7 @@ const selectPatient = (patient) => {
         setNbService('')
         setNbNotes('')
         setShowServiceList(false)
+        setNbSelectedPatient(null)
         fetchAll()
         setActiveTab('queue')
       } else {
@@ -1597,7 +1625,7 @@ const submitSendIntake = async () => {
             onPress={createNewPatient}
             disabled={creatingPatient}
           >
-            {creatingPatient ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>Create Patient</Text>}
+            {creatingPatient ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.confirmCancelText, { color: secondaryColor }]}>Create Patient & Send Intake</Text>}
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelModal} onPress={() => {
             setShowCreatePatient(false)
