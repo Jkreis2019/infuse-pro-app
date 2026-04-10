@@ -11,7 +11,7 @@ import HomeScreen from './screens/HomeScreen'
 import BookingScreen from './screens/BookingScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import { Platform } from 'react-native'
-const MapScreen = () => null
+import MapScreen from './screens/MapScreen'
 import EmailVerificationScreen from './screens/EmailVerificationScreen'
 import AppointmentDetailScreen from './screens/AppointmentDetailScreen'
 import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
