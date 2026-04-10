@@ -16,6 +16,8 @@ import EmailVerificationScreen from './screens/EmailVerificationScreen'
 import AppointmentDetailScreen from './screens/AppointmentDetailScreen'
 import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
 import AdminHomeScreen from './screens/AdminHomeScreen'
+import ChatScreen from './screens/ChatScreen'
+import ChatContactsScreen from './screens/ChatContactsScreen'
 import TechHomeScreen from './screens/TechHomeScreen'
 import NPHomeScreen from './screens/NPHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
@@ -122,6 +124,8 @@ export default function App() {
         <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Book Appointment', headerShown: true }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ChatContacts" component={ChatContactsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicHome" component={ClinicHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicTechHome" component={ClinicTechScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chart" component={ChartScreen} options={{ headerShown: false }} />
