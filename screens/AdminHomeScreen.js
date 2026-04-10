@@ -37,6 +37,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [anCtaLabel, setAnCtaLabel] = useState('')
   const [anCtaUrl, setAnCtaUrl] = useState('')
   const [anBgStyle, setAnBgStyle] = useState('solid')
+  const [anBgColor, setAnBgColor] = useState('')
   const [anActive, setAnActive] = useState(true)
   const [savingAnnouncement, setSavingAnnouncement] = useState(false)
 
@@ -586,7 +587,7 @@ const saveRegion = async () => {
             onPress={() => {
               setEditingAnnouncement(null)
               setAnTitle(''); setAnBody(''); setAnEmoji('📢')
-              setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnActive(true)
+              setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true)
               setAnnouncementModal(true)
             }}
           >
@@ -632,8 +633,9 @@ const saveRegion = async () => {
                       setAnEmoji(an.emoji || '📢')
                       setAnCtaLabel(an.cta_label || '')
                       setAnCtaUrl(an.cta_url || '')
-                      setAnBgStyle(an.bg_style || 'solid')
-                      setAnActive(an.active)
+              setAnBgStyle(an.bg_style || 'solid')
+              setAnBgColor(an.bg_color || '')
+              setAnActive(an.active)
                       setAnnouncementModal(true)
                     }}
                   >
@@ -646,7 +648,7 @@ const saveRegion = async () => {
                         await fetch(`${API_URL}/admin/announcements/${an.id}`, {
                           method: 'PUT',
                           headers: { ...headers, 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ ...an, active: !an.active, ctaLabel: an.cta_label, ctaUrl: an.cta_url, bgStyle: an.bg_style, sortOrder: an.sort_order })
+                          body: JSON.stringify({ ...an, active: !an.active, ctaLabel: an.cta_label, ctaUrl: an.cta_url, bgStyle: an.bg_style, bgColor: an.bg_color, sortOrder: an.sort_order })
                         })
                         fetchAll()
                       } catch (err) {
@@ -724,6 +726,23 @@ const saveRegion = async () => {
               ))}
             </View>
 
+            {(anBgStyle === 'solid' || anBgStyle === 'gradient') && (
+              <>
+                <Text style={styles.fieldLabel}>Background Color (hex)</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={anBgColor}
+                    onChangeText={setAnBgColor}
+                    placeholder="#1a2a5e"
+                    placeholderTextColor="#666"
+                    autoCapitalize="none"
+                  />
+                  <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: anBgColor || '#1a2a5e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }} />
+                </View>
+              </>
+            )}
+
             <Text style={styles.fieldLabel}>CTA Button Label (optional)</Text>
             <TextInput
               style={styles.input}
@@ -744,6 +763,31 @@ const saveRegion = async () => {
               keyboardType="url"
             />
 
+{/* Live Preview */}
+            <Text style={styles.fieldLabel}>Preview</Text>
+            <View style={{
+              backgroundColor: anBgColor || (anBgStyle === 'dark' ? '#08101f' : anBgStyle === 'light' ? 'rgba(255,255,255,0.08)' : '#0a1535'),
+              borderRadius: 20,
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor: primaryColor + '30',
+              marginBottom: 20
+            }}>
+              <View style={{ height: 3, backgroundColor: primaryColor }} />
+              <View style={{ padding: 20 }}>
+                <View style={{ backgroundColor: primaryColor + '20', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 8 }}>
+                  <Text style={{ color: primaryColor, fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>{company?.name?.toUpperCase()}</Text>
+                </View>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: anBody ? 8 : 0 }}>{anTitle || 'Your Title Here'}</Text>
+                {anBody ? <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, lineHeight: 20, marginBottom: anCtaLabel ? 14 : 0 }}>{anBody}</Text> : null}
+                {anCtaLabel ? (
+                  <View style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}>
+                    <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '800' }}>{anCtaLabel} →</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <Text style={{ color: '#fff', fontSize: 15 }}>Active</Text>
               <TouchableOpacity
@@ -763,7 +807,8 @@ const saveRegion = async () => {
                   const payload = {
                     title: anTitle, body: anBody, emoji: anEmoji,
                     ctaLabel: anCtaLabel, ctaUrl: anCtaUrl,
-                    bgStyle: anBgStyle, active: anActive,
+                    bgStyle: anBgStyle, bgColor: anBgColor,
+                    active: anActive,
                     sortOrder: editingAnnouncement?.sort_order || 0
                   }
                   if (editingAnnouncement) {

@@ -101,34 +101,86 @@ export default function HomeScreen({ route, navigation }) {
 
 {/* Announcements Carousel */}
       {announcements.length > 0 && (
-        <View style={{ marginHorizontal: 16, marginTop: 16, marginBottom: 20 }}>
+        <View style={{ marginHorizontal: 16, marginTop: 20, marginBottom: 24 }}>
           {announcements.map((an, index) => {
             if (index !== currentAnnouncement) return null
-            const bgColor = an.bg_style === 'dark' ? '#0a0a1a' :
-                           an.bg_style === 'light' ? 'rgba(255,255,255,0.15)' :
-                           an.bg_style === 'gradient' ? company.secondaryColor :
-                           company.primaryColor + '22'
-            const borderColor = company.primaryColor
+            const isDark = an.bg_style === 'dark'
+            const isLight = an.bg_style === 'light'
+            const bgColor = an.bg_color || (isDark ? '#08101f' : isLight ? 'rgba(255,255,255,0.08)' : '#0a1535')
             return (
-              <View key={an.id} style={{ backgroundColor: bgColor, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: borderColor + '44' }}>
-                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 6 }}>{an.title}</Text>
-                {an.body && <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 20, marginBottom: an.cta_label ? 14 : 0 }}>{an.body}</Text>}
-                {an.cta_label && an.cta_url && (
-                  <TouchableOpacity
-                    style={{ backgroundColor: company.primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 4 }}
-                    onPress={() => Linking.openURL(an.cta_url)}
-                  >
-                    <Text style={{ color: company.secondaryColor, fontSize: 14, fontWeight: '700' }}>{an.cta_label}</Text>
-                  </TouchableOpacity>
-                )}
+              <View key={an.id} style={{
+                backgroundColor: bgColor,
+                borderRadius: 20,
+                overflow: 'hidden',
+                borderWidth: 1,
+                borderColor: company.primaryColor + '30',
+                shadowColor: company.primaryColor,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+              }}>
+                {/* Top accent bar */}
+                <View style={{ height: 3, backgroundColor: company.primaryColor, width: '100%' }} />
+                
+                <View style={{ padding: 22 }}>
+                  {/* Header row */}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                        <View style={{ backgroundColor: company.primaryColor + '20', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                          <Text style={{ color: company.primaryColor, fontSize: 10, fontWeight: '800', letterSpacing: 1 }}>
+                            {company.name?.toUpperCase()}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.3, lineHeight: 26 }}>{an.title}</Text>
+                    </View>
+                    {announcements.length > 1 && (
+                      <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{index + 1}/{announcements.length}</Text>
+                    )}
+                  </View>
+
+                  {/* Body */}
+                  {an.body && (
+                    <Text style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 22, marginBottom: an.cta_label ? 18 : 4 }}>
+                      {an.body}
+                    </Text>
+                  )}
+
+                  {/* CTA Button */}
+                  {an.cta_label && an.cta_url && (
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: company.primaryColor,
+                        borderRadius: 12,
+                        padding: 14,
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 8
+                      }}
+                      onPress={() => Linking.openURL(an.cta_url)}
+                    >
+                      <Text style={{ color: company.secondaryColor, fontSize: 14, fontWeight: '800', letterSpacing: 0.3 }}>{an.cta_label}</Text>
+                      <Text style={{ color: company.secondaryColor, fontSize: 14 }}>→</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             )
           })}
+
+          {/* Dot indicators */}
           {announcements.length > 1 && (
-            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 }}>
               {announcements.map((_, index) => (
                 <TouchableOpacity key={index} onPress={() => setCurrentAnnouncement(index)}>
-                  <View style={{ width: index === currentAnnouncement ? 20 : 8, height: 8, borderRadius: 4, backgroundColor: index === currentAnnouncement ? company.primaryColor : 'rgba(255,255,255,0.3)' }} />
+                  <View style={{
+                    width: index === currentAnnouncement ? 24 : 6,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: index === currentAnnouncement ? company.primaryColor : 'rgba(255,255,255,0.2)'
+                  }} />
                 </TouchableOpacity>
               ))}
             </View>
