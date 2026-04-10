@@ -517,6 +517,12 @@ const createNewPatient = async () => {
       setNewBookingModal(true)
       setCpFirstName(''); setCpLastName(''); setCpEmail('')
       setCpPhone(''); setCpDob('')
+      // Send password reset so patient can claim their account
+      await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cpEmail.toLowerCase() })
+      })
       Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added to the system`)
     } else {
       Alert.alert('Error', data.message || 'Could not create patient')
@@ -702,25 +708,30 @@ const submitSendIntake = async () => {
       </View>
     </View>
     <View style={{ alignItems: 'flex-end', gap: 8 }}>
-        <TouchableOpacity
-  onPress={() => setNewBookingModal(true)}
->
-  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>📞 New Booking</Text>
-</TouchableOpacity>
+        
 <TouchableOpacity
   onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
+  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
 >
-  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>💬 Messages</Text>
+  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>💬 Messages</Text>
 </TouchableOpacity>
 <TouchableOpacity
   onPress={() => setProfileModal(true)}
+  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
 >
-  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>👤 Profile</Text>
+  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
 </TouchableOpacity>
 <TouchableOpacity
   onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
 >
-  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
+  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
+</TouchableOpacity>
+<TouchableOpacity
+  onPress={() => setNewBookingModal(true)}
+  style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+>
+  <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>＋ New Booking</Text>
 </TouchableOpacity>
 </View>
 </View>
