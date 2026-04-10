@@ -892,7 +892,9 @@ const techChangePassword = async () => {
                     <TouchableOpacity
                       style={[styles.statusButton, { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: primaryColor, marginBottom: 4 }]}
                       onPress={() => navigation.navigate('BookingChat', {
-                        token, user, company,
+                        token,
+                        userId: user?.id || user?.userId,
+                        company,
                         bookingId: call.id,
                         patientName: call.patient_name
                       })}
