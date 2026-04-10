@@ -83,7 +83,7 @@ export default function ChatScreen({ route, navigation }) {
               {item.sender_first} {item.sender_last}
             </Text>
           )}
-          <Text style={[styles.messageText, isMe && { color: secondaryColor }]}>{item.message}</Text>
+          <Text style={[styles.messageText, isMe && { color: secondaryColor }]}>{item.body || item.message}</Text>
           <Text style={[styles.messageTime, isMe && { color: secondaryColor + '99' }]}>
             {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
