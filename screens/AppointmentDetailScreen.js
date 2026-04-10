@@ -36,13 +36,13 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [techLocation, setTechLocation] = useState(null)
+  const [chatSession, setChatSession] = useState(null)
   const [userId, setUserId] = useState(null)
 
 useEffect(() => {
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      console.log('TOKEN PAYLOAD:', JSON.stringify(payload))
       setUserId(payload.userId)
     } catch (e) {
       console.error('Token decode error', e)
@@ -67,6 +67,18 @@ const fetchTechLocation = async () => {
     }
   }
 
+const fetchChatSession = async () => {
+    try {
+      const res = await fetch(`${API_URL}/dispatch/chat-session/${bookingId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.success) setChatSession(data.session)
+    } catch (err) {
+      console.error('Chat session error:', err)
+    }
+  }
+
   const fetchBooking = async () => {
     try {
       const res = await fetch(`${API_URL}/bookings/${bookingId}`, {
@@ -84,9 +96,11 @@ const fetchTechLocation = async () => {
   useEffect(() => {
     fetchBooking()
     fetchTechLocation()
+    fetchChatSession()
     const interval = setInterval(() => {
       fetchBooking()
       fetchTechLocation()
+      fetchChatSession()
     }, 15000)
     return () => clearInterval(interval)
   }, [])
@@ -294,6 +308,22 @@ const fetchTechLocation = async () => {
             </View>
           </View>
         </View>
+      )}
+
+{chatSession?.status === 'open' && (
+        <TouchableOpacity
+          style={[styles.messageButton, { backgroundColor: secondaryColor, borderWidth: 1, borderColor: primaryColor, marginBottom: 8 }]}
+          onPress={() => navigation.navigate('PatientDispatchChat', {
+            token,
+            userId,
+            company,
+            bookingId,
+          })}
+        >
+          <Text style={[styles.messageButtonText, { color: primaryColor }]}>
+            💬 Message Support
+          </Text>
+        </TouchableOpacity>
       )}
 
       {/* Actions */}
