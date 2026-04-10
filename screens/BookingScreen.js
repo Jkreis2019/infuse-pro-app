@@ -101,7 +101,8 @@ useEffect(() => {
           addressNote,
           notes,
           patientCount: ivCount,
-          requestedTime: scheduleType === 'later' && selectedSlot ? selectedSlot.datetime : null
+          requestedTime: scheduleType === 'later' && selectedSlot ? selectedSlot.datetime : null,
+          guestCompanyId: company?.id || null
         })
       })
       const data = await response.json()

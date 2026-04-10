@@ -12,12 +12,30 @@ export default function HomeScreen({ route, navigation }) {
   const [intakeUrl, setIntakeUrl] = useState(null)
   const [announcements, setAnnouncements] = useState([])
   const [currentAnnouncement, setCurrentAnnouncement] = useState(0)
+  const [linkedCompanyId, setLinkedCompanyId] = useState(null)
+
+  const fetchLinkedCompany = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/my-companies`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.companies && data.companies.length > 0) {
+        setLinkedCompanyId(data.companies[0].id)
+      } else {
+        setLinkedCompanyId(null)
+      }
+    } catch (err) {
+      console.error('Fetch linked company error:', err)
+    }
+  }
 
   useFocusEffect(
   React.useCallback(() => {
     fetchBookings()
     fetchIntakeStatus()
     fetchAnnouncements()
+    fetchLinkedCompany()
     
     const interval = setInterval(() => {
       fetchIntakeStatus()
@@ -211,7 +229,13 @@ export default function HomeScreen({ route, navigation }) {
 
       <TouchableOpacity
         style={[styles.bookButton, { backgroundColor: company.primaryColor }]}
-        onPress={() => navigation.getParent()?.navigate('Booking', { token, user, company })}
+        onPress={() => {
+          if (linkedCompanyId) {
+            navigation.getParent()?.navigate('Booking', { token, user, company })
+          } else {
+            navigation.navigate('Map', { token, user, company, bookingMode: true })
+          }
+        }}
       >
         <Text style={[styles.bookButtonText, { color: company.secondaryColor }]}>Book an appointment</Text>
       </TouchableOpacity>
