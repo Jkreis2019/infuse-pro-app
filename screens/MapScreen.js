@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View, TouchableOpacity, Modal, ScrollView, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
 import { useState, useEffect } from 'react'
-import MapView, { Marker, Callout } from 'react-native-maps'
+import MapView, { Marker } from 'react-native-maps'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -11,7 +11,15 @@ const PHOENIX_REGION = {
   longitudeDelta: 0.8,
 }
 
-export default function MapScreen({ navigation }) {
+// Hardcoded coords for now — will be dynamic when we add geo to companies
+const COMPANY_COORDS = {
+  1: { latitude: 33.4484, longitude: -112.0740 },
+  2: { latitude: 33.4942, longitude: -111.9261 },
+  3: { latitude: 33.4200, longitude: -111.9400 },
+}
+
+export default function MapScreen({ route, navigation }) {
+  const { token, user, company, bookingMode } = route.params || {}
   const [companies, setCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
@@ -24,17 +32,40 @@ export default function MapScreen({ navigation }) {
     try {
       const response = await fetch(`${API_URL}/map/companies`)
       const data = await response.json()
-      if (data.success) {
-        setCompanies(data.companies)
-      }
+      if (data.success) setCompanies(data.companies)
     } catch (err) {
-      console.log('Error fetching companies:', err)
+      console.error('Error fetching companies:', err)
     }
     setLoading(false)
   }
 
+  const handleBook = (company) => {
+    setSelected(null)
+    navigation.navigate('Booking', {
+      token,
+      user,
+      company: {
+        id: company.id,
+        name: company.name,
+        code: company.code,
+        primaryColor: company.branding.primaryColor,
+        secondaryColor: company.branding.secondaryColor,
+        location: company.location,
+      }
+    })
+  }
+
   return (
     <View style={styles.container}>
+      {bookingMode && (
+        <View style={styles.bookingBanner}>
+          <Text style={styles.bookingBannerText}>Select a company to book with</Text>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={{ color: '#C9A84C', fontSize: 13 }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator color="#C9A84C" size="large" />
@@ -50,10 +81,7 @@ export default function MapScreen({ navigation }) {
             {companies.map((company) => (
               <Marker
                 key={company.id}
-                coordinate={{
-                  latitude: company.id === 1 ? 33.4484 : 33.4942,
-                  longitude: company.id === 1 ? -112.0740 : -111.9261,
-                }}
+                coordinate={COMPANY_COORDS[company.id] || { latitude: 33.4484, longitude: -112.0740 }}
                 onPress={() => setSelected(company)}
               >
                 <View style={[
@@ -80,27 +108,72 @@ export default function MapScreen({ navigation }) {
               </Text>
               <Text style={styles.companyLocation}>{selected.location}</Text>
               {selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
-              {selected.phone ? <Text style={styles.companyPhone}>{selected.phone}</Text> : null}
+              {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
+
+              {/* Listing tier badge */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <View style={{ backgroundColor: selected.branding.primaryColor + '22', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                  <Text style={{ color: selected.branding.primaryColor, fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>
+                    {selected.listingTier?.toUpperCase() || 'BASIC'}
+                  </Text>
+                </View>
+                {selected.platformActive && (
+                  <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                    <Text style={{ color: '#4CAF50', fontSize: 10, fontWeight: '700' }}>✓ ON PLATFORM</Text>
+                  </View>
+                )}
+              </View>
 
               <View style={styles.cardFooter}>
-                <View>
-                  <Text style={styles.codeLabel}>Company code</Text>
-                  <Text style={[styles.code, { color: selected.branding.primaryColor }]}>{selected.code}</Text>
-                </View>
-                <TouchableOpacity
-                  style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
-                  onPress={() => {
-                    setSelected(null)
-                    navigation.navigate('Signup')
-                  }}
-                >
-                  <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Join →</Text>
-                </TouchableOpacity>
+                {/* Left side - call or code */}
+                {selected.platformActive ? (
+                  <View>
+                    <Text style={styles.codeLabel}>Company code</Text>
+                    <Text style={[styles.code, { color: selected.branding.primaryColor }]}>{selected.code}</Text>
+                  </View>
+                ) : (
+                  selected.phone ? (
+                    <TouchableOpacity onPress={() => Linking.openURL(`tel:${selected.phone}`)}>
+                      <Text style={styles.codeLabel}>Call to book</Text>
+                      <Text style={[styles.code, { color: selected.branding.primaryColor, fontSize: 15 }]}>{selected.phone}</Text>
+                    </TouchableOpacity>
+                  ) : <View />
+                )}
+
+                {/* Right side - book or join */}
+                {selected.platformActive ? (
+                  bookingMode ? (
+                    <TouchableOpacity
+                      style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
+                      onPress={() => handleBook(selected)}
+                    >
+                      <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Book Now →</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
+                      onPress={() => { setSelected(null); navigation.navigate('Signup') }}
+                    >
+                      <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Join →</Text>
+                    </TouchableOpacity>
+                  )
+                ) : (
+                  selected.phone ? (
+                    <TouchableOpacity
+                      style={[styles.joinButton, { backgroundColor: 'rgba(255,255,255,0.1)' }]}
+                      onPress={() => Linking.openURL(`tel:${selected.phone}`)}
+                    >
+                      <Text style={[styles.joinText, { color: '#fff' }]}>📞 Call</Text>
+                    </TouchableOpacity>
+                  ) : null
+                )}
               </View>
             </View>
           ) : (
             <View style={styles.hint}>
-              <Text style={styles.hintText}>Tap a pin to see company details</Text>
+              <Text style={styles.hintText}>
+                {bookingMode ? '👆 Tap a pin to book with a company' : 'Tap a pin to see company details'}
+              </Text>
             </View>
           )}
         </>
@@ -112,6 +185,8 @@ export default function MapScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   map: { flex: 1 },
+  bookingBanner: { backgroundColor: '#0D1B4B', paddingHorizontal: 20, paddingVertical: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
+  bookingBannerText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   loadingText: { color: 'rgba(255,255,255,0.5)', fontSize: 14 },
   pin: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, maxWidth: 140 },

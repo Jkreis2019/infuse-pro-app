@@ -142,7 +142,7 @@ export default function App() {
 </Stack.Screen>
         <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Map" component={MapScreen} options={{ title: 'Find a company' }} />
+        <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   )
