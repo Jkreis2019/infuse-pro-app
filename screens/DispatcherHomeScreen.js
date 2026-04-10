@@ -702,6 +702,11 @@ const submitSendIntake = async () => {
       </View>
     </View>
     <View style={{ alignItems: 'flex-end', gap: 8 }}>
+        <TouchableOpacity
+  onPress={() => setNewBookingModal(true)}
+>
+  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>📞 New Booking</Text>
+</TouchableOpacity>
       <TouchableOpacity
   onPress={() => setPatientSearchModal(true)}
 >
