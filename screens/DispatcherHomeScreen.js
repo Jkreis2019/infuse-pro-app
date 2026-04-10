@@ -478,34 +478,25 @@ const openPsProfile = async (patient) => {
 }
 
 const createNewPatient = async () => {
-  if (!cpFirstName || !cpLastName || !cpEmail || !cpDob) {
-    Alert.alert('Required', 'First name, last name, email and date of birth are required')
+  if (!cpFirstName || !cpLastName || !cpEmail) {
+    Alert.alert('Required', 'First name, last name and email are required')
     return
   }
   setCreatingPatient(true)
   try {
-    // Format DOB from MM/DD/YYYY to YYYY-MM-DD
-    const dobParts = cpDob.split('/')
-    const formattedDob = dobParts.length === 3 
-      ? `${dobParts[2]}-${dobParts[0].padStart(2,'0')}-${dobParts[1].padStart(2,'0')}` 
-      : cpDob
-
-    const res = await fetch(`${API_URL}/auth/signup`, {
+    const res = await fetch(`${API_URL}/dispatch/create-patient`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: cpEmail.toLowerCase(),
-        password: Math.random().toString(36).slice(-10) + 'Aa1!',
         firstName: cpFirstName,
         lastName: cpLastName,
+        email: cpEmail.toLowerCase(),
         phone: cpPhone || null,
-        dob: formattedDob,
-        companyCode: company?.code
+        dob: cpDob || null
       })
     })
     const data = await res.json()
     if (data.success) {
-      // Auto-select the new patient
       selectPatient({
         id: data.user.id,
         first_name: cpFirstName,
@@ -513,47 +504,18 @@ const createNewPatient = async () => {
         phone: cpPhone || '',
         last_address: '',
         email: cpEmail.toLowerCase(),
-        isNew: true
+        isNew: data.user.isNew
       })
       setShowCreatePatient(false)
       setNewBookingModal(true)
       setCpFirstName(''); setCpLastName(''); setCpEmail('')
       setCpPhone(''); setCpDob('')
-      // Send password reset so patient can claim their account
-      await fetch(`${API_URL}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: cpEmail.toLowerCase() })
-      })
-      // Send intake form
-      if (data.user?.id) {
-        try {
-          await fetch(`${API_URL}/intake/send-form`, {
-            method: 'POST',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              patientEmail: cpEmail.toLowerCase(),
-              patientName: `${cpFirstName} ${cpLastName}`
-            })
-          })
-        } catch (e) {
-          console.error('Intake send error:', e)
-        }
-      }
-      // Send intake form
-      try {
-        await fetch(`${API_URL}/intake/send-form`, {
-          method: 'POST',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            patientEmail: cpEmail.toLowerCase(),
-            patientName: `${cpFirstName} ${cpLastName}`
-          })
-        })
-      } catch (e) {
-        console.error('Intake send error:', e)
-      }
-      Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added and intake form sent!`)
+      Alert.alert(
+        '✅ Patient Added',
+        data.user.isNew
+          ? `${cpFirstName} ${cpLastName} is new to Infuse Pro. A welcome email with intake form and password setup has been sent!`
+          : `${cpFirstName} ${cpLastName} already has an Infuse Pro account. Intake form sent if not on file.`
+      )
     } else {
       Alert.alert('Error', data.message || 'Could not create patient')
     }
