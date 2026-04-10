@@ -287,10 +287,16 @@ const fetchTechLocation = async () => {
       {canMessage && (
         <TouchableOpacity
           style={[styles.messageButton, { backgroundColor: primaryColor }]}
-          onPress={() => Alert.alert('Coming soon', 'Chat with dispatch coming soon!')}
+          onPress={() => navigation.navigate('BookingChat', {
+            token,
+            user,
+            company,
+            bookingId,
+            patientName: booking.tech_first ? `${booking.tech_first} ${booking.tech_last}` : 'Your Tech'
+          })}
         >
           <Text style={[styles.messageButtonText, { color: secondaryColor }]}>
-            💬 Message Dispatch
+            Message Your Tech
           </Text>
         </TouchableOpacity>
       )}
