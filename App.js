@@ -22,6 +22,7 @@ import DispatcherMessagingScreen from './screens/DispatcherMessagingScreen'
 import PatientDispatchChatScreen from './screens/PatientDispatchChatScreen'
 import BookingChatScreen from './screens/BookingChatScreen'
 import TechHomeScreen from './screens/TechHomeScreen'
+import TechMessagingScreen from './screens/TechMessagingScreen'
 import NPHomeScreen from './screens/NPHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
 import ClinicHomeScreen from './screens/ClinicHomeScreen'
@@ -135,6 +136,7 @@ export default function App() {
         <Stack.Screen name="ClinicHome" component={ClinicHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ClinicTechHome" component={ClinicTechScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chart" component={ChartScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="TechMessaging" component={TechMessagingScreen} options={{ headerShown: false }} />
         <Stack.Screen name="TechHome" options={{ headerShown: false }}>
   {(props) => <TechHomeScreen {...props} rootNavigation={props.navigation} />}
 </Stack.Screen>
