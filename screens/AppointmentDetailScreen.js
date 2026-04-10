@@ -163,7 +163,7 @@ const fetchTechLocation = async () => {
   const currentStep = STATUS_STEPS.indexOf(booking.status)
   const isPast = booking.requested_time && new Date(booking.requested_time) < new Date() && booking.status === 'confirmed'
   const canCancel = ['pending', 'confirmed', 'en_route'].includes(booking.status) && !isPast
-  const canMessage = ['en_route', 'on_scene'].includes(booking.status)
+  const canMessage = booking.status === 'en_route'
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
