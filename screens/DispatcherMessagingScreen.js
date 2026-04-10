@@ -14,6 +14,9 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   const headers = { Authorization: `Bearer ${token}` }
 
   const [activeTab, setActiveTab] = useState('team')
+  const [regions, setRegions] = useState([])
+  const [selectedRegion, setSelectedRegion] = useState(null)
+  const [regionMessages, setRegionMessages] = useState([])
   const [contacts, setContacts] = useState([])
   const [patientChats, setPatientChats] = useState([])
   const [selectedContact, setSelectedContact] = useState(null)
@@ -34,6 +37,29 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUserId(payload.userId)
       } catch (e) {}
+    }
+  }, [token])
+
+  const fetchRegions = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/chat/regions`, { headers })
+      const data = await res.json()
+      if (data.success) setRegions(data.regions)
+    } catch (err) {
+      console.error('Fetch regions error:', err)
+    }
+  }, [token])
+
+  const fetchRegionMessages = useCallback(async (regionId, showLoader = false) => {
+    if (showLoader) setMessagesLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/chat/region/${regionId}/messages`, { headers })
+      const data = await res.json()
+      if (data.success) setRegionMessages(data.messages)
+    } catch (err) {
+      console.error('Fetch region messages error:', err)
+    } finally {
+      if (showLoader) setMessagesLoading(false)
     }
   }, [token])
 
@@ -62,9 +88,12 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   useEffect(() => {
     fetchContacts()
     fetchPatientChats()
+    fetchRegions()
     const interval = setInterval(() => {
       fetchContacts()
       fetchPatientChats()
+      fetchRegions()
+      if (selectedRegion) fetchRegionMessages(selectedRegion.id)
     }, 10000)
     return () => clearInterval(interval)
   }, [fetchContacts, fetchPatientChats])
@@ -117,6 +146,35 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     setSelectedPatient(null)
     setMessages([])
     fetchDMMessages(contact.id, true)
+  }
+
+  const selectRegion = (region) => {
+    setSelectedRegion(region)
+    setSelectedContact(null)
+    setSelectedPatient(null)
+    setMessages([])
+    setRegionMessages([])
+    fetchRegionMessages(region.id, true)
+  }
+
+  const sendRegionMessage = async () => {
+    if (!message.trim() || !selectedRegion) return
+    setSending(true)
+    const text = message.trim()
+    setMessage('')
+    try {
+      const res = await fetch(`${API_URL}/chat/region/${selectedRegion.id}/messages`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      })
+      const data = await res.json()
+      if (data.success) fetchRegionMessages(selectedRegion.id)
+    } catch (err) {
+      console.error('Send region message error:', err)
+    } finally {
+      setSending(false)
+    }
   }
 
   const selectPatient = (chat) => {
@@ -183,7 +241,8 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   }
 
   const sendMessage = () => {
-    if (selectedContact) sendDM()
+    if (selectedRegion) sendRegionMessage()
+    else if (selectedContact) sendDM()
     else if (selectedPatient) sendPatientMessage()
   }
 
@@ -278,14 +337,57 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
         {/* Contact List */}
         <FlatList
           data={activeTab === 'team'
-            ? Object.entries(groupedContacts).flatMap(([region, data]) => [
-                { type: 'header', region, color: data.color },
-                ...data.contacts.map(c => ({ type: 'contact', ...c }))
-              ])
+            ? [
+                { type: 'groupHeader' },
+                ...regions.map(r => ({ type: 'region', ...r })),
+                { type: 'dmHeader' },
+                ...Object.entries(groupedContacts).flatMap(([region, data]) => [
+                  { type: 'header', region, color: data.color },
+                  ...data.contacts.map(c => ({ type: 'contact', ...c }))
+                ])
+              ]
             : filteredPatientChats.map(c => ({ type: 'patient', ...c }))
           }
           keyExtractor={(item, index) => `${item.type}-${item.id || item.booking_id || index}`}
           renderItem={({ item }) => {
+            if (item.type === 'groupHeader') {
+              return (
+                <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>REGION CHANNELS</Text>
+                </View>
+              )
+            }
+            if (item.type === 'dmHeader') {
+              return (
+                <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)', marginTop: 8 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>DIRECT MESSAGES</Text>
+                </View>
+              )
+            }
+            if (item.type === 'region') {
+              const isSelected = selectedRegion?.id === item.id
+              return (
+                <TouchableOpacity
+                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+                  onPress={() => selectRegion(item)}
+                >
+                  <View style={[styles.contactAvatar, { alignItems: 'center', justifyContent: 'center' }]}>
+                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: item.color + '33', borderWidth: 2, borderColor: item.color, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text style={{ fontSize: 18 }}>📍</Text>
+                    </View>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.contactName}>{item.name}</Text>
+                    <Text style={styles.contactSub}>Region Channel</Text>
+                    {item.last_message && (
+                      <Text style={styles.lastMessage} numberOfLines={1}>
+                        {item.last_sender}: {item.last_message}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )
+            }
             if (item.type === 'header') {
               return (
                 <View style={styles.regionHeader}>
@@ -369,7 +471,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
 
       {/* RIGHT PANE */}
       <View style={styles.rightPane}>
-        {!selectedContact && !selectedPatient ? (
+        {!selectedContact && !selectedPatient && !selectedRegion ? (
           <View style={styles.emptyChat}>
             <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Select a conversation</Text>
@@ -380,10 +482,10 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
             <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
-                  {selectedContact ? `${selectedContact.first_name} ${selectedContact.last_name}` : selectedPatient?.patient_name}
+                  {selectedRegion ? `📍 ${selectedRegion.name}` : selectedContact ? `${selectedContact.first_name} ${selectedContact.last_name}` : selectedPatient?.patient_name}
                 </Text>
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
-                  {selectedContact ? `${selectedContact.role?.toUpperCase()} · ${selectedContact.region_name || ''}` : selectedPatient?.service}
+                  {selectedRegion ? 'Region Channel' : selectedContact ? `${selectedContact.role?.toUpperCase()} · ${selectedContact.region_name || ''}` : selectedPatient?.service}
                 </Text>
               </View>
               {selectedPatient && (
@@ -404,7 +506,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
             ) : (
               <FlatList
                 ref={flatListRef}
-                data={messages}
+                data={selectedRegion ? regionMessages : messages}
                 keyExtractor={item => item.id.toString()}
                 renderItem={renderMessage}
                 contentContainerStyle={styles.messageList}
@@ -418,7 +520,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
             )}
 
             {/* Input */}
-            {(selectedContact || selectedPatient) && (
+            {(selectedContact || selectedPatient || selectedRegion) && (
               <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
                 <TextInput
                   style={styles.input}
