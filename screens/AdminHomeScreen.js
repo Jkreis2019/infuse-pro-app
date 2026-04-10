@@ -202,6 +202,21 @@ export default function AdminHomeScreen({ route, navigation }) {
     }
   }
 
+  const assignStaffRegion = async (userId, regionId) => {
+  try {
+    const res = await fetch(`${API_URL}/admin/regions/${regionId || 0}/assign-staff`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, regionId })
+    })
+    const data = await res.json()
+    if (data.success) fetchAll()
+    else Alert.alert('Error', data.message || 'Could not assign region')
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  }
+}
+
 const saveRegion = async () => {
     if (!rName) { Alert.alert('Required', 'Region name is required'); return }
     setSavingRegion(true)
@@ -376,6 +391,35 @@ const saveRegion = async () => {
                 <Text style={{ color: member.status_updated_at ? '#4CAF50' : 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>
                   {member.password_changed ? 'Active account' : 'Pending first login'}
                 </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Region:</Text>
+                  <TouchableOpacity
+                    style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 }}
+                    onPress={() => {
+                      if (Platform.OS === 'web') {
+                        const choice = window.prompt(`Assign region for ${member.first_name}:\n${regions.map((r, i) => `${i + 1}. ${r.name}`).join('\n')}\n\nEnter region name:`)
+                        if (choice) {
+                          const region = regions.find(r => r.name.toLowerCase() === choice.toLowerCase())
+                          assignStaffRegion(member.id, region?.id || null)
+                        }
+                      } else {
+                        Alert.alert(
+                          'Assign Region',
+                          `Select region for ${member.first_name}:`,
+                          [
+                            { text: 'Unassigned', onPress: () => assignStaffRegion(member.id, null) },
+                            ...regions.map(r => ({ text: r.name, onPress: () => assignStaffRegion(member.id, r.id) })),
+                            { text: 'Cancel', style: 'cancel' }
+                          ]
+                        )
+                      }
+                    }}
+                  >
+                    <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>
+                      {regions.find(r => r.id === member.region_id)?.name || 'Unassigned'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))
           )}
