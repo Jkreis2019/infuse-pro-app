@@ -709,6 +709,11 @@ const submitSendIntake = async () => {
   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🔍 Patients</Text>
 </TouchableOpacity>
 <TouchableOpacity
+  onPress={() => navigation.navigate('ChatContacts', { token, user, company })}
+>
+  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>💬 Messages</Text>
+</TouchableOpacity>
+<TouchableOpacity
   onPress={() => setProfileModal(true)}
 >
   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>👤 Profile</Text>
