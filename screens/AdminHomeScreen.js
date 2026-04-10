@@ -203,14 +203,17 @@ export default function AdminHomeScreen({ route, navigation }) {
   }
 
   const assignStaffRegion = async (userId, regionId) => {
+  console.log('assignStaffRegion called:', userId, regionId)
   try {
     const res = await fetch(`${API_URL}/admin/staff/${userId}/region`, {
       method: 'PUT',
       headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, regionId })
     })
-    const data = await res.json()
-    if (data.success) fetchAll()
+    const text = await res.text()
+    console.log('Assign region response:', text)
+    const data = JSON.parse(text)
+    if (data.success) setTimeout(() => fetchAll(), 300)
     else Alert.alert('Error', data.message || 'Could not assign region')
   } catch (err) {
     Alert.alert('Error', 'Network error')
@@ -416,7 +419,7 @@ const saveRegion = async () => {
                     }}
                   >
                     <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>
-                      {regions.find(r => r.id === member.region_id)?.name || 'Unassigned'}
+                      {regions.find(r => parseInt(r.id) === parseInt(member.region_id))?.name || 'Unassigned'}
                     </Text>
                   </TouchableOpacity>
                 </View>
