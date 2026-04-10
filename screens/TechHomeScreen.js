@@ -592,6 +592,7 @@ const techChangePassword = async () => {
       const data = await res.json()
       if (data.success) {
         setCall(data.call)
+        console.log('call tech_status:', data.call?.tech_status, 'call status:', data.call?.status)
         if (data.call?.user_id) {
           fetch(`${API_URL}/gfe/patient-orders/${data.call.user_id}`, { headers })
             .then(r => r.json())
@@ -890,6 +891,18 @@ const techChangePassword = async () => {
                   {(call.tech_status === 'assigned' || call.tech_status === null) && (
                     <TouchableOpacity style={[styles.statusButton, { backgroundColor: '#2196F3' }]} onPress={() => handleStatusChange('en_route')} disabled={updatingStatus}>
                       {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={styles.statusButtonText}>🚗 I'm En Route</Text>}
+                    </TouchableOpacity>
+                  )}
+                  {call.tech_status === 'en_route' && (
+                    <TouchableOpacity
+                      style={[styles.statusButton, { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: primaryColor, marginBottom: 4 }]}
+                      onPress={() => navigation.navigate('BookingChat', {
+                        token, user, company,
+                        bookingId: call.id,
+                        patientName: call.patient_name
+                      })}
+                    >
+                      <Text style={[styles.statusButtonText, { color: primaryColor }]}>Message Patient</Text>
                     </TouchableOpacity>
                   )}
                   {call.tech_status === 'en_route' && (
