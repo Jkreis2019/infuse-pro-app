@@ -540,6 +540,19 @@ const createNewPatient = async () => {
           console.error('Intake send error:', e)
         }
       }
+      // Send intake form
+      try {
+        await fetch(`${API_URL}/intake/send-form`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            patientEmail: cpEmail.toLowerCase(),
+            patientName: `${cpFirstName} ${cpLastName}`
+          })
+        })
+      } catch (e) {
+        console.error('Intake send error:', e)
+      }
       Alert.alert('✅ Patient Created', `${cpFirstName} ${cpLastName} has been added and intake form sent!`)
     } else {
       Alert.alert('Error', data.message || 'Could not create patient')
