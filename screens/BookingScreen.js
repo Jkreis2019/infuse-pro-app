@@ -115,7 +115,7 @@ useEffect(() => {
         setScheduleType('now')
         setSelectedSlot(null)
         setError('')
-       navigation.goBack()
+       navigation.navigate('Home', { token, user, company })
       } else {
         setError(data.message || 'Something went wrong')
       }

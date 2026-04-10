@@ -59,10 +59,11 @@ export default function MapScreen({ route, navigation }) {
     <View style={styles.container}>
       {bookingMode && (
         <View style={styles.bookingBanner}>
-          <Text style={styles.bookingBannerText}>Select a company to book with</Text>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={{ color: '#C9A84C', fontSize: 13 }}>Cancel</Text>
+            <Text style={{ color: '#C9A84C', fontSize: 14, fontWeight: '600' }}>← Back</Text>
           </TouchableOpacity>
+          <Text style={styles.bookingBannerText}>Select a company to book with</Text>
+          <View style={{ width: 60 }} />
         </View>
       )}
 
