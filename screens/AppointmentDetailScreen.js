@@ -36,6 +36,24 @@ export default function AppointmentDetailScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true)
   const [cancelling, setCancelling] = useState(false)
   const [techLocation, setTechLocation] = useState(null)
+  const [linkedCompanyId, setLinkedCompanyId] = useState(null)
+  const [linkingCompany, setLinkingCompany] = useState(false)
+
+  const fetchLinkedCompany = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/my-companies`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (data.companies && data.companies.length > 0) {
+        setLinkedCompanyId(data.companies[0].id)
+      } else {
+        setLinkedCompanyId(null)
+      }
+    } catch (err) {
+      console.error('Fetch linked company error:', err)
+    }
+  }
   const [chatSession, setChatSession] = useState(null)
   const [userId, setUserId] = useState(null)
 
@@ -97,6 +115,7 @@ const fetchChatSession = async () => {
     fetchBooking()
     fetchTechLocation()
     fetchChatSession()
+    fetchLinkedCompany()
     const interval = setInterval(() => {
       fetchBooking()
       fetchTechLocation()
@@ -341,6 +360,49 @@ const fetchChatSession = async () => {
           <Text style={[styles.messageButtonText, { color: secondaryColor }]}>
             Message Your Tech
           </Text>
+        </TouchableOpacity>
+      )}
+
+      {linkedCompanyId === null && booking?.company_id && (
+        <TouchableOpacity
+          style={[styles.messageButton, { backgroundColor: 'rgba(76,175,80,0.15)', borderWidth: 1, borderColor: '#4CAF50', marginBottom: 8 }]}
+          disabled={linkingCompany}
+          onPress={async () => {
+            setLinkingCompany(true)
+            try {
+              const res = await fetch(`${API_URL}/auth/my-companies`, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+              const compData = await res.json()
+              const companyCode = compData.companies?.find(c => c.id === booking.company_id)?.code
+              
+              // Link using company_id directly
+              const linkRes = await fetch(`${API_URL}/auth/link-by-id`, {
+                method: 'PUT',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ companyId: booking.company_id })
+              })
+              const linkData = await linkRes.json()
+              if (linkData.success) {
+                setLinkedCompanyId(booking.company_id)
+                Alert.alert('✅ Linked!', `You are now linked to ${linkData.company?.name || 'this company'}. You can now book directly with them!`)
+              } else {
+                Alert.alert('Error', linkData.message || 'Could not link')
+              }
+            } catch (err) {
+              Alert.alert('Error', 'Network error')
+            } finally {
+              setLinkingCompany(false)
+            }
+          }}
+        >
+          {linkingCompany ? (
+            <ActivityIndicator color="#4CAF50" />
+          ) : (
+            <Text style={[styles.messageButtonText, { color: '#4CAF50' }]}>
+              🔗 Link to {booking?.company_name || 'this company'}
+            </Text>
+          )}
         </TouchableOpacity>
       )}
 
