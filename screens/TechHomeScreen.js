@@ -425,6 +425,8 @@ export default function TechHomeScreen({ route, navigation }) {
   const [showChart, setShowChart] = useState(false)
   const [showNpOrders, setShowNpOrders] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
+  const [patientPerks, setPatientPerks] = useState(null)
+  const [redeemingPerk, setRedeemingPerk] = useState(false)
   const [techProfile, setTechProfile] = useState(null)
 const [uploadingPhoto, setUploadingPhoto] = useState(false)
 const [techChangePasswordModal, setTechChangePasswordModal] = useState(false)
@@ -596,6 +598,15 @@ const techChangePassword = async () => {
               else setNpOrders(null)
             })
             .catch(() => setNpOrders(null))
+
+          // Fetch patient perks
+          fetch(`${API_URL}/perks/patient/${data.call.user_id}`, { headers })
+            .then(r => r.json())
+            .then(perksData => {
+              if (perksData.hasPerks) setPatientPerks(perksData)
+              else setPatientPerks(null)
+            })
+            .catch(() => setPatientPerks(null))
         }
         setPatients(data.patients || [])
         setUpcoming(data.upcoming || [])
@@ -859,6 +870,80 @@ const techChangePassword = async () => {
                   </View>
                 </View>
               </Modal>
+
+{call.tech_status === 'on_scene' && patientPerks && (
+                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#C9A84C', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>⭐ PATIENT HAS ACTIVE PERKS</Text>
+                  
+                  {patientPerks.referralPerks?.map(perk => (
+                    <View key={perk.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                      <View>
+                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                          {perk.perk_type === 'fixed' ? `$${perk.perk_amount} off` : `${perk.perk_amount}% off`}
+                        </Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Referral perk</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#C9A84C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }}
+                        disabled={redeemingPerk}
+                        onPress={async () => {
+                          setRedeemingPerk(true)
+                          try {
+                            const res = await fetch(`${API_URL}/perks/redeem`, {
+                              method: 'POST',
+                              headers: { ...headers, 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ type: 'referral', id: perk.id })
+                            })
+                            const data = await res.json()
+                            if (data.success) {
+                              setPatientPerks(null)
+                              Alert.alert('✅ Redeemed!', 'Perk has been marked as used.')
+                            }
+                          } catch (e) {}
+                          finally { setRedeemingPerk(false) }
+                        }}
+                      >
+                        <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 13 }}>Redeem</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+
+                  {patientPerks.loyaltyRewards?.map(reward => (
+                    <View key={reward.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                      <View>
+                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                          {reward.reward_type === 'free' ? '🎁 FREE IV' :
+                           reward.reward_type === 'fixed' ? `$${reward.reward_amount} off` :
+                           `${reward.reward_percent}% off`}
+                        </Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Loyalty reward</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#4CAF50', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }}
+                        disabled={redeemingPerk}
+                        onPress={async () => {
+                          setRedeemingPerk(true)
+                          try {
+                            const res = await fetch(`${API_URL}/perks/redeem`, {
+                              method: 'POST',
+                              headers: { ...headers, 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ type: 'loyalty', id: reward.id })
+                            })
+                            const data = await res.json()
+                            if (data.success) {
+                              setPatientPerks(null)
+                              Alert.alert('✅ Redeemed!', 'Loyalty reward has been marked as used.')
+                            }
+                          } catch (e) {}
+                          finally { setRedeemingPerk(false) }
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Redeem</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
 
               {call.tech_status === 'on_scene' && (
                 <TouchableOpacity style={[styles.chartButton, { backgroundColor: primaryColor }]} onPress={() => setShowChart(true)}>
