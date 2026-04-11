@@ -27,6 +27,10 @@ export default function AdminHomeScreen({ route, navigation }) {
   // Services
   const [services, setServices] = useState([])
 
+  // Billing
+  const [billingStatus, setBillingStatus] = useState(null)
+  const [loadingBilling, setLoadingBilling] = useState(false)
+
   // Referral settings
   const [referralActive, setReferralActive] = useState(false)
   const [referralPerkType, setReferralPerkType] = useState('fixed')
@@ -100,23 +104,25 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
         fetch(`${API_URL}/admin/regions`, { headers }),
         fetch(`${API_URL}/admin/announcements`, { headers }),
         fetch(`${API_URL}/admin/referral-settings`, { headers }),
-        fetch(`${API_URL}/admin/loyalty`, { headers })
+        fetch(`${API_URL}/admin/loyalty`, { headers }),
+        fetch(`${API_URL}/billing/status`, { headers })
       ])
-      const [statsData, staffData, svcData, regData, anData, refData, loyData] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json()
+      const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
       if (svcData.services) setServices(svcData.services)
       if (regData.regions) setRegions(regData.regions)
       if (anData.announcements) setAnnouncements(anData.announcements)
+        if (bilData.subscription) setBillingStatus(bilData.subscription)
         if (refData.settings) {
         setReferralActive(refData.settings.referral_active || false)
         setReferralPerkType(refData.settings.referral_perk_type || 'fixed')
@@ -360,7 +366,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', 'settings'].map(tab => (
+          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', 'billing', 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -607,6 +613,87 @@ const saveRegion = async () => {
               </View>
             ))
           )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+{/* Billing Tab */}
+      {activeTab === 'billing' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          
+          {/* Current Plan */}
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Current Plan</Text>
+            {billingStatus?.status === 'none' || !billingStatus ? (
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
+            ) : (
+              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>ACTIVE</Text>
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
+                {billingStatus.currentPeriodEnd && (
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>
+                    Renews {new Date(billingStatus.currentPeriodEnd).toLocaleDateString()}
+                  </Text>
+                )}
+              </View>
+            )}
+
+            {/* Plan Options */}
+            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
+            
+            {[
+              { tier: 'starter', price: '$99/mo', features: ['Full platform access', 'Up to 5 staff accounts', 'Dispatch console', 'Tech & patient app'] },
+              { tier: 'growth', price: '$199/mo', features: ['Everything in Starter', 'Unlimited staff', 'Announcements & banners', 'Referral & loyalty programs'] },
+              { tier: 'scale', price: '$349/mo', features: ['Everything in Growth', 'Analytics dashboard', 'White label branding', 'Multi-region support'] }
+            ].map(plan => (
+              <View key={plan.tier} style={{ borderWidth: 1, borderColor: billingStatus?.tier === plan.tier ? primaryColor : 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 16, marginBottom: 12, backgroundColor: billingStatus?.tier === plan.tier ? primaryColor + '10' : 'transparent' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textTransform: 'capitalize' }}>{plan.tier}</Text>
+                  <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>{plan.price}</Text>
+                </View>
+                {plan.features.map((f, i) => (
+                  <Text key={i} style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 3 }}>✓ {f}</Text>
+                ))}
+                {billingStatus?.tier !== plan.tier && (
+                  <TouchableOpacity
+                    style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }}
+                    onPress={() => Alert.alert('Subscribe', `Subscribe to Infuse Pro ${plan.tier} for ${plan.price}?\n\nYou will be charged today and monthly thereafter.`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Subscribe', onPress: () => Alert.alert('Coming Soon', 'Payment processing will be available soon!') }
+                    ])}
+                  >
+                    <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>
+                      {billingStatus?.status === 'none' || !billingStatus ? 'Subscribe' : 'Switch to'} {plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {billingStatus?.tier === plan.tier && (
+                  <View style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8 }}>
+                    <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>✓ Current Plan</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Cancel */}
+          {billingStatus?.status === 'active' && (
+            <TouchableOpacity
+              style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }}
+              onPress={() => Alert.alert('Cancel Subscription', 'Your subscription will remain active until the end of the billing period.', [
+                { text: 'Keep Subscription', style: 'cancel' },
+                { text: 'Cancel', style: 'destructive', onPress: async () => {
+                  try {
+                    await fetch(`${API_URL}/billing/cancel`, { method: 'POST', headers })
+                    fetchAll()
+                    Alert.alert('Cancelled', 'Your subscription will end at the current billing period.')
+                  } catch (e) {}
+                }}
+              ])}
+            >
+              <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '600' }}>Cancel Subscription</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
