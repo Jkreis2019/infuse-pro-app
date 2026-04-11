@@ -844,7 +844,7 @@ const submitSendIntake = async () => {
             </View>
           ) : (
             queue.map(booking => (
-              <TouchableOpacity key={booking.id} style={[styles.card, booking.region_color && { borderLeftWidth: 4, borderLeftColor: booking.region_color }]} onPress={() => openDetailModal(booking)} activeOpacity={0.8}>
+              <TouchableOpacity key={booking.id} style={[styles.card, booking.region_color && { borderLeftWidth: 4, borderLeftColor: booking.region_color }, !booking.requested_time && Math.floor((Date.now() - new Date(booking.created_at).getTime()) / 60000) >= 60 && { borderWidth: 1, borderColor: '#e53e3e' }, !booking.requested_time && Math.floor((Date.now() - new Date(booking.created_at).getTime()) / 60000) >= 15 && Math.floor((Date.now() - new Date(booking.created_at).getTime()) / 60000) < 60 && { borderWidth: 1, borderColor: '#FF9800' }]} onPress={() => openDetailModal(booking)} activeOpacity={0.8}>
                 <View style={styles.cardTop}>
                   <Text style={styles.cardService}>{booking.service}</Text>
                   <View style={{ flexDirection: 'row', gap: 6 }}>
@@ -870,12 +870,31 @@ const submitSendIntake = async () => {
                 )}
                 {booking.patient_phone && <Text style={styles.cardPhone}>📞 {booking.patient_phone}</Text>}
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
-                <Text style={styles.cardTime}>
-                  {booking.requested_time
-                    ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
-                    : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                  }
-                </Text>
+                {(() => {
+                const waitMinutes = Math.floor((Date.now() - new Date(booking.created_at).getTime()) / 60000)
+                const isUrgent = waitMinutes >= 60
+                const isWarning = waitMinutes >= 15 && waitMinutes < 60
+                return (
+                  <>
+                    <Text style={styles.cardTime}>
+                      {booking.requested_time
+                        ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
+                        : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      }
+                    </Text>
+                    {isUrgent && !booking.requested_time && (
+                      <View style={{ backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: '#e53e3e', borderRadius: 8, padding: 8, marginTop: 4 }}>
+                        <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '700' }}>🚨 Waiting {waitMinutes >= 60 ? `${Math.floor(waitMinutes/60)}h ${waitMinutes % 60}m` : `${waitMinutes}m`} — Assign or cancel!</Text>
+                      </View>
+                    )}
+                    {isWarning && !booking.requested_time && (
+                      <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderRadius: 8, padding: 6, marginTop: 4 }}>
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '600' }}>⚠️ Waiting {waitMinutes}m</Text>
+                      </View>
+                    )}
+                  </>
+                )
+              })()}
                 <View style={styles.cardActions}>
   <TouchableOpacity
     style={[styles.assignButton, { backgroundColor: primaryColor }]}
