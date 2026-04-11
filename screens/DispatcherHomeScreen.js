@@ -112,6 +112,16 @@ const [psSearching, setPsSearching] = useState(false)
 const [psSelectedPatient, setPsSelectedPatient] = useState(null)
 const [psProfileData, setPsProfileData] = useState(null)
 const [psLoadingProfile, setPsLoadingProfile] = useState(false)
+const [psEditing, setPsEditing] = useState(false)
+const [psEditPhone, setPsEditPhone] = useState('')
+const [psEditAddress, setPsEditAddress] = useState('')
+const [psEditCity, setPsEditCity] = useState('')
+const [psEditState, setPsEditState] = useState('')
+const [psEditZip, setPsEditZip] = useState('')
+const [psEditEmergencyContact, setPsEditEmergencyContact] = useState('')
+const [psEditEmergencyPhone, setPsEditEmergencyPhone] = useState('')
+const [psEditEmergencyRelationship, setPsEditEmergencyRelationship] = useState('')
+const [psSavingProfile, setPsSavingProfile] = useState(false)
 const [psActiveTab, setPsActiveTab] = useState('bookings')
 const [psProfileModal, setPsProfileModal] = useState(false)
 const [cpFirstName, setCpFirstName] = useState('')
@@ -460,6 +470,38 @@ const searchPsPatients = useCallback(async (q) => {
   }
 }, [token])
 
+const savePsProfile = async () => {
+  setPsSavingProfile(true)
+  try {
+    const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/update`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: psEditPhone,
+        homeAddress: psEditAddress,
+        city: psEditCity,
+        state: psEditState,
+        zip: psEditZip,
+        emergencyContact: psEditEmergencyContact,
+        emergencyContactPhone: psEditEmergencyPhone,
+        emergencyContactRelationship: psEditEmergencyRelationship
+      })
+    })
+    const data = await res.json()
+    if (data.success) {
+      setPsEditing(false)
+      openPsProfile(psSelectedPatient)
+      Alert.alert('✅ Saved', 'Patient profile updated')
+    } else {
+      Alert.alert('Error', data.message)
+    }
+  } catch (err) {
+    Alert.alert('Error', 'Network error')
+  } finally {
+    setPsSavingProfile(false)
+  }
+}
+
 const openPsProfile = async (patient) => {
   setPsSelectedPatient(patient)
   setPsProfileModal(true)
@@ -468,7 +510,17 @@ const openPsProfile = async (patient) => {
   try {
     const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
     const data = await res.json()
-    if (data.success) setPsProfileData(data)
+    if (data.success) {
+    setPsProfileData(data)
+    setPsEditPhone(data.patient?.phone || psSelectedPatient?.phone || '')
+    setPsEditAddress(data.patient?.home_address || '')
+    setPsEditCity(data.patient?.city || '')
+    setPsEditState(data.patient?.state || '')
+    setPsEditZip(data.patient?.zip || '')
+    setPsEditEmergencyContact(data.intake?.emergency_contact || '')
+    setPsEditEmergencyPhone(data.intake?.emergency_contact_phone || '')
+    setPsEditEmergencyRelationship(data.intake?.emergency_contact_relationship || '')
+  }
     else Alert.alert('Error', 'Could not load patient profile')
   } catch (err) {
     Alert.alert('Error', 'Network error')
@@ -1504,25 +1556,48 @@ const submitSendIntake = async () => {
             {psActiveTab === 'overview' && (
               <>
                 <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CONTACT INFORMATION</Text>
-                  {psSelectedPatient?.phone && (
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Phone</Text>
-                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedPatient.phone}</Text>
-                    </View>
-                  )}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
+                    <TouchableOpacity onPress={() => setPsEditing(!psEditing)}>
+                      <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>{psEditing ? 'Cancel' : '✏️ Edit'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {/* Phone */}
+                  <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PHONE</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditPhone} onChangeText={setPsEditPhone} placeholder="Phone number" placeholderTextColor="#666" keyboardType="phone-pad" />
+                    ) : (
+                      <Text style={{ color: psEditPhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditPhone || 'Not on file'}</Text>
+                    )}
+                  </View>
+
+                  {/* Email - read only */}
                   {psSelectedPatient?.email && (
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Email</Text>
+                    <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>EMAIL</Text>
                       <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedPatient.email}</Text>
                     </View>
                   )}
-                  {psProfileData?.patient?.home_address && (
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Address</Text>
-                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>{psProfileData.patient.home_address}</Text>
-                    </View>
-                  )}
+
+                  {/* Address */}
+                  <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>ADDRESS</Text>
+                    {psEditing ? (
+                      <>
+                        <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4, marginBottom: 6 }} value={psEditAddress} onChangeText={setPsEditAddress} placeholder="Street address" placeholderTextColor="#666" />
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4, flex: 2 }} value={psEditCity} onChangeText={setPsEditCity} placeholder="City" placeholderTextColor="#666" />
+                          <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4, flex: 1 }} value={psEditState} onChangeText={setPsEditState} placeholder="ST" placeholderTextColor="#666" maxLength={2} autoCapitalize="characters" />
+                          <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4, flex: 1 }} value={psEditZip} onChangeText={setPsEditZip} placeholder="ZIP" placeholderTextColor="#666" keyboardType="numeric" maxLength={5} />
+                        </View>
+                      </>
+                    ) : (
+                      <Text style={{ color: psEditAddress ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>
+                        {psEditAddress ? `${psEditAddress}${psEditCity ? `, ${psEditCity}` : ''}${psEditState ? `, ${psEditState}` : ''}${psEditZip ? ` ${psEditZip}` : ''}` : 'Not on file'}
+                      </Text>
+                    )}
+                  </View>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Patient since</Text>
                     <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
@@ -1552,27 +1627,33 @@ const submitSendIntake = async () => {
                   )}
                 </View>
 
-                {psProfileData?.intake?.emergency_contact && (
-                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Name</Text>
-                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact}</Text>
-                    </View>
-                    {psProfileData.intake.emergency_contact_phone && (
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
-                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Phone</Text>
-                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact_phone}</Text>
-                      </View>
-                    )}
-                    {psProfileData.intake.emergency_contact_relationship && (
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
-                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Relationship</Text>
-                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact_relationship}</Text>
-                      </View>
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                  <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>NAME</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyContact} onChangeText={setPsEditEmergencyContact} placeholder="Emergency contact name" placeholderTextColor="#666" />
+                    ) : (
+                      <Text style={{ color: psEditEmergencyContact ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyContact || 'Not on file'}</Text>
                     )}
                   </View>
-                )}
+                  <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PHONE</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyPhone} onChangeText={setPsEditEmergencyPhone} placeholder="Emergency contact phone" placeholderTextColor="#666" keyboardType="phone-pad" />
+                    ) : (
+                      <Text style={{ color: psEditEmergencyPhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyPhone || 'Not on file'}</Text>
+                    )}
+                  </View>
+                  <View style={{ paddingVertical: 6 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>RELATIONSHIP</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyRelationship} onChangeText={setPsEditEmergencyRelationship} placeholder="e.g. Spouse, Parent" placeholderTextColor="#666" />
+                    ) : (
+                      <Text style={{ color: psEditEmergencyRelationship ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyRelationship || 'Not on file'}</Text>
+                    )}
+                  </View>
+                </View>
 
                 {psProfileData?.intake && (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
@@ -1608,6 +1689,16 @@ const submitSendIntake = async () => {
                 )}
               </>
             )}
+
+            {psEditing && (
+                  <TouchableOpacity
+                    style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }}
+                    onPress={savePsProfile}
+                    disabled={psSavingProfile}
+                  >
+                    {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
+                  </TouchableOpacity>
+                )}
 
             {/* Appointments Tab */}
             {psActiveTab === 'appointments' && (
