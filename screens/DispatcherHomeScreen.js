@@ -774,39 +774,38 @@ const submitSendIntake = async () => {
         <Text style={styles.statItem}>❌ {stats.cancelled_today} cancelled</Text>
       </View>
     </View>
-    <View style={{ alignItems: 'flex-end', gap: 8 }}>
-        
-<TouchableOpacity
-  onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
-  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
->
-  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>💬 Messages</Text>
-</TouchableOpacity>
-<TouchableOpacity
-  onPress={() => setPatientSearchModal(true)}
-  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
->
-  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🔍 Patients</Text>
-</TouchableOpacity>
-<TouchableOpacity
-  onPress={() => setProfileModal(true)}
-  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
->
-  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
-</TouchableOpacity>
-<TouchableOpacity
-  onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
-  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
->
-  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
-</TouchableOpacity>
-<TouchableOpacity
-  onPress={() => setNewBookingModal(true)}
-  style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
->
-  <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>＋ New Booking</Text>
-</TouchableOpacity>
-</View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>💬 Messages</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setPatientSearchModal(true)}
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🔍 Patients</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setProfileModal(true)}
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setNewBookingModal(true)}
+        style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}
+      >
+        <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>＋ New Booking</Text>
+      </TouchableOpacity>
+    </View>
 </View>
 </View>
 
