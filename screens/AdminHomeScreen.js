@@ -27,6 +27,22 @@ export default function AdminHomeScreen({ route, navigation }) {
   // Services
   const [services, setServices] = useState([])
 
+  // Referral settings
+  const [referralActive, setReferralActive] = useState(false)
+  const [referralPerkType, setReferralPerkType] = useState('fixed')
+  const [referralPerkAmount, setReferralPerkAmount] = useState('20')
+  const [referralPerkPercent, setReferralPerkPercent] = useState('10')
+  const [savingReferral, setSavingReferral] = useState(false)
+
+  // Loyalty settings
+  const [loyaltyProgram, setLoyaltyProgram] = useState(null)
+  const [loyaltyActive, setLoyaltyActive] = useState(false)
+  const [loyaltyThreshold, setLoyaltyThreshold] = useState('6')
+  const [loyaltyRewardType, setLoyaltyRewardType] = useState('fixed')
+  const [loyaltyRewardAmount, setLoyaltyRewardAmount] = useState('0')
+  const [loyaltyRewardPercent, setLoyaltyRewardPercent] = useState('50')
+  const [savingLoyalty, setSavingLoyalty] = useState(false)
+
 // Announcements
   const [announcements, setAnnouncements] = useState([])
   const [announcementModal, setAnnouncementModal] = useState(false)
@@ -84,21 +100,37 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes, regRes, anRes] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
         fetch(`${API_URL}/admin/regions`, { headers }),
-        fetch(`${API_URL}/admin/announcements`, { headers })
+        fetch(`${API_URL}/admin/announcements`, { headers }),
+        fetch(`${API_URL}/admin/referral-settings`, { headers }),
+        fetch(`${API_URL}/admin/loyalty`, { headers })
       ])
-      const [statsData, staffData, svcData, regData, anData] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json()
+      const [statsData, staffData, svcData, regData, anData, refData, loyData] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
       if (svcData.services) setServices(svcData.services)
       if (regData.regions) setRegions(regData.regions)
       if (anData.announcements) setAnnouncements(anData.announcements)
+        if (refData.settings) {
+        setReferralActive(refData.settings.referral_active || false)
+        setReferralPerkType(refData.settings.referral_perk_type || 'fixed')
+        setReferralPerkAmount(refData.settings.referral_perk_amount?.toString() || '20')
+        setReferralPerkPercent(refData.settings.referral_perk_percent?.toString() || '10')
+      }
+      if (loyData.program) {
+        setLoyaltyProgram(loyData.program)
+        setLoyaltyActive(loyData.program.active || false)
+        setLoyaltyThreshold(loyData.program.threshold?.toString() || '6')
+        setLoyaltyRewardType(loyData.program.reward_type || 'fixed')
+        setLoyaltyRewardAmount(loyData.program.reward_amount?.toString() || '0')
+        setLoyaltyRewardPercent(loyData.program.reward_percent?.toString() || '50')
+      }
     } catch (err) {
       console.error('Admin fetch error:', err)
     } finally {
@@ -328,7 +360,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'settings'].map(tab => (
+          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -575,6 +607,217 @@ const saveRegion = async () => {
               </View>
             ))
           )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Referrals Tab */}
+      {activeTab === 'referrals' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Referral Program</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>
+              Patients earn a perk when someone they refer completes their first booking.
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ color: '#fff', fontSize: 15 }}>Enable Referral Program</Text>
+              <TouchableOpacity
+                style={{ width: 52, height: 30, borderRadius: 15, backgroundColor: referralActive ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                onPress={() => setReferralActive(!referralActive)}
+              >
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: referralActive ? 'flex-end' : 'flex-start' }} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.fieldLabel}>Perk Type</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              {['fixed', 'percent'].map(type => (
+                <TouchableOpacity
+                  key={type}
+                  style={{ flex: 1, borderWidth: 1, borderRadius: 8, padding: 12, alignItems: 'center', borderColor: referralPerkType === type ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: referralPerkType === type ? primaryColor + '20' : 'transparent' }}
+                  onPress={() => setReferralPerkType(type)}
+                >
+                  <Text style={{ color: referralPerkType === type ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600' }}>
+                    {type === 'fixed' ? '$ Fixed Amount' : '% Percentage'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {referralPerkType === 'fixed' ? (
+              <>
+                <Text style={styles.fieldLabel}>Perk Amount ($)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={referralPerkAmount}
+                  onChangeText={setReferralPerkAmount}
+                  keyboardType="decimal-pad"
+                  placeholder="20"
+                  placeholderTextColor="#666"
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.fieldLabel}>Perk Percentage (%)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={referralPerkPercent}
+                  onChangeText={setReferralPerkPercent}
+                  keyboardType="decimal-pad"
+                  placeholder="10"
+                  placeholderTextColor="#666"
+                />
+              </>
+            )}
+
+            <TouchableOpacity
+              style={[{ borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: primaryColor }, savingReferral && { opacity: 0.6 }]}
+              onPress={async () => {
+                setSavingReferral(true)
+                try {
+                  await fetch(`${API_URL}/admin/referral-settings`, {
+                    method: 'PUT',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      perkType: referralPerkType,
+                      perkAmount: referralPerkType === 'fixed' ? parseFloat(referralPerkAmount) : null,
+                      perkPercent: referralPerkType === 'percent' ? parseFloat(referralPerkPercent) : null,
+                      active: referralActive
+                    })
+                  })
+                  Alert.alert('✅ Saved', 'Referral settings updated!')
+                  fetchAll()
+                } catch (err) {
+                  Alert.alert('Error', 'Could not save')
+                } finally {
+                  setSavingReferral(false)
+                }
+              }}
+              disabled={savingReferral}
+            >
+              {savingReferral ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Referral Settings</Text>}
+            </TouchableOpacity>
+          </View>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Loyalty Tab */}
+      {activeTab === 'loyalty' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 8 }}>Loyalty Program</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>
+              Reward patients who keep coming back. Like a digital punch card.
+            </Text>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ color: '#fff', fontSize: 15 }}>Enable Loyalty Program</Text>
+              <TouchableOpacity
+                style={{ width: 52, height: 30, borderRadius: 15, backgroundColor: loyaltyActive ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                onPress={() => setLoyaltyActive(!loyaltyActive)}
+              >
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: loyaltyActive ? 'flex-end' : 'flex-start' }} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.fieldLabel}>Number of IVs to earn reward</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              {['3', '5', '6', '7', '10', '12'].map(n => (
+                <TouchableOpacity
+                  key={n}
+                  style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, borderColor: loyaltyThreshold === n ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: loyaltyThreshold === n ? primaryColor + '20' : 'transparent' }}
+                  onPress={() => setLoyaltyThreshold(n)}
+                >
+                  <Text style={{ color: loyaltyThreshold === n ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600' }}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.fieldLabel}>Reward Type</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              {['fixed', 'percent', 'free'].map(type => (
+                <TouchableOpacity
+                  key={type}
+                  style={{ flex: 1, borderWidth: 1, borderRadius: 8, padding: 10, alignItems: 'center', borderColor: loyaltyRewardType === type ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: loyaltyRewardType === type ? primaryColor + '20' : 'transparent' }}
+                  onPress={() => setLoyaltyRewardType(type)}
+                >
+                  <Text style={{ color: loyaltyRewardType === type ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>
+                    {type === 'fixed' ? '$ Off' : type === 'percent' ? '% Off' : '🎁 Free'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {loyaltyRewardType === 'fixed' && (
+              <>
+                <Text style={styles.fieldLabel}>Reward Amount ($)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loyaltyRewardAmount}
+                  onChangeText={setLoyaltyRewardAmount}
+                  keyboardType="decimal-pad"
+                  placeholder="25"
+                  placeholderTextColor="#666"
+                />
+              </>
+            )}
+            {loyaltyRewardType === 'percent' && (
+              <>
+                <Text style={styles.fieldLabel}>Reward Percentage (%)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={loyaltyRewardPercent}
+                  onChangeText={setLoyaltyRewardPercent}
+                  keyboardType="decimal-pad"
+                  placeholder="50"
+                  placeholderTextColor="#666"
+                />
+              </>
+            )}
+            {loyaltyRewardType === 'free' && (
+              <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 14, marginBottom: 10 }}>
+                <Text style={{ color: '#4CAF50', fontSize: 13 }}>🎁 Patient gets their next IV completely free!</Text>
+              </View>
+            )}
+
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 4 }}>Preview</Text>
+              <Text style={{ color: '#fff', fontSize: 14 }}>
+                Every {loyaltyThreshold} IVs → {loyaltyRewardType === 'free' ? 'FREE IV' : loyaltyRewardType === 'fixed' ? `$${loyaltyRewardAmount} off` : `${loyaltyRewardPercent}% off`}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[{ borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: primaryColor }, savingLoyalty && { opacity: 0.6 }]}
+              onPress={async () => {
+                setSavingLoyalty(true)
+                try {
+                  await fetch(`${API_URL}/admin/loyalty`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      threshold: parseInt(loyaltyThreshold),
+                      rewardType: loyaltyRewardType,
+                      rewardAmount: loyaltyRewardType === 'fixed' ? parseFloat(loyaltyRewardAmount) : loyaltyRewardType === 'free' ? 0 : null,
+                      rewardPercent: loyaltyRewardType === 'percent' ? parseFloat(loyaltyRewardPercent) : null,
+                      active: loyaltyActive
+                    })
+                  })
+                  Alert.alert('✅ Saved', 'Loyalty program updated!')
+                  fetchAll()
+                } catch (err) {
+                  Alert.alert('Error', 'Could not save')
+                } finally {
+                  setSavingLoyalty(false)
+                }
+              }}
+              disabled={savingLoyalty}
+            >
+              {savingLoyalty ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Loyalty Program</Text>}
+            </TouchableOpacity>
+          </View>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
