@@ -111,7 +111,7 @@ export default function MapScreen({ route, navigation }) {
                 {selected.name}
               </Text>
               <Text style={styles.companyLocation}>{selected.location}</Text>
-              {selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
+              {selected.platformActive && selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
 
 
