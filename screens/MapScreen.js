@@ -113,6 +113,17 @@ export default function MapScreen({ route, navigation }) {
               <Text style={styles.companyLocation}>{selected.location}</Text>
               {selected.platformActive && selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
+              {selected.googleRating && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  <Text style={{ color: '#FFD700', fontSize: 16 }}>
+                    {'★'.repeat(Math.round(selected.googleRating))}{'☆'.repeat(5 - Math.round(selected.googleRating))}
+                  </Text>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{selected.googleRating}</Text>
+                  {selected.googleRatingCount && (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>({selected.googleRatingCount} reviews)</Text>
+                  )}
+                </View>
+              )}
 
 
               <View style={styles.cardFooter}>
