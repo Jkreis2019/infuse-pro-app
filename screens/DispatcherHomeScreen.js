@@ -719,6 +719,12 @@ const submitSendIntake = async () => {
   <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>💬 Messages</Text>
 </TouchableOpacity>
 <TouchableOpacity
+  onPress={() => setPatientSearchModal(true)}
+  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+>
+  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🔍 Patients</Text>
+</TouchableOpacity>
+<TouchableOpacity
   onPress={() => setProfileModal(true)}
   style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
 >
