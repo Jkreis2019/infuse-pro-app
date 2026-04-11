@@ -1699,10 +1699,7 @@ const submitSendIntake = async () => {
                     </Text>
                   </View>
                 )}
-              </>
-            )}
-
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                   <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
                   <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
@@ -1738,7 +1735,7 @@ const submitSendIntake = async () => {
                   </View>
                 </View>
 
-            {psEditing && psActiveTab === 'overview' && (
+                {psEditing && psActiveTab === 'overview' && (
                   <TouchableOpacity
                     style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }}
                     onPress={savePsProfile}
@@ -1747,6 +1744,8 @@ const submitSendIntake = async () => {
                     {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
                   </TouchableOpacity>
                 )}
+              </>
+            )}
 
             {/* Appointments Tab */}
             {psActiveTab === 'appointments' && (
