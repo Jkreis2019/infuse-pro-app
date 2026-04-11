@@ -366,7 +366,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', 'billing', 'settings'].map(tab => (
+          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing'] : []), 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
