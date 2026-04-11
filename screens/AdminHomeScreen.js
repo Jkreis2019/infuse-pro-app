@@ -656,28 +656,27 @@ const saveRegion = async () => {
                 {billingStatus?.tier !== plan.tier && (
                   <TouchableOpacity
                     style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }}
-                    onPress={() => Alert.alert('Subscribe', `Subscribe to Infuse Pro ${plan.tier} for ${plan.price}?\n\nYou will be charged today and monthly thereafter.`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Subscribe', onPress: async () => {
-                try {
-                  const res = await fetch(`${API_URL}/billing/create-checkout`, {
-                    method: 'POST',
-                    headers: { ...headers, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tier: plan.tier })
-                  })
-                  const data = await res.json()
-                  if (data.url) {
-                    if (typeof window !== 'undefined') {
-                      window.open(data.url, '_blank')
-                    } else {
-                      Alert.alert('Checkout', 'Please open this URL to complete payment:\n\n' + data.url)
-                    }
-                  }
-                } catch (e) {
-                  Alert.alert('Error', 'Could not start checkout')
-                }
-              }}
-                    ])}
+                    onPress={async () => {
+                      try {
+                        const res = await fetch(`${API_URL}/billing/create-checkout`, {
+                          method: 'POST',
+                          headers: { ...headers, 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ tier: plan.tier })
+                        })
+                        const data = await res.json()
+                        if (data.url) {
+                          if (typeof window !== 'undefined') {
+                            window.open(data.url, '_blank')
+                          } else {
+                            Alert.alert('Checkout', 'Please open this URL:\n\n' + data.url)
+                          }
+                        } else {
+                          Alert.alert('Error', data.error || 'Could not start checkout')
+                        }
+                      } catch (e) {
+                        Alert.alert('Error', 'Network error')
+                      }
+                    }}
                   >
                     <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>
                       {billingStatus?.status === 'none' || !billingStatus ? 'Subscribe' : 'Switch to'} {plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1)}
