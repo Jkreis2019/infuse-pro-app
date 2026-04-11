@@ -657,6 +657,7 @@ const saveRegion = async () => {
                   <TouchableOpacity
                     style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }}
                     onPress={async () => {
+                      console.log('Subscribe button tapped for tier:', plan.tier)
                       try {
                         const res = await fetch(`${API_URL}/billing/create-checkout`, {
                           method: 'POST',
