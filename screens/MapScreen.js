@@ -1,15 +1,14 @@
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
 import { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
-let MapView, Marker
-if (Platform.OS !== 'web') {
-  const Maps = require('react-native-maps')
-  MapView = Maps.default
-  Marker = Maps.Marker
-} else {
-  MapView = () => null
-  Marker = () => null
-}
+const MapView = Platform.select({
+  web: () => null,
+  default: require('react-native-maps').default,
+})
+const Marker = Platform.select({
+  web: () => null,
+  default: require('react-native-maps').Marker,
+})
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -18,13 +17,6 @@ const PHOENIX_REGION = {
   longitude: -112.0740,
   latitudeDelta: 0.8,
   longitudeDelta: 0.8,
-}
-
-// Hardcoded coords for now — will be dynamic when we add geo to companies
-const COMPANY_COORDS = {
-  1: { latitude: 33.4484, longitude: -112.0740 },
-  2: { latitude: 33.4942, longitude: -111.9261 },
-  3: { latitude: 33.4200, longitude: -111.9400 },
 }
 
 export default function MapScreen({ route, navigation }) {
@@ -91,7 +83,9 @@ export default function MapScreen({ route, navigation }) {
             {companies.map((company) => (
               <Marker
                 key={company.id}
-                coordinate={COMPANY_COORDS[company.id] || { latitude: 33.4484, longitude: -112.0740 }}
+                coordinate={company.latitude && company.longitude 
+                  ? { latitude: company.latitude, longitude: company.longitude }
+                  : { latitude: 33.4484, longitude: -112.0740 }}
                 onPress={() => setSelected(company)}
               >
                 <View style={[
