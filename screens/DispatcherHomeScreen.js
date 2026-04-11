@@ -1337,148 +1337,58 @@ const submitSendIntake = async () => {
       </Modal>
 
 {/* Confirm Time Modal */}
-      <Modal visible={confirmTimeModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
-            <Text style={styles.modalSub}>Set the confirmed time for this appointment</Text>
-            <DateTimePicker
-              value={confirmedTime}
-              mode="time"
-              display="spinner"
-              onChange={(event, date) => { if (date) setConfirmedTime(date) }}
-              style={{ marginVertical: 16 }}
-            />
-            <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: primaryColor, paddingVertical: 16, borderRadius: 12, marginBottom: 10 }]}
-              onPress={() => executeAssign(pendingTechIds, confirmedTime)}
-            >
-              <Text style={[styles.submitBtnText, { color: secondaryColor }]}>
-                Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
-              <Text style={styles.cancelModalText}>← Back</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+<Modal visible={confirmTimeModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={[styles.modalCard, { maxWidth: 400, alignSelf: 'center', width: '100%' }]}>
+      <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
+      <Text style={styles.modalSub}>Select the confirmed time for this appointment</Text>
 
-     {/* Assign / Reassign Tech Modal */}
-      <Modal visible={assignModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{isReassign ? 'Reassign Tech' : 'Assign a Tech'}</Text>
-            {selectedBooking && (
-              <Text style={styles.modalSub}>
-                {selectedBooking.service} · {selectedBooking.patient_name}
-                {isReassign && selectedBooking.tech_first ? ` · Currently: ${selectedBooking.tech_first} ${selectedBooking.tech_last}` : ''}
-              </Text>
-            )}
-            {availableTechs.length === 0 ? (
-              <Text style={styles.noTechs}>No available techs right now</Text>
-            ) : (
-              availableTechs.map(tech => {
-                const isSelected = selectedTechs.includes(tech.id)
-                return (
-                  <TouchableOpacity
-                    key={tech.id}
-                    style={[styles.techRow, { borderColor: isSelected ? primaryColor : '#ddd', backgroundColor: isSelected ? primaryColor + '15' : 'transparent' }]}
-                    onPress={() => toggleTechSelection(tech.id)}
-                  >
-                    <View>
-                      <Text style={styles.techName}>{tech.first_name} {tech.last_name}</Text>
-                      <Text style={styles.techStatus}>{STATUS_LABELS[tech.status]} · {formatTime(tech.seconds_in_status)} in status</Text>
-                    </View>
-                    <Text style={[styles.assignArrow, { color: primaryColor }]}>{isSelected ? '✓' : '→'}</Text>
-                  </TouchableOpacity>
-                )
+      <View style={{ flexDirection: 'row', gap: 12, marginVertical: 20, justifyContent: 'center' }}>
+        {Platform.OS === 'web' ? (
+          <select
+            value={`${confirmedTime.getHours()}:${String(confirmedTime.getMinutes()).padStart(2,'0')}`}
+            onChange={(e) => {
+              const [h, m] = e.target.value.split(':')
+              const t = new Date(confirmedTime)
+              t.setHours(parseInt(h))
+              t.setMinutes(parseInt(m))
+              setConfirmedTime(new Date(t))
+            }}
+            style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 18, color: '#fff', width: '100%', cursor: 'pointer' }}
+          >
+            {Array.from({ length: 24 }, (_, h) =>
+              [0, 15, 30, 45].map(m => {
+                const label = `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`
+                const value = `${h}:${String(m).padStart(2,'0')}`
+                return <option key={value} value={value}>{label}</option>
               })
-            )}
-            {!isReassign && selectedTechs.length > 0 && (
-              <TouchableOpacity
-                style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10, paddingVertical: 16, borderRadius: 12 }]}
-                onPress={() => assignTechs()}
-              >
-                <Text style={[styles.submitBtnText, { color: secondaryColor }]}>
-                  Assign {selectedTechs.length} Tech{selectedTechs.length > 1 ? 's' : ''} →
-                </Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.cancelModal} onPress={() => { setAssignModal(false); setIsReassign(false); setSelectedTechs([]) }}>
-              <Text style={styles.cancelModalText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+            ).flat()}
+          </select>
+        ) : (
+          <DateTimePicker
+            value={confirmedTime}
+            mode="time"
+            display="spinner"
+            onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+            style={{ marginVertical: 16 }}
+          />
+        )}
+      </View>
 
-      {/* Cancel Booking Modal */}
-      <Modal visible={cancelModal} transparent animationType="slide">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Cancel Booking</Text>
-            <Text style={styles.modalSub}>
-              {cancelStatus === 'en_route' ? '⚠️ Tech is en route. Cancellation fee may apply.' :
-               cancelStatus === 'confirmed' ? 'A tech has been assigned to this booking.' :
-               'This booking has not been assigned yet.'}
-            </Text>
-            <Text style={styles.reasonLabel}>Disposition</Text>
-            <TouchableOpacity
-              style={[styles.reasonInput, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 48 }]}
-              onPress={() => setShowDispositionDropdown(!showDispositionDropdown)}
-            >
-              <Text style={{ color: cancelDisposition ? '#fff' : '#666', fontSize: 14 }}>
-                {cancelDisposition || 'Select a disposition...'}
-              </Text>
-              <Text style={{ color: '#666' }}>{showDispositionDropdown ? '▲' : '▼'}</Text>
-            </TouchableOpacity>
-            {showDispositionDropdown && (
-              <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                {[
-                  'Too long of a wait',
-                  'Patient went to the ER',
-                  'No techs available',
-                  'Price too high',
-                  'Not in our service area',
-                  'Unable to service due to medical condition',
-                  'Other'
-                ].map(option => (
-                  <TouchableOpacity
-                    key={option}
-                    style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
-                    onPress={() => { setCancelDisposition(option); setShowDispositionDropdown(false) }}
-                  >
-                    <Text style={{ color: cancelDisposition === option ? primaryColor : '#fff', fontSize: 14 }}>
-                      {cancelDisposition === option ? '✓ ' : ''}{option}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            <Text style={styles.reasonLabel}>Reason for cancellation</Text>
-            <TextInput
-              style={[styles.reasonInput, { height: 80, textAlignVertical: 'top' }]}
-              placeholder="e.g. Patient going to ER, called to reschedule..."
-              placeholderTextColor="#666"
-              value={cancelReason}
-              onChangeText={setCancelReason}
-              multiline
-            />
-            <TouchableOpacity
-              style={[styles.confirmCancelBtn, cancelling && { opacity: 0.6 }]}
-              onPress={confirmCancel}
-              disabled={cancelling}
-            >
-              {cancelling ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmCancelText}>Confirm Cancellation</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelModal} onPress={() => { setCancelModal(false); setCancelDisposition('') }}>
-              <Text style={styles.cancelModalText}>Keep booking</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <TouchableOpacity
+        style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
+        onPress={() => executeAssign(pendingTechIds, confirmedTime)}
+      >
+        <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
+          Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
+        <Text style={styles.cancelModalText}>← Back</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
 
 {/* Patient Search Modal */}
 <Modal visible={patientSearchModal} animationType="slide" presentationStyle="fullScreen">
@@ -2144,6 +2054,174 @@ const submitSendIntake = async () => {
         </KeyboardAvoidingView>
       </View>
     </Modal>
+
+    {/* Assign / Reassign Tech Modal */}
+      <Modal visible={assignModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>{isReassign ? 'Reassign Tech' : 'Assign a Tech'}</Text>
+            {selectedBooking && (
+              <Text style={styles.modalSub}>
+                {selectedBooking.service} · {selectedBooking.patient_name}
+                {isReassign && selectedBooking.tech_first ? ` · Currently: ${selectedBooking.tech_first} ${selectedBooking.tech_last}` : ''}
+              </Text>
+            )}
+            {availableTechs.length === 0 ? (
+              <Text style={styles.noTechs}>No available techs right now</Text>
+            ) : (
+              availableTechs.map(tech => {
+                const isSelected = selectedTechs.includes(tech.id)
+                return (
+                  <TouchableOpacity
+                    key={tech.id}
+                    style={[styles.techRow, { borderColor: isSelected ? primaryColor : '#ddd', backgroundColor: isSelected ? primaryColor + '15' : 'transparent' }]}
+                    onPress={() => toggleTechSelection(tech.id)}
+                  >
+                    <View>
+                      <Text style={styles.techName}>{tech.first_name} {tech.last_name}</Text>
+                      <Text style={styles.techStatus}>{STATUS_LABELS[tech.status]} · {formatTime(tech.seconds_in_status)} in status</Text>
+                    </View>
+                    <Text style={[styles.assignArrow, { color: primaryColor }]}>{isSelected ? '✓' : '→'}</Text>
+                  </TouchableOpacity>
+                )
+              })
+            )}
+            {!isReassign && selectedTechs.length > 0 && (
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10, paddingVertical: 16, borderRadius: 12 }]}
+                onPress={() => assignTechs()}
+              >
+                <Text style={[styles.submitBtnText, { color: secondaryColor }]}>
+                  Assign {selectedTechs.length} Tech{selectedTechs.length > 1 ? 's' : ''} →
+                </Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setAssignModal(false); setIsReassign(false); setSelectedTechs([]) }}>
+              <Text style={styles.cancelModalText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Cancel Booking Modal */}
+      <Modal visible={cancelModal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Cancel Booking</Text>
+            <Text style={styles.modalSub}>
+              {cancelStatus === 'en_route' ? '⚠️ Tech is en route. Cancellation fee may apply.' :
+               cancelStatus === 'confirmed' ? 'A tech has been assigned to this booking.' :
+               'This booking has not been assigned yet.'}
+            </Text>
+            <Text style={styles.reasonLabel}>Disposition</Text>
+            <TouchableOpacity
+              style={[styles.reasonInput, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 48 }]}
+              onPress={() => setShowDispositionDropdown(!showDispositionDropdown)}
+            >
+              <Text style={{ color: cancelDisposition ? '#fff' : '#666', fontSize: 14 }}>
+                {cancelDisposition || 'Select a disposition...'}
+              </Text>
+              <Text style={{ color: '#666' }}>{showDispositionDropdown ? '▲' : '▼'}</Text>
+            </TouchableOpacity>
+            {showDispositionDropdown && (
+              <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                {[
+                  'Too long of a wait',
+                  'Patient went to the ER',
+                  'No techs available',
+                  'Price too high',
+                  'Not in our service area',
+                  'Unable to service due to medical condition',
+                  'Other'
+                ].map(option => (
+                  <TouchableOpacity
+                    key={option}
+                    style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
+                    onPress={() => { setCancelDisposition(option); setShowDispositionDropdown(false) }}
+                  >
+                    <Text style={{ color: cancelDisposition === option ? primaryColor : '#fff', fontSize: 14 }}>
+                      {cancelDisposition === option ? '✓ ' : ''}{option}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+            <Text style={styles.reasonLabel}>Reason for cancellation</Text>
+            <TextInput
+              style={[styles.reasonInput, { height: 80, textAlignVertical: 'top' }]}
+              placeholder="e.g. Patient going to ER, called to reschedule..."
+              placeholderTextColor="#666"
+              value={cancelReason}
+              onChangeText={setCancelReason}
+              multiline
+            />
+            <TouchableOpacity
+              style={[styles.confirmCancelBtn, cancelling && { opacity: 0.6 }]}
+              onPress={confirmCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmCancelText}>Confirm Cancellation</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setCancelModal(false); setCancelDisposition('') }}>
+              <Text style={styles.cancelModalText}>Keep booking</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Confirm Time Modal */}
+      <Modal visible={confirmTimeModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { maxWidth: 400, alignSelf: 'center', width: '100%' }]}>
+            <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
+            <Text style={styles.modalSub}>Select the confirmed time for this appointment</Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginVertical: 20, justifyContent: 'center' }}>
+              {Platform.OS === 'web' ? (
+                <select
+                  value={`${confirmedTime.getHours()}:${String(confirmedTime.getMinutes()).padStart(2,'0')}`}
+                  onChange={(e) => {
+                    const [h, m] = e.target.value.split(':')
+                    const t = new Date(confirmedTime)
+                    t.setHours(parseInt(h))
+                    t.setMinutes(parseInt(m))
+                    setConfirmedTime(new Date(t))
+                  }}
+                  style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 18, color: '#fff', width: '100%', cursor: 'pointer' }}
+                >
+                  {Array.from({ length: 24 }, (_, h) =>
+                    [0, 15, 30, 45].map(m => {
+                      const label = `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`
+                      const value = `${h}:${String(m).padStart(2,'0')}`
+                      return <option key={value} value={value}>{label}</option>
+                    })
+                  ).flat()}
+                </select>
+              ) : (
+                <DateTimePicker
+                  value={confirmedTime}
+                  mode="time"
+                  display="spinner"
+                  onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+                  style={{ marginVertical: 16 }}
+                />
+              )}
+            </View>
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
+              onPress={() => executeAssign(pendingTechIds, confirmedTime)}
+            >
+              <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
+                Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
+              <Text style={styles.cancelModalText}>← Back</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Patient List Modal */}
       <Modal visible={patientListModal} transparent animationType="slide">
