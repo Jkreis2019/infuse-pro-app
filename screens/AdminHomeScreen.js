@@ -445,7 +445,7 @@ const saveRegion = async () => {
       </View>
 
       {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }} contentContainerStyle={{ flexGrow: 0 }}>
+      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', overflowX: Platform.OS === 'web' ? 'auto' : 'visible' }}>
         <View style={{ flexDirection: 'row' }}>
           {['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
             <TouchableOpacity
@@ -457,7 +457,7 @@ const saveRegion = async () => {
             </TouchableOpacity>
           ))}
         </View>
-      </ScrollView>
+      </View>
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
