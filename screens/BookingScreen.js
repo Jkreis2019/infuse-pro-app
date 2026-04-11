@@ -161,7 +161,7 @@ useEffect(() => {
           style={[styles.scheduleBtn, scheduleType === 'now' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
           onPress={() => setScheduleType('now')}
         >
-          <Text style={[styles.scheduleBtnText, scheduleType === 'now' && { color: company.secondaryColor }]}>⚡ Now</Text>
+          <Text style={[styles.scheduleBtnText, scheduleType === 'now' && { color: company.secondaryColor }]}>⚡ ASAP</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.scheduleBtn, scheduleType === 'later' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
@@ -174,7 +174,7 @@ useEffect(() => {
       {scheduleType === 'later' && (
         <View>
           <Calendar
-            minDate={new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0]}
+            minDate={new Date().toISOString().split('T')[0]}
             onDayPress={(day) => { setSelectedScheduleDate(day.dateString); fetchSlots(day.dateString) }}
             markedDates={{
               [selectedScheduleDate]: { selected: true, selectedColor: company.primaryColor }
@@ -255,15 +255,17 @@ useEffect(() => {
       />
 
 <Text style={styles.sectionLabel}>How many IVs? (including yourself)</Text>
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-        {[1,2,3,4,5,6].map(n => (
+      <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 16, overflow: 'hidden' }}>
+        {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'20+'].map((n, i) => (
           <TouchableOpacity
             key={n}
-            style={[styles.serviceCard, { padding: 12, alignItems: 'center', flex: 1, marginBottom: 0 },
-              ivCount === n && { borderColor: company.primaryColor, backgroundColor: `${company.primaryColor}15` }]}
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: i < 20 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: ivCount === n ? `${company.primaryColor}20` : 'transparent' }}
             onPress={() => setIvCount(n)}
           >
-            <Text style={[styles.serviceName, ivCount === n && { color: company.primaryColor }]}>{n}</Text>
+            <Text style={{ color: ivCount === n ? company.primaryColor : '#fff', fontSize: 15, fontWeight: ivCount === n ? '700' : '400' }}>
+              {n} {n === 1 ? 'IV' : 'IVs'}
+            </Text>
+            {ivCount === n && <Text style={{ color: company.primaryColor }}>✓</Text>}
           </TouchableOpacity>
         ))}
       </View>
