@@ -658,7 +658,25 @@ const saveRegion = async () => {
                     style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }}
                     onPress={() => Alert.alert('Subscribe', `Subscribe to Infuse Pro ${plan.tier} for ${plan.price}?\n\nYou will be charged today and monthly thereafter.`, [
                       { text: 'Cancel', style: 'cancel' },
-                      { text: 'Subscribe', onPress: () => Alert.alert('Coming Soon', 'Payment processing will be available soon!') }
+                      { text: 'Subscribe', onPress: async () => {
+                try {
+                  const res = await fetch(`${API_URL}/billing/create-checkout`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier: plan.tier })
+                  })
+                  const data = await res.json()
+                  if (data.url) {
+                    if (typeof window !== 'undefined') {
+                      window.open(data.url, '_blank')
+                    } else {
+                      Alert.alert('Checkout', 'Please open this URL to complete payment:\n\n' + data.url)
+                    }
+                  }
+                } catch (e) {
+                  Alert.alert('Error', 'Could not start checkout')
+                }
+              }}
                     ])}
                   >
                     <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>
