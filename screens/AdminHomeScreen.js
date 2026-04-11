@@ -27,6 +27,13 @@ export default function AdminHomeScreen({ route, navigation }) {
   // Services
   const [services, setServices] = useState([])
 
+  // Reports
+  const [reportData, setReportData] = useState(null)
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportPeriod, setReportPeriod] = useState('today')
+  const [reportCustomStart, setReportCustomStart] = useState('')
+  const [reportCustomEnd, setReportCustomEnd] = useState('')
+
   // Billing
   const [billingStatus, setBillingStatus] = useState(null)
   const [loadingBilling, setLoadingBilling] = useState(false)
@@ -101,6 +108,80 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [svcDuration, setSvcDuration] = useState('')
   const [svcDescription, setSvcDescription] = useState('')
   const [savingService, setSavingService] = useState(false)
+
+  const fetchReports = useCallback(async (period = 'today', customStart = '', customEnd = '') => {
+    setReportLoading(true)
+    try {
+      const now = new Date()
+      let start, end
+
+      switch(period) {
+        case 'today':
+          start = new Date(now.setHours(0,0,0,0)).toISOString()
+          end = new Date(now.setHours(23,59,59,999)).toISOString()
+          break
+        case 'yesterday':
+          const yesterday = new Date(now)
+          yesterday.setDate(yesterday.getDate() - 1)
+          start = new Date(yesterday.setHours(0,0,0,0)).toISOString()
+          end = new Date(yesterday.setHours(23,59,59,999)).toISOString()
+          break
+        case 'this_week':
+          const weekStart = new Date(now)
+          weekStart.setDate(now.getDate() - now.getDay())
+          start = new Date(weekStart.setHours(0,0,0,0)).toISOString()
+          end = new Date().toISOString()
+          break
+        case 'last_week':
+          const lastWeekEnd = new Date(now)
+          lastWeekEnd.setDate(now.getDate() - now.getDay() - 1)
+          const lastWeekStart = new Date(lastWeekEnd)
+          lastWeekStart.setDate(lastWeekEnd.getDate() - 6)
+          start = new Date(lastWeekStart.setHours(0,0,0,0)).toISOString()
+          end = new Date(lastWeekEnd.setHours(23,59,59,999)).toISOString()
+          break
+        case 'this_month':
+          start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+          end = new Date().toISOString()
+          break
+        case 'last_month':
+          start = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
+          end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59).toISOString()
+          break
+        case 'last_3_months':
+          start = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString()
+          end = new Date().toISOString()
+          break
+        case 'this_year':
+          start = new Date(now.getFullYear(), 0, 1).toISOString()
+          end = new Date().toISOString()
+          break
+        case 'last_year':
+          start = new Date(now.getFullYear() - 1, 0, 1).toISOString()
+          end = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59).toISOString()
+          break
+        case 'custom':
+          start = customStart ? new Date(customStart).toISOString() : new Date(now.setHours(0,0,0,0)).toISOString()
+          end = customEnd ? new Date(new Date(customEnd).setHours(23,59,59,999)).toISOString() : new Date().toISOString()
+          break
+        default:
+          start = new Date(now.setHours(0,0,0,0)).toISOString()
+          end = new Date(now.setHours(23,59,59,999)).toISOString()
+      }
+
+      const res = await fetch(`${API_URL}/admin/reports?startDate=${encodeURIComponent(start)}&endDate=${encodeURIComponent(end)}`, { headers })
+      const data = await res.json()
+      if (data.success) setReportData(data)
+    } catch (err) {
+      console.error('Reports fetch error:', err)
+    } finally {
+      setReportLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (activeTab === 'reports') fetchReports(reportPeriod)
+  }, [activeTab])
 
   const fetchAll = useCallback(async () => {
     try {
@@ -366,7 +447,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }} contentContainerStyle={{ flexGrow: 0 }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'patients', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
+          {['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -419,6 +500,195 @@ const saveRegion = async () => {
               <Text style={styles.actionBtnText}>Manage Services</Text>
             </TouchableOpacity>
           </View>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Reports Tab */}
+      {activeTab === 'reports' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          
+          {/* Period Selector */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16, marginHorizontal: -16, paddingHorizontal: 16 }}>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[
+                { key: 'today', label: 'Today' },
+                { key: 'yesterday', label: 'Yesterday' },
+                { key: 'this_week', label: 'This Week' },
+                { key: 'last_week', label: 'Last Week' },
+                { key: 'this_month', label: 'This Month' },
+                { key: 'last_month', label: 'Last Month' },
+                { key: 'last_3_months', label: 'Last 3 Months' },
+                { key: 'this_year', label: 'This Year' },
+                { key: 'last_year', label: 'Last Year' },
+                { key: 'custom', label: 'Custom' },
+              ].map(p => (
+                <TouchableOpacity
+                  key={p.key}
+                  style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: reportPeriod === p.key ? primaryColor : 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: reportPeriod === p.key ? primaryColor : 'rgba(255,255,255,0.15)' }}
+                  onPress={() => { setReportPeriod(p.key); fetchReports(p.key) }}
+                >
+                  <Text style={{ color: reportPeriod === p.key ? secondaryColor : 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' }}>{p.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Custom Date Range */}
+          {reportPeriod === 'custom' && (
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>START DATE</Text>
+                <TextInput
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, color: '#fff', fontSize: 13, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#666"
+                  value={reportCustomStart}
+                  onChangeText={setReportCustomStart}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>END DATE</Text>
+                <TextInput
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, color: '#fff', fontSize: 13, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#666"
+                  value={reportCustomEnd}
+                  onChangeText={setReportCustomEnd}
+                />
+              </View>
+              <TouchableOpacity
+                style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 16, alignSelf: 'flex-end', paddingVertical: 12 }}
+                onPress={() => fetchReports('custom', reportCustomStart, reportCustomEnd)}
+              >
+                <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>Go</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {reportLoading ? (
+            <View style={{ alignItems: 'center', padding: 40 }}>
+              <ActivityIndicator color={primaryColor} size="large" />
+            </View>
+          ) : reportData ? (
+            <>
+              {/* Key Metrics */}
+              <Text style={styles.sectionTitle}>Key Metrics</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+                {[
+                  { label: 'Total Bookings', value: reportData.stats.total, color: primaryColor },
+                  { label: 'Completed', value: reportData.stats.completed, color: '#4CAF50' },
+                  { label: 'Cancelled', value: reportData.stats.cancelled, color: '#f09090' },
+                  { label: 'No Shows', value: reportData.stats.noShows, color: '#FF9800' },
+                  { label: 'Completion Rate', value: reportData.stats.completionRate + '%', color: '#2196F3' },
+                  { label: 'Avg Duration', value: reportData.stats.avgCompletionMinutes + 'm', color: '#9C27B0' },
+                ].map(item => (
+                  <View key={item.label} style={{ width: '47%', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, borderLeftWidth: 3, borderLeftColor: item.color }}>
+                    <Text style={{ color: item.color, fontSize: 28, fontWeight: '800' }}>{item.value}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginTop: 4 }}>{item.label}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Booking Source */}
+              <Text style={styles.sectionTitle}>Booking Source</Text>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ color: '#fff', fontSize: 14 }}>📱 App Bookings</Text>
+                  <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '700' }}>{reportData.stats.appBookings}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: '#fff', fontSize: 14 }}>📞 Phone Bookings</Text>
+                  <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '700' }}>{reportData.stats.phoneBookings}</Text>
+                </View>
+              </View>
+
+              {/* Patient Type */}
+              <Text style={styles.sectionTitle}>Patient Type</Text>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <Text style={{ color: '#fff', fontSize: 14 }}>🆕 New Patients</Text>
+                  <Text style={{ color: '#4CAF50', fontSize: 14, fontWeight: '700' }}>{reportData.newPatients}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: '#fff', fontSize: 14 }}>🔄 Returning Patients</Text>
+                  <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '700' }}>{reportData.returningPatients}</Text>
+                </View>
+              </View>
+
+              {/* Top Services */}
+              {reportData.byService?.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Top Services</Text>
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                    {reportData.byService.map((s, i) => (
+                      <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: i < reportData.byService.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{s.service}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{s.completed} completed</Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>{s.total}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>bookings</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* Tech Performance */}
+              {reportData.byTech?.length > 0 && (
+                <>
+                  <Text style={styles.sectionTitle}>Tech Performance</Text>
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                    {reportData.byTech.map((t, i) => (
+                      <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: i < reportData.byTech.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{t.first_name} {t.last_name}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>
+                            {t.completed} completed · {t.cancelled} cancelled
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text style={{ color: primaryColor, fontSize: 18, fontWeight: '700' }}>{t.total}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>total calls</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* Daily Breakdown */}
+              {reportData.daily?.length > 1 && (
+                <>
+                  <Text style={styles.sectionTitle}>Daily Breakdown</Text>
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 20 }}>
+                    {reportData.daily.map((d, i) => (
+                      <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: i < reportData.daily.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
+                          {new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', weekday: 'short' })}
+                        </Text>
+                        <View style={{ flexDirection: 'row', gap: 16 }}>
+                          <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>{d.total} total</Text>
+                          <Text style={{ color: '#4CAF50', fontSize: 13 }}>{d.completed} ✓</Text>
+                          <Text style={{ color: '#f09090', fontSize: 13 }}>{d.cancelled} ✗</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              )}
+            </>
+          ) : (
+            <View style={{ alignItems: 'center', paddingTop: 60 }}>
+              <Text style={{ fontSize: 40, marginBottom: 16 }}>📊</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 }}>No data yet</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Select a time period to view reports</Text>
+            </View>
+          )}
+
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
