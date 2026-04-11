@@ -667,8 +667,8 @@ const saveRegion = async () => {
                         const data = await res.json()
                         if (data.url) {
                           if (typeof window !== 'undefined') {
-                            window.open(data.url, '_blank')
-                          } else {
+                            window.location.href = data.url
+                          }else {
                             Alert.alert('Checkout', 'Please open this URL:\n\n' + data.url)
                           }
                         } else {
