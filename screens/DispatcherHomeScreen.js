@@ -1336,60 +1336,6 @@ const submitSendIntake = async () => {
         </View>
       </Modal>
 
-{/* Confirm Time Modal */}
-<Modal visible={confirmTimeModal} transparent animationType="slide">
-  <View style={styles.modalOverlay}>
-    <View style={[styles.modalCard, { maxWidth: 400, alignSelf: 'center', width: '100%' }]}>
-      <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
-      <Text style={styles.modalSub}>Select the confirmed time for this appointment</Text>
-
-      <View style={{ flexDirection: 'row', gap: 12, marginVertical: 20, justifyContent: 'center' }}>
-        {Platform.OS === 'web' ? (
-          <select
-            value={`${confirmedTime.getHours()}:${String(confirmedTime.getMinutes()).padStart(2,'0')}`}
-            onChange={(e) => {
-              const [h, m] = e.target.value.split(':')
-              const t = new Date(confirmedTime)
-              t.setHours(parseInt(h))
-              t.setMinutes(parseInt(m))
-              setConfirmedTime(new Date(t))
-            }}
-            style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 18, color: '#fff', width: '100%', cursor: 'pointer' }}
-          >
-            {Array.from({ length: 24 }, (_, h) =>
-              [0, 15, 30, 45].map(m => {
-                const label = `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`
-                const value = `${h}:${String(m).padStart(2,'0')}`
-                return <option key={value} value={value}>{label}</option>
-              })
-            ).flat()}
-          </select>
-        ) : (
-          <DateTimePicker
-            value={confirmedTime}
-            mode="time"
-            display="spinner"
-            onChange={(event, date) => { if (date) setConfirmedTime(date) }}
-            style={{ marginVertical: 16 }}
-          />
-        )}
-      </View>
-
-      <TouchableOpacity
-        style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
-        onPress={() => executeAssign(pendingTechIds, confirmedTime)}
-      >
-        <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
-          Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
-        <Text style={styles.cancelModalText}>← Back</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
-
 {/* Patient Search Modal */}
 <Modal visible={patientSearchModal} animationType="slide" presentationStyle="fullScreen">
   <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>

@@ -255,26 +255,22 @@ useEffect(() => {
       />
 
 <Text style={styles.sectionLabel}>How many IVs? (including yourself)</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-        {[1,2,3,4,5,6,7,8,9,10].map(n => (
-          <TouchableOpacity
-            key={n}
-            style={{ width: 56, height: 56, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', borderColor: ivCount === n ? company.primaryColor : 'rgba(255,255,255,0.15)', backgroundColor: ivCount === n ? `${company.primaryColor}20` : 'rgba(255,255,255,0.04)' }}
-            onPress={() => setIvCount(n)}
-          >
-            <Text style={{ color: ivCount === n ? company.primaryColor : '#fff', fontSize: 18, fontWeight: ivCount === n ? '800' : '400' }}>{n}</Text>
-          </TouchableOpacity>
-        ))}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', padding: 16, marginBottom: 16 }}>
         <TouchableOpacity
-          style={{ height: 56, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', borderColor: typeof ivCount === 'number' && ivCount > 10 ? company.primaryColor : 'rgba(255,255,255,0.15)', backgroundColor: typeof ivCount === 'number' && ivCount > 10 ? `${company.primaryColor}20` : 'rgba(255,255,255,0.04)' }}
-          onPress={() => {
-            const count = parseInt(prompt('Enter number of IVs (max 50):') || '0')
-            if (count > 10 && count <= 50) setIvCount(count)
-          }}
+          onPress={() => setIvCount(prev => Math.max(1, (typeof prev === 'number' ? prev : 1) - 1))}
+          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' }}
         >
-          <Text style={{ color: typeof ivCount === 'number' && ivCount > 10 ? company.primaryColor : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' }}>
-            {typeof ivCount === 'number' && ivCount > 10 ? `${ivCount} IVs` : '10+ →'}
-          </Text>
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '300' }}>−</Text>
+        </TouchableOpacity>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={{ color: company.primaryColor, fontSize: 32, fontWeight: '800' }}>{ivCount}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{ivCount === 1 ? 'person' : 'people'}</Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => setIvCount(prev => Math.min(50, (typeof prev === 'number' ? prev : 1) + 1))}
+          style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: company.primaryColor, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text style={{ color: company.secondaryColor, fontSize: 22, fontWeight: '300' }}>＋</Text>
         </TouchableOpacity>
       </View>
 
