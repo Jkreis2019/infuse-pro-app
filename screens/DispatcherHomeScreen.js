@@ -1530,10 +1530,10 @@ const submitSendIntake = async () => {
           {/* Tabs */}
           <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
             {['overview', 'appointments', 'charts', 'intake', 'gfe', 'perks'].map(tab => (
-              <TouchableOpacity
-                key={tab}
-                style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }}
-                onPress={() => setPsActiveTab(tab)}
+            <TouchableOpacity
+              key={tab}
+              style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }}
+              onPress={() => { setPsActiveTab(tab); setPsEditing(false) }}
               >
                 <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700' }}>
                   {tab === 'overview' ? '👤' : tab === 'appointments' ? '📅' : tab === 'charts' ? '📋' : tab === 'intake' ? '🏥' : tab === 'gfe' ? '🩺' : '🎁'}
@@ -1690,7 +1690,7 @@ const submitSendIntake = async () => {
               </>
             )}
 
-            {psEditing && (
+            {psEditing && psActiveTab === 'overview' && (
                   <TouchableOpacity
                     style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }}
                     onPress={savePsProfile}
