@@ -30,6 +30,29 @@ const [confirmPassword, setConfirmPassword] = useState('')
 const [changingPassword, setChangingPassword] = useState(false)
 
 const [profileInfo, setProfileInfo] = useState(null)
+const [perks, setPerks] = useState({ referralPerks: [], loyaltyRewards: [], loyaltyProgress: null })
+  const [referralCode, setReferralCode] = useState(null)
+  const [loadingPerks, setLoadingPerks] = useState(true)
+
+  const fetchPerks = useCallback(async () => {
+    try {
+      const [perksRes, codeRes] = await Promise.all([
+        fetch(`${API_URL}/perks/my-perks`, { headers }),
+        fetch(`${API_URL}/referrals/my-code`, { headers })
+      ])
+      const [perksData, codeData] = await Promise.all([perksRes.json(), codeRes.json()])
+      if (perksData.success) setPerks(perksData)
+      if (codeData.success) setReferralCode(codeData.code)
+    } catch (err) {
+      console.error('Fetch perks error:', err)
+    } finally {
+      setLoadingPerks(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchPerks()
+  }, [fetchPerks])
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -303,6 +326,91 @@ const saveProfile = async () => {
           <TouchableOpacity style={[styles.addCompanyBtn, { borderColor: primaryColor }]} onPress={() => setShowCodeInput(true)}>
             <Text style={[styles.addCompanyText, { color: primaryColor }]}>+ Link a Company</Text>
           </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Perks & Rewards Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🎁 Perks & Rewards</Text>
+
+        {loadingPerks ? (
+          <ActivityIndicator color={primaryColor} style={{ marginVertical: 12 }} />
+        ) : (
+          <>
+            {/* Loyalty Progress */}
+            {perks.loyaltyProgress && (
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>LOYALTY PROGRESS</Text>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 6 }}>
+                  {perks.loyaltyProgress.punch_count} of {perks.loyaltyProgress.threshold} IVs completed
+                </Text>
+                {/* Progress bar */}
+                <View style={{ height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4, marginBottom: 8 }}>
+                  <View style={{
+                    height: 8,
+                    backgroundColor: primaryColor,
+                    borderRadius: 4,
+                    width: `${Math.min((perks.loyaltyProgress.punch_count / perks.loyaltyProgress.threshold) * 100, 100)}%`
+                  }} />
+                </View>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+                  {Math.max(perks.loyaltyProgress.threshold - perks.loyaltyProgress.punch_count, 0)} more until{' '}
+                  {perks.loyaltyProgress.reward_type === 'free' ? 'a FREE IV' :
+                   perks.loyaltyProgress.reward_type === 'fixed' ? `$${perks.loyaltyProgress.reward_amount} off` :
+                   `${perks.loyaltyProgress.reward_percent}% off`}
+                </Text>
+              </View>
+            )}
+
+            {/* Active Loyalty Rewards */}
+            {perks.loyaltyRewards.map(reward => (
+              <View key={reward.id} style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                <Text style={{ color: '#4CAF50', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 }}>🏆 LOYALTY REWARD</Text>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
+                  {reward.reward_type === 'free' ? '🎁 FREE IV' :
+                   reward.reward_type === 'fixed' ? `$${reward.reward_amount} off` :
+                   `${reward.reward_percent}% off`}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Show this to your tech to redeem</Text>
+              </View>
+            ))}
+
+            {/* Active Referral Perks */}
+            {perks.referralPerks.map(perk => (
+              <View key={perk.id} style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: primaryColor, borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 }}>⭐ REFERRAL PERK</Text>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
+                  {perk.perk_type === 'fixed' ? `$${perk.perk_amount} off` : `${perk.perk_amount}% off`}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Show this to your tech to redeem</Text>
+              </View>
+            ))}
+
+            {perks.referralPerks.length === 0 && perks.loyaltyRewards.length === 0 && !perks.loyaltyProgress && (
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, textAlign: 'center', paddingVertical: 12 }}>No active perks yet</Text>
+            )}
+
+            {/* Referral Code */}
+            {referralCode && (
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginTop: 8 }}>
+                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>YOUR REFERRAL CODE</Text>
+                <Text style={{ color: '#fff', fontSize: 32, fontWeight: '800', letterSpacing: 6, marginBottom: 8 }}>{referralCode}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Share this code with friends. When they complete their first booking you earn a perk!</Text>
+                <TouchableOpacity
+                  style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}
+                  onPress={() => {
+                    if (typeof navigator !== 'undefined' && navigator.share) {
+                      navigator.share({ title: 'Try Infuse Pro!', text: `Use my referral code ${referralCode} when you book your first IV therapy session!` })
+                    } else {
+                      Alert.alert('Your Referral Code', `Share this code with friends: ${referralCode}`)
+                    }
+                  }}
+                >
+                  <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 14 }}>📤 Share My Code</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
         )}
       </View>
 
