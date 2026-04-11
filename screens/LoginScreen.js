@@ -34,6 +34,7 @@ export default function LoginScreen({ route, navigation }) {
       if (data.success) {
         const company = data.user.company || DEFAULT_COMPANY
         const role = data.user.role
+        console.log('Login role:', role, 'passwordChanged:', data.user.passwordChanged)
 
         if (role === 'guest') {
           navigation.reset({
@@ -51,7 +52,7 @@ export default function LoginScreen({ route, navigation }) {
             const destination = serviceType === 'clinic' ? 'ClinicHome' : 'DispatcherHome'
             navigation.replace(destination, { token: data.token, user: data.user, company })
           }
-        } else if (role === 'admin') {
+        } else if (role === 'admin' || role === 'owner') {
           if (!data.user.passwordChanged) {
             navigation.reset({
               index: 0,

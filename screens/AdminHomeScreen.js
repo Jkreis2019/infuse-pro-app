@@ -1284,7 +1284,7 @@ const saveRegion = async () => {
             <TextInput style={styles.input} value={nsPhone} onChangeText={setNsPhone} placeholder="(602) 555-0100" placeholderTextColor="#444" keyboardType="phone-pad" />
             <Text style={styles.fieldLabel}>Role *</Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
-              {['tech', 'np', 'dispatcher'].map(role => (
+              {['tech', 'np', 'dispatcher', 'admin'].map(role => (
                 <TouchableOpacity
                   key={role}
                   style={[{ flex: 1, borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center' }, nsRole === role ? { backgroundColor: primaryColor, borderColor: primaryColor } : { borderColor: 'rgba(255,255,255,0.2)' }]}
