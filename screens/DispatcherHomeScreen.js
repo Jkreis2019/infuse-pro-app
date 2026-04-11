@@ -122,6 +122,10 @@ const [psEditEmergencyContact, setPsEditEmergencyContact] = useState('')
 const [psEditEmergencyPhone, setPsEditEmergencyPhone] = useState('')
 const [psEditEmergencyRelationship, setPsEditEmergencyRelationship] = useState('')
 const [psSavingProfile, setPsSavingProfile] = useState(false)
+const [psEditInsuranceProvider, setPsEditInsuranceProvider] = useState('')
+const [psEditInsuranceMemberId, setPsEditInsuranceMemberId] = useState('')
+const [psEditInsuranceGroupNumber, setPsEditInsuranceGroupNumber] = useState('')
+const [psEditInsurancePhone, setPsEditInsurancePhone] = useState('')
 const [psActiveTab, setPsActiveTab] = useState('bookings')
 const [psProfileModal, setPsProfileModal] = useState(false)
 const [cpFirstName, setCpFirstName] = useState('')
@@ -484,7 +488,11 @@ const savePsProfile = async () => {
         zip: psEditZip,
         emergencyContact: psEditEmergencyContact,
         emergencyContactPhone: psEditEmergencyPhone,
-        emergencyContactRelationship: psEditEmergencyRelationship
+        emergencyContactRelationship: psEditEmergencyRelationship,
+        insuranceProvider: psEditInsuranceProvider,
+        insuranceMemberId: psEditInsuranceMemberId,
+        insuranceGroupNumber: psEditInsuranceGroupNumber,
+        insurancePhone: psEditInsurancePhone
       })
     })
     const data = await res.json()
@@ -520,6 +528,10 @@ const openPsProfile = async (patient) => {
     setPsEditEmergencyContact(data.intake?.emergency_contact || '')
     setPsEditEmergencyPhone(data.intake?.emergency_contact_phone || '')
     setPsEditEmergencyRelationship(data.intake?.emergency_contact_relationship || '')
+    setPsEditInsuranceProvider(data.patient?.insurance_provider || '')
+    setPsEditInsuranceMemberId(data.patient?.insurance_member_id || '')
+    setPsEditInsuranceGroupNumber(data.patient?.insurance_group_number || '')
+    setPsEditInsurancePhone(data.patient?.insurance_phone || '')
   }
     else Alert.alert('Error', 'Could not load patient profile')
   } catch (err) {
@@ -1689,6 +1701,42 @@ const submitSendIntake = async () => {
                 )}
               </>
             )}
+
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
+                  <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceProvider} onChangeText={setPsEditInsuranceProvider} placeholder="e.g. Blue Cross Blue Shield" placeholderTextColor="#666" />
+                    ) : (
+                      <Text style={{ color: psEditInsuranceProvider ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceProvider || 'Not on file'}</Text>
+                    )}
+                  </View>
+                  <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>MEMBER ID</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceMemberId} onChangeText={setPsEditInsuranceMemberId} placeholder="Member ID" placeholderTextColor="#666" />
+                    ) : (
+                      <Text style={{ color: psEditInsuranceMemberId ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceMemberId || 'Not on file'}</Text>
+                    )}
+                  </View>
+                  <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>GROUP NUMBER</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceGroupNumber} onChangeText={setPsEditInsuranceGroupNumber} placeholder="Group number" placeholderTextColor="#666" />
+                    ) : (
+                      <Text style={{ color: psEditInsuranceGroupNumber ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceGroupNumber || 'Not on file'}</Text>
+                    )}
+                  </View>
+                  <View style={{ paddingVertical: 6 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>INSURANCE PHONE</Text>
+                    {psEditing ? (
+                      <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsurancePhone} onChangeText={setPsEditInsurancePhone} placeholder="Insurance phone number" placeholderTextColor="#666" keyboardType="phone-pad" />
+                    ) : (
+                      <Text style={{ color: psEditInsurancePhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsurancePhone || 'Not on file'}</Text>
+                    )}
+                  </View>
+                </View>
 
             {psEditing && psActiveTab === 'overview' && (
                   <TouchableOpacity
