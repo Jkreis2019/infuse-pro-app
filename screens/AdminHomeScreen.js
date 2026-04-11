@@ -364,9 +364,9 @@ const saveRegion = async () => {
       </View>
 
       {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }} contentContainerStyle={{ flexGrow: 0 }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing'] : []), 'settings'].map(tab => (
+          {['dashboard', 'patients', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -380,7 +380,7 @@ const saveRegion = async () => {
 
       {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
-        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+        <ScrollView style={[styles.scroll, { flex: 1 }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
           <Text style={styles.sectionTitle}>Today's Overview</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
             {[
@@ -421,6 +421,52 @@ const saveRegion = async () => {
           </View>
           <View style={{ height: 40 }} />
         </ScrollView>
+      )}
+
+      {/* Patients Tab */}
+      {activeTab === 'patients' && (
+        <View style={{ flex: 1 }}>
+          <View style={{ backgroundColor: secondaryColor, paddingHorizontal: 16, paddingVertical: 12 }}>
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff' }}
+              placeholder="Search by name, email or phone..."
+              placeholderTextColor="#666"
+              value={psQuery}
+              onChangeText={searchPsPatients}
+              autoFocus={false}
+            />
+          </View>
+          <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+            {psSearching && <View style={{ alignItems: 'center', padding: 20 }}><ActivityIndicator color={primaryColor} /></View>}
+            {!psSearching && psQuery.length >= 2 && psResults.length === 0 && (
+              <View style={{ alignItems: 'center', padding: 40 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>No patients found for "{psQuery}"</Text>
+              </View>
+            )}
+            {psResults.map(patient => (
+              <TouchableOpacity
+                key={patient.id}
+                style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}
+                onPress={() => openPsProfile(patient)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{patient.first_name} {patient.last_name}</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{patient.phone || 'No phone'} · {patient.email}</Text>
+                  {patient.last_address && <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>📍 {patient.last_address}</Text>}
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{patient.total_bookings || 0} visits</Text>
+                </View>
+                <Text style={{ color: primaryColor, fontSize: 18 }}>›</Text>
+              </TouchableOpacity>
+            ))}
+            {!psSearching && psQuery.length < 2 && (
+              <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                <Text style={{ fontSize: 40, marginBottom: 16 }}>🔍</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15 }}>Search by name, email or phone</Text>
+              </View>
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
       )}
 
       {/* Staff Tab */}
