@@ -776,6 +776,12 @@ const submitSendIntake = async () => {
     </View>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       <TouchableOpacity
+        onPress={() => setNewBookingModal(true)}
+        style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}
+      >
+        <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>＋ New Booking</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
@@ -798,12 +804,6 @@ const submitSendIntake = async () => {
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
         <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => setNewBookingModal(true)}
-        style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}
-      >
-        <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>＋ New Booking</Text>
       </TouchableOpacity>
     </View>
 </View>
