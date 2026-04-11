@@ -255,19 +255,27 @@ useEffect(() => {
       />
 
 <Text style={styles.sectionLabel}>How many IVs? (including yourself)</Text>
-      <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginBottom: 16, overflow: 'hidden' }}>
-        {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,'20+'].map((n, i) => (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {[1,2,3,4,5,6,7,8,9,10].map(n => (
           <TouchableOpacity
             key={n}
-            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: i < 20 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: ivCount === n ? `${company.primaryColor}20` : 'transparent' }}
+            style={{ width: 56, height: 56, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', borderColor: ivCount === n ? company.primaryColor : 'rgba(255,255,255,0.15)', backgroundColor: ivCount === n ? `${company.primaryColor}20` : 'rgba(255,255,255,0.04)' }}
             onPress={() => setIvCount(n)}
           >
-            <Text style={{ color: ivCount === n ? company.primaryColor : '#fff', fontSize: 15, fontWeight: ivCount === n ? '700' : '400' }}>
-              {n} {n === 1 ? 'IV' : 'IVs'}
-            </Text>
-            {ivCount === n && <Text style={{ color: company.primaryColor }}>✓</Text>}
+            <Text style={{ color: ivCount === n ? company.primaryColor : '#fff', fontSize: 18, fontWeight: ivCount === n ? '800' : '400' }}>{n}</Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+          style={{ height: 56, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', borderColor: typeof ivCount === 'number' && ivCount > 10 ? company.primaryColor : 'rgba(255,255,255,0.15)', backgroundColor: typeof ivCount === 'number' && ivCount > 10 ? `${company.primaryColor}20` : 'rgba(255,255,255,0.04)' }}
+          onPress={() => {
+            const count = parseInt(prompt('Enter number of IVs (max 50):') || '0')
+            if (count > 10 && count <= 50) setIvCount(count)
+          }}
+        >
+          <Text style={{ color: typeof ivCount === 'number' && ivCount > 10 ? company.primaryColor : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' }}>
+            {typeof ivCount === 'number' && ivCount > 10 ? `${ivCount} IVs` : '10+ →'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.sectionLabel}>Notes for your tech</Text>
