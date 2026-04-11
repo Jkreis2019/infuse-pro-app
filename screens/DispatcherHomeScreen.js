@@ -299,7 +299,7 @@ const cancelAttentionBooking = async (bookingId) => {
           body: JSON.stringify({ 
             bookingId: selectedBooking.id, 
             techId: techIds[0],
-            confirmedTime: overrideTime ? overrideTime.toISOString() : null
+            confirmedTime: null
           })
         })
         const data = await res.json()
