@@ -52,7 +52,12 @@ export default function ChangePasswordScreen({ route, navigation }) {
       if (data.success) {
         if (forced) {
           const role = user?.role
-          if (role === 'dispatcher' || role === 'admin' || role === 'owner') {
+          if (role === 'admin' || role === 'owner') {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'AdminHome', params: { token, user, company } }]
+            })
+          } else if (role === 'dispatcher') {
             navigation.reset({
               index: 0,
               routes: [{ name: 'DispatcherHome', params: { token, user, company } }]
