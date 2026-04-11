@@ -1523,13 +1523,56 @@ const submitSendIntake = async () => {
                       <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>{psProfileData.patient.home_address}</Text>
                     </View>
                   )}
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Patient since</Text>
                     <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
                       {psProfileData?.patient?.created_at ? new Date(psProfileData.patient.created_at).toLocaleDateString() : '—'}
                     </Text>
                   </View>
+                  {psProfileData?.lastBooking && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Last service</Text>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.lastBooking.service}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{new Date(psProfileData.lastBooking.created_at).toLocaleDateString()}</Text>
+                      </View>
+                    </View>
+                  )}
+                  {psProfileData?.lastBooking?.address && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Last address</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right', marginLeft: 16 }}>{psProfileData.lastBooking.address}</Text>
+                    </View>
+                  )}
+                  {psProfileData?.noShows > 0 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>No-shows</Text>
+                      <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '700' }}>⚠️ {psProfileData.noShows}</Text>
+                    </View>
+                  )}
                 </View>
+
+                {psProfileData?.intake?.emergency_contact && (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Name</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact}</Text>
+                    </View>
+                    {psProfileData.intake.emergency_contact_phone && (
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Phone</Text>
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact_phone}</Text>
+                      </View>
+                    )}
+                    {psProfileData.intake.emergency_contact_relationship && (
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Relationship</Text>
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.intake.emergency_contact_relationship}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
 
                 {psProfileData?.intake && (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
