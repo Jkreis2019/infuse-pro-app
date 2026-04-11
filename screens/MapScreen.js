@@ -114,19 +114,6 @@ export default function MapScreen({ route, navigation }) {
               {selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
 
-              {/* Listing tier badge */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <View style={{ backgroundColor: selected.branding.primaryColor + '22', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
-                  <Text style={{ color: selected.branding.primaryColor, fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>
-                    {selected.listingTier?.toUpperCase() || 'BASIC'}
-                  </Text>
-                </View>
-                {selected.platformActive && (
-                  <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
-                    <Text style={{ color: '#4CAF50', fontSize: 10, fontWeight: '700' }}>✓ ON PLATFORM</Text>
-                  </View>
-                )}
-              </View>
 
               <View style={styles.cardFooter}>
                 {/* Left side - call or code */}
