@@ -748,7 +748,7 @@ const submitSendIntake = async () => {
     }
   }
 
-  const availableTechs = techs.filter(t => t.status === 'available' || t.status === 'clear' || t.status === 'assigned')
+  const availableTechs = techs.filter(t => t.status === 'available' || t.status === 'clear' || t.status === 'assigned' || t.status === 'en_route' || t.status === 'on_scene')
 
   if (loading) {
     return (
