@@ -286,21 +286,21 @@ const fetchChatSession = async () => {
         ) : null}
         {booking.confirmed_time ? (
                 <>
-                  <Text style={styles.detailLabel}>🕐 Confirmed for</Text>
-                  <Text style={styles.detailValue}>
+                  <Text style={[styles.detailLabel, { color: 'rgba(255,255,255,0.5)' }]}>🕐 Confirmed for</Text>
+                  <Text style={[styles.detailValue, { color: '#fff' }]}>
                     {new Date(booking.confirmed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(booking.confirmed_time).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' })}
                   </Text>
                 </>
               ) : booking.requested_time ? (
                 <>
-                  <Text style={styles.detailLabel}>🕐 Scheduled for</Text>
-                  <Text style={styles.detailValue}>
+                  <Text style={[styles.detailLabel, { color: 'rgba(255,255,255,0.5)' }]}>🕐 Scheduled for</Text>
+                  <Text style={[styles.detailValue, { color: '#fff' }]}>
                     {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(booking.requested_time).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' })}
                   </Text>
                 </>
               ) : (
                 <>
-                  <Text style={styles.detailLabel}>🕐 Requested</Text>
+                  <Text style={[styles.detailLabel, { color: 'rgba(255,255,255,0.5)' }]}>🕐 Requested</Text>
                   <Text style={styles.detailValue}>As soon as possible</Text>
                 </>
               )}
