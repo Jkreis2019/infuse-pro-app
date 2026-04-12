@@ -746,8 +746,11 @@ const fetchTechDocs = useCallback(async () => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
             {company?.logoUrl ? (
-  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: primaryColor + '20', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 4 }}>
-    <Image source={{ uri: company.logoUrl }} style={{ width: 42, height: 42, resizeMode: 'contain' }} />
+  <View style={{ alignItems: 'center', width: '100%', marginBottom: 8 }}>
+    <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: primaryColor + '20', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 8 }}>
+      <Image source={{ uri: company.logoUrl }} style={{ width: 64, height: 64, resizeMode: 'contain' }} />
+    </View>
+    <Text style={[styles.companyName, { color: primaryColor, textAlign: 'center' }]}>{company?.name}</Text>
   </View>
 ) : (
   <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
