@@ -1656,36 +1656,53 @@ const submitSendIntake = async () => {
 
             {/* Charts Tab */}
             {psActiveTab === 'charts' && (
-              <>
-                {!psProfileData?.bookings?.filter(b => b.chart_notes || b.services_administered)?.length ? (
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
-                ) : (
-                  psProfileData.bookings.filter(b => b.chart_notes || b.services_administered).map(b => (
-                    <View key={b.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{b.service}</Text>
-                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
-                          {b.chart_completed_at ? new Date(b.chart_completed_at).toLocaleDateString() : ''}
-                        </Text>
-                      </View>
-                      {b.tech_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 8 }}>🧑‍⚕️ {b.tech_name}</Text>}
-                      {b.services_administered && (
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
-                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>SERVICES ADMINISTERED</Text>
-                          <Text style={{ color: '#fff', fontSize: 13 }}>{b.services_administered}</Text>
-                        </View>
-                      )}
-                      {b.chart_notes && (
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10 }}>
-                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>NOTES</Text>
-                          <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{b.chart_notes}</Text>
-                        </View>
-                      )}
-                    </View>
-                  ))
-                )}
-              </>
-            )}
+  <>
+    {!psProfileData?.charts?.length ? (
+      <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
+    ) : (
+      psProfileData.charts.map((ch, i) => (
+        <View key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>📋 Chart</Text>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+              <View style={{ backgroundColor: ch.status === 'submitted' || ch.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 10, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{new Date(ch.created_at).toLocaleDateString()}</Text>
+            </View>
+          </View>
+          {ch.tech_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 6 }}>🧑‍⚕️ {ch.tech_name}</Text>}
+          {ch.chief_complaint && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>CHIEF COMPLAINT</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{ch.chief_complaint}</Text>
+            </View>
+          )}
+          {(ch.blood_pressure || ch.heart_rate || ch.oxygen_sat) && (
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+              {ch.blood_pressure && <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 8, alignItems: 'center' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{ch.blood_pressure}</Text></View>}
+              {ch.heart_rate && <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 8, alignItems: 'center' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{ch.heart_rate}</Text></View>}
+              {ch.oxygen_sat && <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 8, alignItems: 'center' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{ch.oxygen_sat}%</Text></View>}
+            </View>
+          )}
+          {ch.tech_notes && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 4 }}>TECH NOTES</Text>
+              <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{ch.tech_notes}</Text>
+            </View>
+          )}
+          {ch.amendment_notes && (
+            <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}>
+              <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text>
+              <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{ch.amendment_notes}</Text>
+              {ch.amended_by_name && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 4 }}>By {ch.amended_by_name} · {new Date(ch.amended_at).toLocaleString()}</Text>}
+            </View>
+          )}
+        </View>
+      ))
+    )}
+  </>
+)}
 
             {/* Intake Tab */}
             {psActiveTab === 'intake' && (
