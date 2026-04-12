@@ -1020,52 +1020,54 @@ const saveRegion = async () => {
               multiline
             />
 
+            {typeof window !== 'undefined' && (
+              <input
+                type="file"
+                accept="application/pdf"
+                id="docFileInput"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files[0]
+                  if (!file) return
+                  if (!docTitle.trim()) { Alert.alert('Required', 'Document title is required'); return }
+                  setUploadingDoc(true)
+                  const formData = new FormData()
+                  formData.append('file', file)
+                  formData.append('title', docTitle)
+                  formData.append('category', docCategory2)
+                  formData.append('description', docDescription)
+                  try {
+                    const res = await fetch(`${API_URL}/documents/upload`, {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}` },
+                      body: formData
+                    })
+                    const data = await res.json()
+                    if (data.success) {
+                      setDocModal(false)
+                      fetchDocuments()
+                      Alert.alert('✅ Uploaded', `${docTitle} has been uploaded.`)
+                    } else {
+                      Alert.alert('Error', data.error || 'Upload failed')
+                    }
+                  } catch (err) {
+                    Alert.alert('Error', 'Upload failed')
+                  } finally {
+                    setUploadingDoc(false)
+                    e.target.value = ''
+                  }
+                }}
+              />
+            )}
             <TouchableOpacity
               style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor, marginTop: 8 }, uploadingDoc && { opacity: 0.6 }]}
               disabled={uploadingDoc}
-              onPress={async () => {
+              onPress={() => {
                 if (!docTitle.trim()) { Alert.alert('Required', 'Document title is required'); return }
-                try {
-                  if (typeof window !== 'undefined') {
-                    const input = document.createElement('input')
-                    input.type = 'file'
-                    input.accept = 'application/pdf'
-                    input.addEventListener('change', async (e) => {
-                      const file = e.target.files[0]
-                      if (!file) return
-                      setUploadingDoc(true)
-                      const formData = new FormData()
-                      formData.append('file', file)
-                      formData.append('title', docTitle)
-                      formData.append('category', docCategory2)
-                      formData.append('description', docDescription)
-                      try {
-                        const res = await fetch(`${API_URL}/documents/upload`, {
-                          method: 'POST',
-                          headers: { Authorization: `Bearer ${token}` },
-                          body: formData
-                        })
-                        const data = await res.json()
-                        if (data.success) {
-                          setDocModal(false)
-                          fetchDocuments()
-                          Alert.alert('✅ Uploaded', `${docTitle} has been uploaded.`)
-                        } else {
-                          Alert.alert('Error', data.error || 'Upload failed')
-                        }
-                      } catch (err) {
-                        Alert.alert('Error', 'Upload failed')
-                      } finally {
-                        setUploadingDoc(false)
-                      }
-                    })
-                    document.body.appendChild(input)
-                    input.click()
-                  } else {
-                    Alert.alert('Coming Soon', 'Document upload from mobile is coming soon. Use the web version to upload documents.')
-                  }
-                } catch (err) {
-                  Alert.alert('Error', 'Could not open file picker')
+                if (typeof window !== 'undefined') {
+                  document.getElementById('docFileInput').click()
+                } else {
+                  Alert.alert('Coming Soon', 'Document upload from mobile is coming soon. Use the web version to upload documents.')
                 }
               }}
             >
