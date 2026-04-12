@@ -392,27 +392,61 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   const pickLogo = async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (!permission.granted) { Alert.alert('Permission needed', 'Please allow access to your photo library'); return }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'], allowsEditing: true, aspect: [3, 1], quality: 0.3, base64: true, exif: false
-      })
-      if (!result.canceled && result.assets[0]) {
-        setUploadingLogo(true)
-        const base64 = result.assets[0].base64
-        const res = await fetch(`${API_URL}/admin/branding/logo`, {
-          method: 'PUT',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ logo: `data:image/jpeg;base64,${base64}` })
+      if (Platform.OS === 'web') {
+        // Web: use file input
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'image/*'
+        input.onchange = async (e) => {
+          const file = e.target.files[0]
+          if (!file) return
+          setUploadingLogo(true)
+          const reader = new FileReader()
+          reader.onload = async (event) => {
+            const base64 = event.target.result
+            try {
+              const res = await fetch(`${API_URL}/admin/branding/logo`, {
+                method: 'PUT',
+                headers: { ...headers, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ logo: base64 })
+              })
+              const data = await res.json()
+              if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
+              else Alert.alert('Error', data.message || 'Could not upload logo')
+            } catch (err) {
+              Alert.alert('Error', 'Could not upload logo')
+            } finally {
+              setUploadingLogo(false)
+            }
+          }
+          reader.readAsDataURL(file)
+        }
+        input.click()
+      } else {
+        // Mobile: use ImagePicker
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+        if (!permission.granted) { Alert.alert('Permission needed', 'Please allow access to your photo library'); return }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'], allowsEditing: true, aspect: [3, 1], quality: 0.3, base64: true, exif: false
         })
-        const data = await res.json()
-        if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
-        else Alert.alert('Error', data.message || 'Could not upload logo')
+        if (!result.canceled && result.assets[0]) {
+          setUploadingLogo(true)
+          const base64 = result.assets[0].base64
+          const res = await fetch(`${API_URL}/admin/branding/logo`, {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ logo: `data:image/jpeg;base64,${base64}` })
+          })
+          const data = await res.json()
+          if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
+          else Alert.alert('Error', data.message || 'Could not upload logo')
+        }
       }
     } catch (err) {
-      Alert.alert('Error', 'Could not open photo library')
+      console.error('Logo upload error:', err)
+      Alert.alert('Error', 'Could not upload logo')
     } finally {
-      setUploadingLogo(false)
+      if (Platform.OS !== 'web') setUploadingLogo(false)
     }
   }
 
