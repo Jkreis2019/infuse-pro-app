@@ -399,11 +399,14 @@ export default function AdminHomeScreen({ route, navigation }) {
         input.accept = 'image/*'
         input.onchange = async (e) => {
           const file = e.target.files[0]
+          console.log('File selected:', file?.name, file?.size)
           if (!file) return
           setUploadingLogo(true)
           const reader = new FileReader()
           reader.onload = async (event) => {
             const base64 = event.target.result
+            console.log('Logo base64 length:', base64?.length)
+            console.log('Uploading logo to server...')
             try {
               const res = await fetch(`${API_URL}/admin/branding/logo`, {
                 method: 'PUT',
