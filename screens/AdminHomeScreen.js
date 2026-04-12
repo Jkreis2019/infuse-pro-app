@@ -18,7 +18,7 @@ function AuditLogTab({ token, primaryColor, secondaryColor }) {
       setLoading(true)
       try {
         const url = filter === 'all'
-          ? 'https://api.infusepro.app/admin/audit-log?limit=100'
+          ? 'https://api.infusepro.app/admin/audit-log?limit=100&excludeStatus=true'
           : `https://api.infusepro.app/admin/audit-log?resource=${filter}&limit=100`
         const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
         const data = await res.json()

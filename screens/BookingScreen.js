@@ -42,7 +42,7 @@ useEffect(() => {
         const res = await fetch(`${API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        
+        const data = await res.json()
         if (data.success && data.user?.homeAddress) {
           const parts = [data.user.homeAddress, data.user.city, data.user.state, data.user.zip].filter(Boolean)
           setAddress(parts.join(', '))
