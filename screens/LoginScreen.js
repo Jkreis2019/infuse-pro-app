@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useState } from 'react'
+import * as Notifications from 'expo-notifications'
+import * as Device from 'expo-device'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -16,6 +18,28 @@ export default function LoginScreen({ route, navigation }) {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const registerPushToken = async (token) => {
+    try {
+      if (!Device.isDevice) return
+      const { status } = await Notifications.getPermissionsAsync()
+      if (status !== 'granted') {
+        const { status: newStatus } = await Notifications.requestPermissionsAsync()
+        if (newStatus !== 'granted') return
+      }
+      const pushToken = (await Notifications.getExpoPushTokenAsync({
+        projectId: '824f080c-a62b-417d-8d02-4554a9578672'
+      })).data
+      if (!pushToken) return
+      await fetch(`${API_URL}/auth/device-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ token: pushToken })
+      })
+    } catch (err) {
+      console.log('Push token registration error:', err)
+    }
+  }
 
   const login = async () => {
     if (!email || !password) {
@@ -35,6 +59,8 @@ export default function LoginScreen({ route, navigation }) {
         const company = data.user.company || DEFAULT_COMPANY
         const role = data.user.role
         console.log('Login role:', role, 'passwordChanged:', data.user.passwordChanged)
+        // Register push token
+        registerPushToken(data.token)
 
         if (role === 'guest') {
           navigation.reset({
@@ -52,6 +78,10 @@ export default function LoginScreen({ route, navigation }) {
             const destination = serviceType === 'clinic' ? 'ClinicHome' : 'DispatcherHome'
             navigation.replace(destination, { token: data.token, user: data.user, company })
           }
+        } else if (role === 'super_admin') {
+          navigation.dispatch(
+            CommonActions.reset({ index: 0, routes: [{ name: 'SuperAdminHome', params: { token: data.token, user: data.user, company } }] })
+          )
         } else if (role === 'admin' || role === 'owner') {
           if (!data.user.passwordChanged) {
             navigation.reset({

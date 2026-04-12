@@ -2,7 +2,9 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Text } from 'react-native'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import * as Notifications from 'expo-notifications'
+import * as Device from 'expo-device'
 
 import WelcomeScreen from './screens/WelcomeScreen'
 import LoginScreen from './screens/LoginScreen'
@@ -111,7 +113,65 @@ function MainTabs({ route }) {
   )
 }
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+})
+
+async function registerForPushNotificationsAsync() {
+  if (!Device.isDevice) {
+    console.log('Push notifications require a physical device')
+    return null
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync()
+  let finalStatus = existingStatus
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync()
+    finalStatus = status
+  }
+
+  if (finalStatus !== 'granted') {
+    console.log('Failed to get push token — permission denied')
+    return null
+  }
+
+  const token = (await Notifications.getExpoPushTokenAsync({
+    projectId: '824f080c-a62b-417d-8d02-4554a9578672'
+  })).data
+
+  console.log('Expo push token:', token)
+  return token
+}
+
 export default function App() {
+  const [expoPushToken, setExpoPushToken] = useState('')
+  const notificationListener = useRef()
+  const responseListener = useRef()
+
+  useEffect(() => {
+    registerForPushNotificationsAsync().then(token => {
+      if (token) setExpoPushToken(token)
+    })
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Push received:', notification)
+    })
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log('Push tapped:', response)
+    })
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener.current)
+      Notifications.removeNotificationSubscription(responseListener.current)
+    }
+  }, [])
+
   return (
     <NavigationContainer>
       <Stack.Navigator
