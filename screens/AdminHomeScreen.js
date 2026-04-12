@@ -148,6 +148,13 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [psResults, setPsResults] = useState([])
   const [psSearching, setPsSearching] = useState(false)
 
+  const [psSelectedPatient, setPsSelectedPatient] = useState(null)
+  const [psProfileModal, setPsProfileModal] = useState(false)
+  const [psProfileData, setPsProfileData] = useState(null)
+  const [psLoadingProfile, setPsLoadingProfile] = useState(false)
+  const [psActiveTab, setPsActiveTab] = useState('overview')
+  const [psSelectedChart, setPsSelectedChart] = useState(null)
+  const [psChartModal, setPsChartModal] = useState(false)
   const searchPsPatients = async (q) => {
     setPsQuery(q)
     if (q.length < 2) { setPsResults([]); return }
@@ -164,12 +171,19 @@ export default function AdminHomeScreen({ route, navigation }) {
   }
 
   const openPsProfile = async (patient) => {
+    setPsSelectedPatient(patient)
+    setPsProfileModal(true)
+    setPsLoadingProfile(true)
+    setPsActiveTab('overview')
     try {
       const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
       const data = await res.json()
-      if (!data.success) Alert.alert('Error', 'Could not load patient profile')
+      if (data.success) setPsProfileData(data)
+      else Alert.alert('Error', 'Could not load patient profile')
     } catch (err) {
-      Alert.alert('Error', 'Could not load patient profile')
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setPsLoadingProfile(false)
     }
   }
 
@@ -1281,6 +1295,301 @@ export default function AdminHomeScreen({ route, navigation }) {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* ── PATIENT PROFILE MODAL ── */}
+      <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
+        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          {/* Full Chart Modal */}
+          <Modal visible={psChartModal} animationType="slide" presentationStyle="fullScreen">
+            <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+              <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+                <TouchableOpacity onPress={() => setPsChartModal(false)}>
+                  <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Full Chart</Text>
+                <View style={{ width: 60 }} />
+              </View>
+              <ScrollView contentContainerStyle={{ padding: 16 }}>
+                {psSelectedChart && (
+                  <>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{psSelectedChart.tech_name}</Text>
+                      <View style={{ backgroundColor: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+                        <Text style={{ color: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{psSelectedChart.status?.toUpperCase()}</Text>
+                      </View>
+                    </View>
+
+                    {/* Vitals */}
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INITIAL VITALS</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        {psSelectedChart.blood_pressure && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.blood_pressure}</Text></View>}
+                        {psSelectedChart.heart_rate && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.heart_rate}</Text></View>}
+                        {psSelectedChart.oxygen_sat && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.oxygen_sat}%</Text></View>}
+                        {psSelectedChart.pain_scale && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>PAIN</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.pain_scale}/10</Text></View>}
+                      </View>
+                    </View>
+
+                    {/* Chief Complaint */}
+                    {psSelectedChart.chief_complaint && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHIEF COMPLAINT</Text>
+                        <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.chief_complaint}</Text>
+                      </View>
+                    )}
+
+                    {/* IV Details */}
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV DETAILS</Text>
+                      {psSelectedChart.iv_insertion_site && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Site</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_insertion_site}</Text></View>}
+                      {psSelectedChart.iv_catheter_size && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_catheter_size}</Text></View>}
+                      {psSelectedChart.iv_attempts && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Attempts</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_attempts}</Text></View>}
+                      {psSelectedChart.iv_time_initiated && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Started</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_time_initiated}</Text></View>}
+                      {psSelectedChart.iv_time_discontinued && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Discontinued</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_time_discontinued}</Text></View>}
+                      {psSelectedChart.iv_catheter_status && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter Status</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_catheter_status}</Text></View>}
+                    </View>
+
+                    {/* Medications */}
+                    {psSelectedChart.prn_iv_medications && Object.keys(psSelectedChart.prn_iv_medications).filter(k => psSelectedChart.prn_iv_medications[k]).length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV MEDICATIONS</Text>
+                        {Object.entries(psSelectedChart.prn_iv_medications).filter(([k, v]) => v).map(([key, val]) => (
+                          <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                            <Text style={{ color: '#fff', fontSize: 13, flex: 1 }}>{key.replace(/_/g, ' ')}</Text>
+                            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{val?.time || ''}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Complications */}
+                    {psSelectedChart.complications === 'Yes' && (
+                      <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderWidth: 1, borderColor: '#e53e3e', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>⚠️ COMPLICATIONS</Text>
+                        <Text style={{ color: '#fff', fontSize: 14 }}>{psSelectedChart.complications_detail}</Text>
+                      </View>
+                    )}
+
+                    {/* Tech Notes */}
+                    {psSelectedChart.tech_notes && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>TECH NOTES</Text>
+                        <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.tech_notes}</Text>
+                      </View>
+                    )}
+
+                    {/* Amendment */}
+                    {psSelectedChart.amendment_notes && (
+                      <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>📝 AMENDMENT</Text>
+                        <Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.amendment_notes}</Text>
+                        {psSelectedChart.amended_by_name && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>By {psSelectedChart.amended_by_name} · {new Date(psSelectedChart.amended_at).toLocaleString()}</Text>}
+                      </View>
+                    )}
+
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center', marginTop: 8 }}>
+                      Submitted {new Date(psSelectedChart.created_at).toLocaleString()}
+                    </Text>
+                  </>
+                )}
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            </View>
+          </Modal>
+
+          {/* Header */}
+          <View style={{ paddingTop: 56, paddingBottom: 0, backgroundColor: secondaryColor }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 }}>
+              <TouchableOpacity onPress={() => { setPsProfileModal(false); setPsProfileData(null) }}>
+                <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Patient Profile</Text>
+              <View style={{ width: 60 }} />
+            </View>
+
+            {/* Patient Hero */}
+            <View style={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 12 }}>
+                <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: primaryColor + '30', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '700' }}>
+                    {psSelectedPatient?.first_name?.[0]}{psSelectedPatient?.last_name?.[0]}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', marginBottom: 2 }}>
+                    {psSelectedPatient?.first_name} {psSelectedPatient?.last_name}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: primaryColor, fontSize: 20, fontWeight: '800' }}>{psProfileData?.completedBookings || 0}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '600' }}>COMPLETED</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: '#f09090', fontSize: 20, fontWeight: '800' }}>{psProfileData?.cancelledBookings || 0}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '600' }}>CANCELLED</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: psProfileData?.intake ? '#4CAF50' : '#f09090', fontSize: 20, fontWeight: '800' }}>{psProfileData?.intake ? '✓' : '✗'}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '600' }}>INTAKE</Text>
+                </View>
+                <View style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: '#4CAF50', fontSize: 20, fontWeight: '800' }}>{psProfileData?.charts?.length || 0}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '600' }}>CHARTS</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Tabs */}
+            <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
+              {['overview', 'appointments', 'charts', 'intake', 'gfe'].map(tab => (
+                <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => setPsActiveTab(tab)}>
+                  <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700' }}>
+                    {tab === 'overview' ? '👤' : tab === 'appointments' ? '📅' : tab === 'charts' ? '📋' : tab === 'intake' ? '🏥' : '🩺'}
+                  </Text>
+                  <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '600', marginTop: 2 }}>{tab.toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {psLoadingProfile ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator color={primaryColor} size="large" />
+            </View>
+          ) : (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+
+              {/* Overview Tab */}
+              {psActiveTab === 'overview' && (
+                <>
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CONTACT</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Phone</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData?.patient?.phone || '—'}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Email</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedPatient?.email || '—'}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Address</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right', marginLeft: 16 }}>{psProfileData?.patient?.home_address || '—'}</Text>
+                    </View>
+                    {psProfileData?.lastBooking && (
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Last Service</Text>
+                        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psProfileData.lastBooking.service}</Text>
+                      </View>
+                    )}
+                  </View>
+                  {psProfileData?.intake?.allergies_detail?.length > 0 && (
+                    <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderWidth: 1, borderColor: '#e53e3e', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚠️ ALLERGIES</Text>
+                      {(Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail : []).map((a, i) => (
+                        <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>
+                      ))}
+                    </View>
+                  )}
+                  {psProfileData?.intake?.important_history?.length > 0 && (
+                    <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚡ IMPORTANT HISTORY</Text>
+                      {(Array.isArray(psProfileData.intake.important_history) ? psProfileData.intake.important_history : []).map((h, i) => (
+                        <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+
+              {/* Appointments Tab */}
+              {psActiveTab === 'appointments' && (
+                <>
+                  {!psProfileData?.bookings?.length ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No appointments on record</Text>
+                  ) : psProfileData.bookings.map(b => (
+                    <View key={b.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: b.status === 'completed' ? '#4CAF50' : b.status === 'cancelled' ? '#f09090' : primaryColor }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, flex: 1 }}>{b.service}</Text>
+                        <View style={{ backgroundColor: b.status === 'completed' ? 'rgba(76,175,80,0.2)' : b.status === 'cancelled' ? 'rgba(240,144,144,0.2)' : 'rgba(201,168,76,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                          <Text style={{ color: b.status === 'completed' ? '#4CAF50' : b.status === 'cancelled' ? '#f09090' : primaryColor, fontSize: 10, fontWeight: '700' }}>{b.status?.toUpperCase()}</Text>
+                        </View>
+                      </View>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 2 }}>📅 {new Date(b.created_at).toLocaleDateString()}</Text>
+                      {b.address && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📍 {b.address}</Text>}
+                      {b.tech_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>🧑‍⚕️ {b.tech_name}</Text>}
+                    </View>
+                  ))}
+                </>
+              )}
+
+              {/* Charts Tab */}
+              {psActiveTab === 'charts' && (
+                <>
+                  {!psProfileData?.charts?.length ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
+                  ) : psProfileData.charts.map((ch, i) => (
+                    <TouchableOpacity key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }} onPress={() => { setPsSelectedChart(ch); setPsChartModal(true) }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>📋 {ch.tech_name}</Text>
+                        <View style={{ backgroundColor: ch.status === 'submitted' || ch.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                          <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 10, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
+                        </View>
+                      </View>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 6 }}>{new Date(ch.created_at).toLocaleString()}</Text>
+                      {ch.chief_complaint && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>{ch.chief_complaint}</Text>}
+                      {ch.amendment_notes && <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 4 }}>📝 Has amendment</Text>}
+                      <Text style={{ color: primaryColor, fontSize: 12, marginTop: 8, textAlign: 'right' }}>Tap to view full chart →</Text>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
+
+              {/* Intake Tab */}
+              {psActiveTab === 'intake' && (
+                <>
+                  {!psProfileData?.intake ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake on file</Text>
+                  ) : (
+                    <>
+                      <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+                        <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13 }}>✅ Submitted {new Date(psProfileData.intake.submitted_at).toLocaleDateString()}</Text>
+                      </View>
+                      {psProfileData.intake.medications && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>💊 MEDICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.medications}</Text></View>}
+                      {psProfileData.intake.allergies_detail?.length > 0 && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚠️ ALLERGIES</Text>{(Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail : []).map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {a}</Text>)}</View>}
+                      {psProfileData.intake.important_history?.length > 0 && <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#FF9800' }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚡ IMPORTANT HISTORY</Text>{(Array.isArray(psProfileData.intake.important_history) ? psProfileData.intake.important_history : []).map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {h}</Text>)}</View>}
+                      {psProfileData.intake.supplements && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🌿 SUPPLEMENTS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.supplements}</Text></View>}
+                    </>
+                  )}
+                </>
+              )}
+
+              {/* GFE Tab */}
+              {psActiveTab === 'gfe' && (
+                <>
+                  {!psProfileData?.gfe ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No GFE on file</Text>
+                  ) : (
+                    <>
+                      <View style={{ backgroundColor: psProfileData.gfe.notACandidate ? 'rgba(229,62,62,0.1)' : 'rgba(76,175,80,0.1)', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
+                        <Text style={{ color: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>{psProfileData.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED'}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {psProfileData.gfe.npName}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Valid until {new Date(psProfileData.gfe.validUntil).toLocaleDateString()}</Text>
+                      </View>
+                      {psProfileData.gfe.restrictions && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>❌ RESTRICTIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.restrictions}</Text></View>}
+                      {psProfileData.gfe.npOrders && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>📝 NP ORDERS</Text><Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.gfe.npOrders}</Text></View>}
+                    </>
+                  )}
+                </>
+              )}
+
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          )}
+        </View>
+      </Modal>
 
       {/* ── AUDIT LOG ── */}
       {activeTab === 'audit' && (
