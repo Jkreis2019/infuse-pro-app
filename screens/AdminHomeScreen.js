@@ -985,7 +985,7 @@ export default function AdminHomeScreen({ route, navigation }) {
       {activeTab === 'branding' && (
         <ScrollView style={styles.scroll}>
           <Text style={styles.sectionTitle}>Company Logo</Text>
-          <TouchableOpacity onPress={pickLogo} disabled={uploadingLogo} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderStyle: 'dashed' }}>
+          <TouchableOpacity onPress={pickLogo} disabled={uploadingLogo} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderStyle: 'dashed', minHeight: 120, justifyContent: 'center' }}>
             {uploadingLogo ? <ActivityIndicator color={primaryColor} /> : brandingLogo ? (
               <Image source={{ uri: brandingLogo }} style={{ width: '100%', height: 100, resizeMode: 'contain' }} />
             ) : (
