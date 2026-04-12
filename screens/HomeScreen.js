@@ -113,7 +113,12 @@ export default function HomeScreen({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={[styles.header, { backgroundColor: company.secondaryColor }]}>
         {company.logoUrl ? (
-          <Image source={{ uri: company.logoUrl }} style={{ height: 40, width: 160, resizeMode: 'contain', marginBottom: 8 }} />
+          <View style={{ alignItems: 'flex-start', marginBottom: 12 }}>
+            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: company.primaryColor + '20', borderWidth: 2, borderColor: company.primaryColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <Image source={{ uri: company.logoUrl }} style={{ width: 64, height: 64, resizeMode: 'contain' }} />
+            </View>
+            <Text style={[styles.companyName, { color: company.primaryColor, marginTop: 8 }]}>{company.name}</Text>
+          </View>
         ) : (
           <Text style={[styles.companyName, { color: company.primaryColor }]}>{company.name}</Text>
         )}
