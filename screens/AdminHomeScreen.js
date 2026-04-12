@@ -8,6 +8,78 @@ import * as ImagePicker from 'expo-image-picker'
 
 const API_URL = 'https://api.infusepro.app'
 
+function AuditLogTab({ token, primaryColor, secondaryColor }) {
+  const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      setLoading(true)
+      try {
+        const url = filter === 'all'
+          ? 'https://api.infusepro.app/admin/audit-log?limit=100'
+          : `https://api.infusepro.app/admin/audit-log?resource=${filter}&limit=100`
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+        const data = await res.json()
+        if (data.logs) setLogs(data.logs)
+      } catch (err) {
+        console.error('Audit log fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchLogs()
+  }, [filter])
+
+  const actionColor = (action) => {
+    if (action.includes('create')) return '#4CAF50'
+    if (action.includes('update') || action.includes('status')) return '#2196F3'
+    if (action.includes('view')) return '#C9A84C'
+    if (action.includes('delete')) return '#f09090'
+    return '#aaa'
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 52, backgroundColor: secondaryColor, paddingHorizontal: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 10 }}>
+          {['all', 'chart', 'bookings', 'gfe', 'intake'].map(f => (
+            <TouchableOpacity
+              key={f}
+              style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: filter === f ? primaryColor : 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: filter === f ? primaryColor : 'rgba(255,255,255,0.15)' }}
+              onPress={() => setFilter(f)}
+            >
+              <Text style={{ color: filter === f ? secondaryColor : 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600', textTransform: 'capitalize' }}>{f}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+      <ScrollView style={{ flex: 1, padding: 16 }}>
+        {loading ? (
+          <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
+        ) : logs.length === 0 ? (
+          <View style={{ alignItems: 'center', paddingTop: 60 }}>
+            <Text style={{ fontSize: 48, marginBottom: 16 }}>📋</Text>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 }}>No logs yet</Text>
+          </View>
+        ) : logs.map((log, i) => (
+          <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: actionColor(log.action) }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+              <Text style={{ color: actionColor(log.action), fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{log.action}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{new Date(log.created_at).toLocaleString()}</Text>
+            </View>
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 2 }}>{log.first_name} {log.last_name} · {log.user_role?.toUpperCase()}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{log.resource} {log.resource_id ? `#${log.resource_id}` : ''}</Text>
+            {log.details && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>{log.details}</Text>}
+          </View>
+        ))}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </View>
+  )
+}
+
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
   const primaryColor = company?.primaryColor || '#C9A84C'
@@ -560,7 +632,7 @@ export default function AdminHomeScreen({ route, navigation }) {
     return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
-  const TABS = ['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing'] : []), 'settings']
+  const TABS = ['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
 
   return (
     <View style={styles.container}>
@@ -1208,6 +1280,11 @@ export default function AdminHomeScreen({ route, navigation }) {
           )}
           <View style={{ height: 40 }} />
         </ScrollView>
+      )}
+
+      {/* ── AUDIT LOG ── */}
+      {activeTab === 'audit' && (
+        <AuditLogTab token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} />
       )}
 
       {/* ── SETTINGS ── */}
