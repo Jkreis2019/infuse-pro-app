@@ -284,11 +284,18 @@ const fetchChatSession = async () => {
             <Text style={styles.value}>{booking.notes}</Text>
           </>
         ) : null}
-        {booking.requested_time ? (
+        {booking.confirmed_time ? (
                 <>
                   <Text style={styles.detailLabel}>🕐 Confirmed for</Text>
                   <Text style={styles.detailValue}>
-                    {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(booking.requested_time).toLocaleDateString()}
+                    {new Date(booking.confirmed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(booking.confirmed_time).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' })}
+                  </Text>
+                </>
+              ) : booking.requested_time ? (
+                <>
+                  <Text style={styles.detailLabel}>🕐 Scheduled for</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(booking.requested_time).toLocaleDateString('en-US', { timeZone: 'America/Phoenix' })}
                   </Text>
                 </>
               ) : (
