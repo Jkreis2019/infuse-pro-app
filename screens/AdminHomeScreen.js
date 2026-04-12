@@ -68,6 +68,38 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [anActive, setAnActive] = useState(true)
   const [savingAnnouncement, setSavingAnnouncement] = useState(false)
 
+  // Patients search
+  const [psQuery, setPsQuery] = useState('')
+  const [psResults, setPsResults] = useState([])
+  const [psSearching, setPsSearching] = useState(false)
+  const [psProfile, setPsProfile] = useState(null)
+  const [psProfileModal, setPsProfileModal] = useState(false)
+
+  const searchPsPatients = async (q) => {
+    setPsQuery(q)
+    if (q.length < 2) { setPsResults([]); return }
+    setPsSearching(true)
+    try {
+      const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
+      const data = await res.json()
+      if (data.patients) setPsResults(data.patients)
+    } catch (err) {
+      console.error('Patient search error:', err)
+    } finally {
+      setPsSearching(false)
+    }
+  }
+
+  const openPsProfile = async (patient) => {
+    try {
+      const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
+      const data = await res.json()
+      if (data.success) { setPsProfile(data); setPsProfileModal(true) }
+    } catch (err) {
+      Alert.alert('Error', 'Could not load patient profile')
+    }
+  }
+
   // Documents
   const [documents, setDocuments] = useState([])
   const [docLoading, setDocLoading] = useState(false)
@@ -474,7 +506,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', overflowX: Platform.OS === 'web' ? 'auto' : 'visible' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'patients', 'reports', 'dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
+          {['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}

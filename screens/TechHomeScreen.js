@@ -413,6 +413,9 @@ export default function TechHomeScreen({ route, navigation }) {
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
   const [activeTab, setActiveTab] = useState('call')
+  const [techDocs, setTechDocs] = useState([])
+  const [techDocCategory, setTechDocCategory] = useState('All')
+  const [techDocLoading, setTechDocLoading] = useState(false)
   const [call, setCall] = useState(null)
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
@@ -584,6 +587,23 @@ const techChangePassword = async () => {
   }
 }
 
+const fetchTechDocs = useCallback(async () => {
+    setTechDocLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/documents`, { headers })
+      const data = await res.json()
+      if (data.success) setTechDocs(data.documents)
+    } catch (err) {
+      console.error('Fetch docs error:', err)
+    } finally {
+      setTechDocLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (activeTab === 'docs') fetchTechDocs()
+  }, [activeTab])
+
   const fetchCall = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/tech/my-call`, { headers })
@@ -741,6 +761,9 @@ const techChangePassword = async () => {
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'schedule' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('schedule')}>
           <Text style={{ color: activeTab === 'schedule' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📅 Schedule{mySchedule.length > 0 ? ` (${mySchedule.length})` : ''}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'docs' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('docs')}>
+          <Text style={{ color: activeTab === 'docs' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>📄 Docs</Text>
         </TouchableOpacity>
         <TouchableOpacity style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'profile' ? primaryColor : 'transparent' }} onPress={() => setActiveTab('profile')}>
           <Text style={{ color: activeTab === 'profile' ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>👤 Profile</Text>
@@ -1027,6 +1050,64 @@ const techChangePassword = async () => {
           )}
           <View style={{ height: 40 }} />
         </ScrollView>
+      )}
+
+      {activeTab === 'docs' && (
+        <View style={{ flex: 1 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 52, backgroundColor: secondaryColor, paddingHorizontal: 12 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 10 }}>
+              {['All', 'Protocol', 'Standing Order', 'IV Recipe', 'Other'].map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: techDocCategory === cat ? primaryColor : 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: techDocCategory === cat ? primaryColor : 'rgba(255,255,255,0.15)' }}
+                  onPress={() => setTechDocCategory(cat)}
+                >
+                  <Text style={{ color: techDocCategory === cat ? secondaryColor : 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' }}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+
+          <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchTechDocs} tintColor={primaryColor} />}>
+            {techDocLoading ? (
+              <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
+            ) : techDocs.filter(d => techDocCategory === 'All' || d.category === techDocCategory).length === 0 ? (
+              <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                <Text style={{ fontSize: 48, marginBottom: 16 }}>📄</Text>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 }}>No documents yet</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Your admin hasn't uploaded any documents</Text>
+              </View>
+            ) : (
+              techDocs
+                .filter(d => techDocCategory === 'All' || d.category === techDocCategory)
+                .map(doc => (
+                  <View key={doc.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: doc.category === 'Protocol' ? primaryColor : doc.category === 'Standing Order' ? '#2196F3' : doc.category === 'IV Recipe' ? '#4CAF50' : '#9C27B0' }}>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>📄 {doc.title}</Text>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{doc.category.toUpperCase()}</Text>
+                    {doc.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 8 }}>{doc.description}</Text>}
+                    <TouchableOpacity
+                      style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
+                      onPress={async () => {
+                        try {
+                          const res = await fetch(`${API_URL}/documents/${doc.id}/url`, { headers })
+                          const data = await res.json()
+                          if (data.url) {
+                            if (typeof window !== 'undefined') window.open(data.url, '_blank')
+                            else Alert.alert('Document URL', data.url)
+                          }
+                        } catch (err) {
+                          Alert.alert('Error', 'Could not open document')
+                        }
+                      }}
+                    >
+                      <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>View Document</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
       )}
 
       {activeTab === 'profile' && (
