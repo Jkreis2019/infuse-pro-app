@@ -766,7 +766,9 @@ const submitSendIntake = async () => {
   <View style={styles.headerRow}>
     <View style={{ flex: 1 }}>
       {company?.logoUrl ? (
-  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: primaryColor + '20', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 4 }}>
+    <Image source={{ uri: company.logoUrl }} style={{ width: 42, height: 42, resizeMode: 'contain' }} />
+  </View>
 ) : (
   <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
 )}
