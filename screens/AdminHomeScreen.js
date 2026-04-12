@@ -1030,7 +1030,7 @@ const saveRegion = async () => {
                     const input = document.createElement('input')
                     input.type = 'file'
                     input.accept = 'application/pdf'
-                    input.onchange = async (e) => {
+                    input.addEventListener('change', async (e) => {
                       const file = e.target.files[0]
                       if (!file) return
                       setUploadingDoc(true)
@@ -1058,7 +1058,8 @@ const saveRegion = async () => {
                       } finally {
                         setUploadingDoc(false)
                       }
-                    }
+                    })
+                    document.body.appendChild(input)
                     input.click()
                   } else {
                     Alert.alert('Coming Soon', 'Document upload from mobile is coming soon. Use the web version to upload documents.')
