@@ -10,6 +10,8 @@ const API_URL = 'https://api.infusepro.app'
 
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
+  const tokenRef = React.useRef(token)
+  const authToken = tokenRef.current || token || ''
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
@@ -1028,6 +1030,9 @@ const saveRegion = async () => {
                 style={{ display: 'none' }}
                 onChange={async (e) => {
                   const file = e.target.files[0]
+                  console.log('File selected:', file?.name, file?.size)
+console.log('Token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN')
+console.log('CompanyId from user:', user?.companyId, 'from company:', company?.id)
                   if (!file) return
                   if (!docTitle.trim()) { Alert.alert('Required', 'Document title is required'); return }
                   setUploadingDoc(true)
@@ -1039,7 +1044,7 @@ const saveRegion = async () => {
                   try {
                     const res = await fetch(`${API_URL}/documents/upload`, {
                       method: 'POST',
-                      headers: { Authorization: `Bearer ${token}` },
+                      headers: { Authorization: `Bearer ${tokenRef.current || token}` },
                       body: formData
                     })
                     const data = await res.json()
