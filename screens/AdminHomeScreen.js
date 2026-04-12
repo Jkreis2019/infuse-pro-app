@@ -424,6 +424,7 @@ export default function AdminHomeScreen({ route, navigation }) {
           }
           reader.readAsDataURL(file)
         }
+        document.body.appendChild(input)
         input.click()
       } else {
         // Mobile: use ImagePicker
