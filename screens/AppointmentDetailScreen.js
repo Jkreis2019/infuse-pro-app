@@ -284,12 +284,19 @@ const fetchChatSession = async () => {
             <Text style={styles.value}>{booking.notes}</Text>
           </>
         ) : null}
-        <Text style={styles.label}>🕐 Requested</Text>
-        <Text style={styles.value}>
-          {booking.requested_time
-            ? new Date(booking.requested_time).toLocaleString()
-            : 'As soon as possible'}
-        </Text>
+        {booking.requested_time ? (
+                <>
+                  <Text style={styles.detailLabel}>🕐 Confirmed for</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(booking.requested_time).toLocaleDateString()}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.detailLabel}>🕐 Requested</Text>
+                  <Text style={styles.detailValue}>As soon as possible</Text>
+                </>
+              )}
       </View>
 
 {/* Live Tracking Map */}
