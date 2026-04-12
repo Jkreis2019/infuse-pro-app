@@ -410,7 +410,7 @@ export default function AdminHomeScreen({ route, navigation }) {
             try {
               const res = await fetch(`${API_URL}/admin/branding/logo`, {
                 method: 'PUT',
-                headers: { ...headers, 'Content-Type': 'application/json' },
+                headers: { Authorization: `Bearer ${tokenRef.current}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ logo: base64 })
               })
               const data = await res.json()
