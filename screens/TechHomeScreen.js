@@ -745,7 +745,11 @@ const fetchTechDocs = useCallback(async () => {
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+            {company?.logoUrl ? (
+  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+) : (
+  <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+)}
             <Text style={styles.headerTitle}>My Call</Text>
             <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
           </View>
@@ -1092,8 +1096,8 @@ const fetchTechDocs = useCallback(async () => {
                           const res = await fetch(`${API_URL}/documents/${doc.id}/url`, { headers })
                           const data = await res.json()
                           if (data.url) {
-                            if (typeof window !== 'undefined') window.open(data.url, '_blank')
-                            else Alert.alert('Document URL', data.url)
+                            const { Linking } = require('react-native')
+                            Linking.openURL(data.url)
                           }
                         } catch (err) {
                           Alert.alert('Error', 'Could not open document')

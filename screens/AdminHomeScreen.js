@@ -406,7 +406,7 @@ export default function AdminHomeScreen({ route, navigation }) {
           body: JSON.stringify({ logo: `data:image/jpeg;base64,${base64}` })
         })
         const data = await res.json()
-        if (data.success) { setBrandingLogo(`data:image/jpeg;base64,${base64}`); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
+        if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
         else Alert.alert('Error', data.message || 'Could not upload logo')
       }
     } catch (err) {
@@ -530,7 +530,11 @@ export default function AdminHomeScreen({ route, navigation }) {
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+            {company?.logoUrl ? (
+  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+) : (
+  <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+)}
             <Text style={styles.headerTitle}>Admin Console</Text>
             <Text style={styles.headerSub}>{user?.firstName} {user?.lastName} · {user?.role?.toUpperCase()}</Text>
           </View>

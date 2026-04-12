@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Alert, TextInput, Modal, KeyboardAvoidingView, Platform
+  ActivityIndicator, RefreshControl, Alert, TextInput, Modal, KeyboardAvoidingView, Platform, Image,
 } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -419,7 +419,11 @@ export default function NPHomeScreen({ route, navigation }) {
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+            {company?.logoUrl ? (
+  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+) : (
+  <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+)}
             <Text style={styles.headerTitle}>GFE Queue</Text>
             <Text style={styles.headerSub}>{user?.firstName} · NP</Text>
           </View>

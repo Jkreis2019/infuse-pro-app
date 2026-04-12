@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 
 const API_URL = 'https://api.infusepro.app'
@@ -765,7 +765,11 @@ const submitSendIntake = async () => {
    <View style={[styles.header, { backgroundColor: secondaryColor }]}>
   <View style={styles.headerRow}>
     <View style={{ flex: 1 }}>
-      <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+      {company?.logoUrl ? (
+  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+) : (
+  <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+)}
       <Text style={styles.headerTitle}>Dispatch Console</Text>
       <View style={styles.statsRow}>
         <Text style={styles.statItem}>📋 {stats.pending} pending</Text>

@@ -121,7 +121,11 @@ export default function ClinicTechScreen({ route, navigation }) {
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
-            <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+            {company?.logoUrl ? (
+  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+) : (
+  <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
+)}
             <Text style={styles.headerTitle}>My Patients</Text>
             <Text style={styles.headerSub}>{user?.firstName} · CLINIC TECH</Text>
           </View>

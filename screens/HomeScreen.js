@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Image } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -112,7 +112,11 @@ export default function HomeScreen({ route, navigation }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={[styles.header, { backgroundColor: company.secondaryColor }]}>
-        <Text style={[styles.companyName, { color: company.primaryColor }]}>{company.name}</Text>
+        {company.logoUrl ? (
+          <Image source={{ uri: company.logoUrl }} style={{ height: 40, width: 160, resizeMode: 'contain', marginBottom: 8 }} />
+        ) : (
+          <Text style={[styles.companyName, { color: company.primaryColor }]}>{company.name}</Text>
+        )}
         <Text style={styles.greeting}>Good morning, {user.firstName}</Text>
         <Text style={styles.location}>{company.location}</Text>
       </View>
