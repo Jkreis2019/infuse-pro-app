@@ -68,6 +68,16 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [anActive, setAnActive] = useState(true)
   const [savingAnnouncement, setSavingAnnouncement] = useState(false)
 
+  // Documents
+  const [documents, setDocuments] = useState([])
+  const [docLoading, setDocLoading] = useState(false)
+  const [docCategory, setDocCategory] = useState('All')
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const [docTitle, setDocTitle] = useState('')
+  const [docDescription, setDocDescription] = useState('')
+  const [docCategory2, setDocCategory2] = useState('Protocol')
+  const [docModal, setDocModal] = useState(false)
+
   // Branding
   const [brandingLogo, setBrandingLogo] = useState(company?.logo || null)
   const [brandingPrimary, setBrandingPrimary] = useState(company?.primaryColor || '#C9A84C')
@@ -108,6 +118,23 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [svcDuration, setSvcDuration] = useState('')
   const [svcDescription, setSvcDescription] = useState('')
   const [savingService, setSavingService] = useState(false)
+
+  const fetchDocuments = useCallback(async () => {
+    setDocLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/documents`, { headers })
+      const data = await res.json()
+      if (data.success) setDocuments(data.documents)
+    } catch (err) {
+      console.error('Fetch documents error:', err)
+    } finally {
+      setDocLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (activeTab === 'documents') fetchDocuments()
+  }, [activeTab])
 
   const fetchReports = useCallback(async (period = 'today', customStart = '', customEnd = '') => {
     setReportLoading(true)
@@ -447,7 +474,7 @@ const saveRegion = async () => {
       {/* Tabs */}
       <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', overflowX: Platform.OS === 'web' ? 'auto' : 'visible' }}>
         <View style={{ flexDirection: 'row' }}>
-          {['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
+          {['dashboard', 'patients', 'reports', 'dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing', 'listings'] : []), 'settings'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -822,6 +849,200 @@ const saveRegion = async () => {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Documents Tab */}
+      {activeTab === 'documents' && (
+        <View style={{ flex: 1 }}>
+          {/* Category Filter */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 52, backgroundColor: secondaryColor, paddingHorizontal: 12 }}>
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', paddingVertical: 10 }}>
+              {['All', 'Protocol', 'Standing Order', 'IV Recipe', 'Other'].map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, backgroundColor: docCategory === cat ? primaryColor : 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: docCategory === cat ? primaryColor : 'rgba(255,255,255,0.15)' }}
+                  onPress={() => setDocCategory(cat)}
+                >
+                  <Text style={{ color: docCategory === cat ? secondaryColor : 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' }}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+
+          <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={fetchDocuments} tintColor={primaryColor} />}>
+            {/* Upload Button */}
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20 }}
+              onPress={() => { setDocTitle(''); setDocDescription(''); setDocCategory2('Protocol'); setDocModal(true) }}
+            >
+              <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Upload Document</Text>
+            </TouchableOpacity>
+
+            {docLoading ? (
+              <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
+            ) : documents.filter(d => docCategory === 'All' || d.category === docCategory).length === 0 ? (
+              <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                <Text style={{ fontSize: 48, marginBottom: 16 }}>📄</Text>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 }}>No documents yet</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Upload protocols, standing orders, and IV recipes</Text>
+              </View>
+            ) : (
+              documents
+                .filter(d => docCategory === 'All' || d.category === docCategory)
+                .map(doc => (
+                  <View key={doc.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: doc.category === 'Protocol' ? primaryColor : doc.category === 'Standing Order' ? '#2196F3' : doc.category === 'IV Recipe' ? '#4CAF50' : '#9C27B0' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>📄 {doc.title}</Text>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{doc.category.toUpperCase()}</Text>
+                        {doc.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{doc.description}</Text>}
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>
+                          Uploaded by {doc.uploaded_by_first} {doc.uploaded_by_last} · {new Date(doc.created_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+                      <TouchableOpacity
+                        style={{ flex: 1, borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center' }}
+                        onPress={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/documents/${doc.id}/url`, { headers })
+                            const data = await res.json()
+                            if (data.url) {
+                              if (typeof window !== 'undefined') window.open(data.url, '_blank')
+                              else Alert.alert('Document URL', data.url)
+                            }
+                          } catch (err) {
+                            Alert.alert('Error', 'Could not open document')
+                          }
+                        }}
+                      >
+                        <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>View</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 8, padding: 10, alignItems: 'center' }}
+                        onPress={() => {
+                          Alert.alert('Delete Document', `Delete "${doc.title}"?`, [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Delete', style: 'destructive', onPress: async () => {
+                              try {
+                                await fetch(`${API_URL}/documents/${doc.id}`, { method: 'DELETE', headers })
+                                fetchDocuments()
+                              } catch (err) {
+                                Alert.alert('Error', 'Could not delete document')
+                              }
+                            }}
+                          ])
+                        }}
+                      >
+                        <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Document Upload Modal */}
+      <Modal visible={docModal} animationType="slide" presentationStyle="fullScreen">
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
+            <TouchableOpacity onPress={() => setDocModal(false)}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Upload Document</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+            <Text style={styles.fieldLabel}>Document Title *</Text>
+            <TextInput
+              style={styles.input}
+              value={docTitle}
+              onChangeText={setDocTitle}
+              placeholder="e.g. Myers Cocktail Protocol"
+              placeholderTextColor="#444"
+            />
+
+            <Text style={styles.fieldLabel}>Category *</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {['Protocol', 'Standing Order', 'IV Recipe', 'Other'].map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, borderColor: docCategory2 === cat ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: docCategory2 === cat ? primaryColor + '20' : 'transparent' }}
+                  onPress={() => setDocCategory2(cat)}
+                >
+                  <Text style={{ color: docCategory2 === cat ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 13 }}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={styles.fieldLabel}>Description (optional)</Text>
+            <TextInput
+              style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+              value={docDescription}
+              onChangeText={setDocDescription}
+              placeholder="Brief description of this document..."
+              placeholderTextColor="#444"
+              multiline
+            />
+
+            <TouchableOpacity
+              style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor, marginTop: 8 }, uploadingDoc && { opacity: 0.6 }]}
+              disabled={uploadingDoc}
+              onPress={async () => {
+                if (!docTitle.trim()) { Alert.alert('Required', 'Document title is required'); return }
+                try {
+                  if (typeof window !== 'undefined') {
+                    const input = document.createElement('input')
+                    input.type = 'file'
+                    input.accept = 'application/pdf'
+                    input.onchange = async (e) => {
+                      const file = e.target.files[0]
+                      if (!file) return
+                      setUploadingDoc(true)
+                      const formData = new FormData()
+                      formData.append('file', file)
+                      formData.append('title', docTitle)
+                      formData.append('category', docCategory2)
+                      formData.append('description', docDescription)
+                      try {
+                        const res = await fetch(`${API_URL}/documents/upload`, {
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${token}` },
+                          body: formData
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setDocModal(false)
+                          fetchDocuments()
+                          Alert.alert('✅ Uploaded', `${docTitle} has been uploaded.`)
+                        } else {
+                          Alert.alert('Error', data.error || 'Upload failed')
+                        }
+                      } catch (err) {
+                        Alert.alert('Error', 'Upload failed')
+                      } finally {
+                        setUploadingDoc(false)
+                      }
+                    }
+                    input.click()
+                  } else {
+                    Alert.alert('Coming Soon', 'Document upload from mobile is coming soon. Use the web version to upload documents.')
+                  }
+                } catch (err) {
+                  Alert.alert('Error', 'Could not open file picker')
+                }
+              }}
+            >
+              {uploadingDoc ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Select PDF & Upload</Text>}
+            </TouchableOpacity>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+    
 
       {/* Branding Tab */}
       {activeTab === 'branding' && (
