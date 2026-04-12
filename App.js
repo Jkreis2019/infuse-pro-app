@@ -140,6 +140,7 @@ async function registerForPushNotificationsAsync() {
     return null
   }
 
+  if (Platform.OS === 'web') return null
   const token = (await Notifications.getExpoPushTokenAsync({
     projectId: '824f080c-a62b-417d-8d02-4554a9578672'
   })).data

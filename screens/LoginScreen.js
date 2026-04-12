@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native'
 import { useState } from 'react'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
@@ -22,6 +22,7 @@ export default function LoginScreen({ route, navigation }) {
   const registerPushToken = async (token) => {
     try {
       if (!Device.isDevice) return
+      if (Platform.OS === 'web') return
       const { status } = await Notifications.getPermissionsAsync()
       if (status !== 'granted') {
         const { status: newStatus } = await Notifications.requestPermissionsAsync()
