@@ -25,6 +25,19 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
   const [declineReason, setDeclineReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState('intake')
+  const [chartData, setChartData] = useState(null)
+  const [chartLoading, setChartLoading] = useState(false)
+
+  useEffect(() => {
+    if (activeTab === 'chart' && gfe?.call_id && !chartData) {
+      setChartLoading(true)
+      fetch(`${API_URL}/charts/call/${gfe.call_id}`, { headers })
+        .then(r => r.json())
+        .then(data => { if (data.chart) setChartData(data.chart) })
+        .catch(() => {})
+        .finally(() => setChartLoading(false))
+    }
+  }, [activeTab])
 
   const toggleService = (service) => {
     setApprovedServices(prev =>
@@ -97,14 +110,14 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
 
         {/* Tab Bar */}
         <View style={{ flexDirection: 'row', backgroundColor: secondaryColor }}>
-          {['intake', 'orders'].map(tab => (
+          {['intake', 'chart', 'orders'].map(tab => (
             <TouchableOpacity
               key={tab}
               style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={{ color: activeTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>
-                {tab === 'intake' ? '📋 Intake' : '✍️ Orders'}
+                {tab === 'intake' ? '📋 Intake' : tab === 'chart' ? '📊 Chart' : '✍️ Orders'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -186,6 +199,49 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                 </View>
               )}
             </>
+          )}
+
+          {activeTab === 'chart' && (
+            <View style={rStyles.section}>
+              <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>TECH CHART</Text>
+              {chartLoading ? (
+                <ActivityIndicator color={primaryColor} />
+              ) : !chartData ? (
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No chart submitted yet</Text>
+              ) : (
+                <>
+                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Status</Text><Text style={[rStyles.infoValue, { color: chartData.status === 'submitted' ? '#4CAF50' : '#FF9800' }]}>{chartData.status?.toUpperCase()}</Text></View>
+                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>BP</Text><Text style={rStyles.infoValue}>{chartData.blood_pressure || '—'}</Text></View>
+                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>HR</Text><Text style={rStyles.infoValue}>{chartData.heart_rate || '—'}</Text></View>
+                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>O2</Text><Text style={rStyles.infoValue}>{chartData.oxygen_sat ? `${chartData.oxygen_sat}%` : '—'}</Text></View>
+                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Pain Scale</Text><Text style={rStyles.infoValue}>{chartData.pain_scale || '—'}</Text></View>
+                  {chartData.chief_complaint && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={rStyles.infoLabel}>CHIEF COMPLAINT</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.chief_complaint}</Text>
+                    </View>
+                  )}
+                  {chartData.tech_notes && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={rStyles.infoLabel}>TECH NOTES</Text>
+                      <Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text>
+                    </View>
+                  )}
+                  {chartData.complications === 'Yes' && (
+                    <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}>
+                      <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ COMPLICATIONS</Text>
+                      <Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text>
+                    </View>
+                  )}
+                  {chartData.amendment_notes && (
+                    <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}>
+                      <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text>
+                      <Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
           )}
 
           {/* Orders Tab */}
