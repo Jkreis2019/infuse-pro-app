@@ -551,6 +551,7 @@ export default function ClinicTechScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      <ClinicChartModal visible={showChart} onClose={() => { setShowChart(false); setChartBooking(null); fetchAll() }} booking={chartBooking} token={token} company={company} />
       {/* Header */}
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -613,7 +614,11 @@ export default function ClinicTechScreen({ route, navigation }) {
                 {!patient.has_intake && <Text style={styles.noIntake}>⚠️ No intake on file</Text>}
                 <TouchableOpacity
                   style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
-                  onPress={() => { setChartBooking(patient); setShowChart(true) }}
+                  onPress={() => { 
+                    console.log('Chart patient:', JSON.stringify(patient)); 
+                    setChartBooking(patient); 
+                    setShowChart(true); 
+                  }}
                 >
                   <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>📋 Chart</Text>
                 </TouchableOpacity>
