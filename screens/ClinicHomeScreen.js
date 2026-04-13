@@ -188,7 +188,7 @@ const createWalkinPatient = async () => {
       const res = await fetch(`${API_URL}/clinic/walkin`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientName: wName, phone: wPhone, service: wService, notes: wNotes })
+        body: JSON.stringify({ patientName: wName, phone: wPhone, service: wService, notes: wNotes, userId: wSelectedPatient?.id || null })
       })
       const data = await res.json()
       if (data.success) {
