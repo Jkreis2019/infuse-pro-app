@@ -80,6 +80,77 @@ function AuditLogTab({ token, primaryColor, secondaryColor }) {
   )
 }
 
+function IntakeCard({ intake, index, primaryColor }) {
+  const [expanded, setExpanded] = React.useState(index === 0)
+  return (
+    <TouchableOpacity
+      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, marginBottom: 10, overflow: 'hidden', borderLeftWidth: 3, borderLeftColor: primaryColor }}
+      onPress={() => setExpanded(!expanded)}
+      activeOpacity={0.8}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 }}>
+        <View>
+          <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13 }}>✅ Submitted {new Date(intake.submitted_at).toLocaleDateString()}</Text>
+          {intake.patient_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{intake.patient_name}</Text>}
+        </View>
+        <Text style={{ color: primaryColor, fontSize: 18 }}>{expanded ? '▲' : '▼'}</Text>
+      </View>
+      {expanded && (
+        <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          {intake.medications && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>💊 MEDICATIONS</Text>
+              <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{intake.medications}</Text>
+            </View>
+          )}
+          {intake.supplements && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>🌿 SUPPLEMENTS</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.supplements}</Text>
+            </View>
+          )}
+          {intake.current_symptoms && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>🤒 CURRENT SYMPTOMS</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.current_symptoms}</Text>
+            </View>
+          )}
+          {intake.allergies_detail?.length > 0 && (
+            <View style={{ backgroundColor: 'rgba(229,62,62,0.08)', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#e53e3e' }}>
+              <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>⚠️ ALLERGIES</Text>
+              {(Array.isArray(intake.allergies_detail) ? intake.allergies_detail : []).map((a, i) => (
+                <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {a}</Text>
+              ))}
+            </View>
+          )}
+          {intake.important_history?.length > 0 && (
+            <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderRadius: 8, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#FF9800' }}>
+              <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>⚡ IMPORTANT HISTORY</Text>
+              {(Array.isArray(intake.important_history) ? intake.important_history : []).map((h, i) => (
+                <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {h}</Text>
+              ))}
+            </View>
+          )}
+          {intake.emergency_contact && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>🆘 EMERGENCY CONTACT</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.emergency_contact}</Text>
+              {intake.emergency_contact_phone && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>📞 {intake.emergency_contact_phone}</Text>}
+              {intake.emergency_contact_relationship && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{intake.emergency_contact_relationship}</Text>}
+            </View>
+          )}
+          {intake.patient_address && (
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>🏠 ADDRESS</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.patient_address}</Text>
+            </View>
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
+  )
+}
+
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
   const primaryColor = company?.primaryColor || '#C9A84C'
@@ -1888,17 +1959,12 @@ const [showImportModal, setShowImportModal] = useState(false)
               {/* Intake Tab */}
               {psActiveTab === 'intake' && (
                 <>
-                  {!psProfileData?.intake ? (
+                  {!psProfileData?.intakes?.length ? (
                     <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake on file</Text>
                   ) : (
-                    <>
-                      <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 12, marginBottom: 12 }}><Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13 }}>✅ Submitted {new Date(psProfileData.intake.submitted_at).toLocaleDateString()}</Text></View>
-                      {psProfileData.intake.medications && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>💊 MEDICATIONS</Text><Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.intake.medications}</Text></View>}
-                      {psProfileData.intake.allergies_detail?.length > 0 && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚠️ ALLERGIES</Text>{(Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail : []).map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {a}</Text>)}</View>}
-                      {psProfileData.intake.important_history?.length > 0 && <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#FF9800' }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>⚡ IMPORTANT HISTORY</Text>{(Array.isArray(psProfileData.intake.important_history) ? psProfileData.intake.important_history : []).map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {h}</Text>)}</View>}
-                      {psProfileData.intake.supplements && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🌿 SUPPLEMENTS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.supplements}</Text></View>}
-                      {psProfileData.intake.current_symptoms && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🤒 CURRENT SYMPTOMS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.current_symptoms}</Text></View>}
-                    </>
+                    psProfileData.intakes.map((intake, index) => (
+                      <IntakeCard key={intake.id} intake={intake} index={index} primaryColor={primaryColor} />
+                    ))
                   )}
                 </>
               )}
