@@ -240,7 +240,7 @@ export default function HomeScreen({ route, navigation }) {
         style={[styles.bookButton, { backgroundColor: company.primaryColor }]}
         onPress={() => {
           if (linkedCompanyId) {
-            navigation.getParent()?.navigate('Booking', { token, user, company })
+            navigation.getParent()?.navigate('Booking', { token, user, company: { ...company, id: company?.id || user?.companyId } })
           } else {
             navigation.navigate('Map', { token, user, company, bookingMode: true })
           }
