@@ -72,11 +72,20 @@ const [cpsProfileModal, setCpsProfileModal] = useState(false)
     }
   }, [token])
 
+  const [companyServices, setCompanyServices] = useState([])
+
   React.useEffect(() => {
     fetchAll()
     const interval = setInterval(fetchAll, 15000)
     return () => clearInterval(interval)
   }, [fetchAll])
+
+  React.useEffect(() => {
+    fetch(`${API_URL}/companies/${company?.id}/services`)
+      .then(r => r.json())
+      .then(d => { if (d.services) setCompanyServices(d.services.map(s => s.name)) })
+      .catch(() => {})
+  }, [company?.id])
 
   const onRefresh = () => { setRefreshing(true); fetchAll() }
 
@@ -474,7 +483,12 @@ const createWalkinPatient = async () => {
           <Text style={styles.sectionLabel}>Phone</Text>
           <TextInput style={styles.input} placeholder="(602) 555-0100" placeholderTextColor="#666" value={wcPhone} onChangeText={setWcPhone} keyboardType="phone-pad" />
           <Text style={styles.sectionLabel}>Date of Birth *</Text>
-          <TextInput style={styles.input} placeholder="MM/DD/YYYY" placeholderTextColor="#666" value={wcDob} onChangeText={setWcDob} />
+          <TextInput style={styles.input} placeholder="MM/DD/YYYY" placeholderTextColor="#666" value={wcDob} onChangeText={(text) => {
+            let v = text.replace(/\D/g, '').slice(0, 8)
+            if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4)
+            else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2)
+            setWcDob(v)
+          }} keyboardType="numeric" />
           <TouchableOpacity
             style={[styles.submitBtn, { backgroundColor: primaryColor, marginBottom: 10 }, creatingWalkin && { opacity: 0.6 }]}
             onPress={createWalkinPatient}
@@ -732,7 +746,7 @@ const createWalkinPatient = async () => {
                 </TouchableOpacity>
                 {showServiceList && (
                   <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10 }}>
-                    {SERVICES.map(s => (
+                    {(companyServices.length > 0 ? companyServices : SERVICES).map(s => (
                       <TouchableOpacity
                         key={s}
                         style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}
