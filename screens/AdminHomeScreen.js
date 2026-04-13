@@ -792,10 +792,42 @@ const [showImportModal, setShowImportModal] = useState(false)
           <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
 
             <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 8 }}>📋 REQUIRED CSV FORMAT</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 20, marginBottom: 8 }}>Your CSV must have these column headers (first row):</Text>
-              <Text style={{ color: '#fff', fontSize: 12, fontFamily: 'monospace', marginBottom: 4 }}>first_name, last_name, email</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, lineHeight: 18 }}>Optional: phone, address, insurance_provider, insurance_member_id, insurance_group_number</Text>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 12 }}>📋 HOW TO IMPORT YOUR PATIENTS</Text>
+              
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 1 — Get the template</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Download our CSV template below and open it in Excel, Google Sheets, or Numbers.</Text>
+
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 2 — Fill it in</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 4 }}>Add one patient per row. Required columns:</Text>
+              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 2 }}>• first_name</Text>
+              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 2 }}>• last_name</Text>
+              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 8 }}>• email</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 4 }}>Optional columns (leave blank if you don't have them):</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• phone</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• address</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• insurance_provider</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• insurance_member_id</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>• insurance_group_number</Text>
+
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 3 — Save as CSV</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>In Excel or Google Sheets, go to File → Download → CSV (.csv). Save it to your phone or cloud storage.</Text>
+
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 4 — Upload below</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 16 }}>Tap the upload button, find your CSV file, and we'll do the rest!</Text>
+
+              <TouchableOpacity
+                style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 12, alignItems: 'center' }}
+                onPress={() => {
+                  const { Linking } = require('react-native')
+                  const template = 'first_name,last_name,email,phone,address,insurance_provider,insurance_member_id,insurance_group_number\nJane,Smith,jane@example.com,6025550100,123 Main St Phoenix AZ,Blue Cross,MEM123456,GRP789'
+                  const encoded = encodeURIComponent(template)
+                  Linking.openURL(`data:text/csv;charset=utf-8,${encoded}`).catch(() => {
+                    Alert.alert('Template', 'Copy these headers into row 1 of your spreadsheet:\n\nfirst_name, last_name, email, phone, address, insurance_provider, insurance_member_id, insurance_group_number')
+                  })
+                }}
+              >
+                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>⬇️ Download Template CSV</Text>
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
