@@ -613,7 +613,7 @@ export default function ClinicTechScreen({ route, navigation }) {
                 {!patient.has_intake && <Text style={styles.noIntake}>⚠️ No intake on file</Text>}
                 <TouchableOpacity
                   style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
-                  onPress={(e) => { e.stopPropagation(); setChartBooking(patient); setShowChart(true) }}
+                  onPress={() => { setChartBooking(patient); setShowChart(true) }}
                 >
                   <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>📋 Chart</Text>
                 </TouchableOpacity>
