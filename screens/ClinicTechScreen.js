@@ -9,7 +9,7 @@ export default function ClinicTechScreen({ route, navigation }) {
   const secondaryColor = company?.secondaryColor || '#0a2420'
   const headers = { Authorization: `Bearer ${token}` }
 
-  const [activeTab, setActiveTab] = useState('myPatients')
+  const [activeTab, setActiveTab] = useState('queue')
   const [myPatients, setMyPatients] = useState([])
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(true)
@@ -140,8 +140,9 @@ export default function ClinicTechScreen({ route, navigation }) {
       {/* Tab Bar */}
       <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         {[
+          { key: 'queue', label: `Queue (${queue.length})` },
           { key: 'myPatients', label: `My Patients (${myPatients.length})` },
-          { key: 'queue', label: `Queue (${queue.length})` }
+          { key: 'profile', label: '👤 Profile' }
         ].map(tab => (
           <TouchableOpacity
             key={tab.key}
@@ -215,6 +216,32 @@ export default function ClinicTechScreen({ route, navigation }) {
               </View>
             ))
           )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Profile Tab */}
+      {activeTab === 'profile' && (
+        <ScrollView style={styles.scroll} contentContainerStyle={{ padding: 24, alignItems: 'center' }}>
+          <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: primaryColor + '30', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+            <Text style={{ color: primaryColor, fontSize: 28, fontWeight: '700' }}>{user?.firstName?.[0]}{user?.lastName?.[0]}</Text>
+          </View>
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 4 }}>{user?.firstName} {user?.lastName}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 4 }}>{user?.email}</Text>
+          <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600', marginBottom: 32 }}>{company?.name} · CLINIC TECH</Text>
+          <TouchableOpacity
+            style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 14, padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}
+            onPress={() => Alert.alert('Change Password', 'Use the Forgot Password flow to change your password.')}
+          >
+            <Text style={{ color: '#fff', fontSize: 15 }}>Change Password</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 20 }}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ width: '100%', marginTop: 16, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', alignItems: 'center', backgroundColor: 'rgba(220,80,80,0.08)' }}
+            onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+          >
+            <Text style={{ color: '#f09090', fontSize: 15, fontWeight: '500' }}>Log out</Text>
+          </TouchableOpacity>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -300,7 +327,7 @@ export default function ClinicTechScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a2420' },
   centered: { flex: 1, backgroundColor: '#0a2420', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
+  header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
