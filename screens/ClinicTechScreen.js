@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Image, Platform } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
