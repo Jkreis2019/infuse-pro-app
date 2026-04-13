@@ -301,7 +301,7 @@ const fetchChatSession = async () => {
               ) : (
                 <>
                   <Text style={[styles.detailLabel, { color: 'rgba(255,255,255,0.5)' }]}>🕐 Requested</Text>
-                  <Text style={styles.detailValue}>As soon as possible</Text>
+                  <Text style={[styles.detailValue, { color: '#fff' }]}>As soon as possible</Text>
                 </>
               )}
       </View>
