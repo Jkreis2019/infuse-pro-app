@@ -58,6 +58,11 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [log, setLog] = useState([])
   const [scheduled, setScheduled] = useState([])
   const [upcoming, setUpcoming] = useState([])
+  const [dualScreen, setDualScreen] = useState(false)
+  const [chatBookingId, setChatBookingId] = useState(null)
+  const [chatPatientName, setChatPatientName] = useState('')
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState('')
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -681,7 +686,7 @@ const selectPatient = (patient) => {
 const openSendIntake = (bookingId, patientName, patientEmail = '') => {
   setIntakeBookingId(bookingId)
   setIntakePatientName(patientName)
-  setIntakePatientEmail(patientEmail)
+  setIntakePatientEmail('')
   setPatientListModal(false)
   setSendIntakeModal(true)
 }
@@ -748,6 +753,16 @@ const submitSendIntake = async () => {
     }
   }
 
+  const loadChat = async (bookingId, patientName) => {
+    setChatBookingId(bookingId)
+    setChatPatientName(patientName)
+    try {
+      const res = await fetch(`${API_URL}/dispatch/chat/${bookingId}/messages`, { headers })
+      const data = await res.json()
+      if (data.success) setChatMessages(data.messages)
+    } catch (e) {}
+  }
+
   const availableTechs = techs.filter(t => t.status === 'available' || t.status === 'clear' || t.status === 'assigned' || t.status === 'en_route' || t.status === 'on_scene')
 
   if (loading) {
@@ -794,6 +809,21 @@ const submitSendIntake = async () => {
         <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>💬 Messages</Text>
       </TouchableOpacity>
       <TouchableOpacity
+        onPress={() => {
+          const url = `https://api.infusepro.app/dispatch/chat-window?token=${token}`
+          if (Platform.OS === 'web') { window.open(url, '_blank', 'width=1000,height=700') }
+        }}
+        style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🖥️ Pop Out Chat</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => setDualScreen(!dualScreen)}
+        style={{ backgroundColor: dualScreen ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: dualScreen ? secondaryColor : '#fff', fontSize: 12, fontWeight: '600' }}>⊞ Dual</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={() => setPatientSearchModal(true)}
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
@@ -803,6 +833,7 @@ const submitSendIntake = async () => {
         onPress={() => setProfileModal(true)}
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
+
         <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
       </TouchableOpacity>
       <TouchableOpacity
@@ -815,8 +846,9 @@ const submitSendIntake = async () => {
 </View>
 </View>
 
+      <View style={{ flex: 1, flexDirection: dualScreen ? 'row' : 'column' }}>
       {/* Tabs */}
-      <View style={styles.tabs}>
+      <View style={[styles.tabs, dualScreen && { flexDirection: 'column', width: 110, borderBottomWidth: 0, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)' }]}>
         {['queue', 'scheduled', 'upcoming', 'active', 'team', 'log'].map(tab => (
           <TouchableOpacity
             key={tab}
@@ -2449,7 +2481,61 @@ const submitSendIntake = async () => {
   </View>
 </Modal>
 
-    </View>
+      </View>
+      {dualScreen && (
+        <View style={{ flex: 0.4, backgroundColor: 'rgba(255,255,255,0.03)', borderLeftWidth: 1, borderLeftColor: 'rgba(255,255,255,0.08)' }}>
+          {chatBookingId ? (
+            <View style={{ flex: 1 }}>
+              <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>{chatPatientName}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Patient Chat</Text>
+              </View>
+              <ScrollView style={{ flex: 1, padding: 16 }}>
+                {chatMessages.map((msg, i) => (
+                  <View key={i} style={{ marginBottom: 12, alignItems: msg.sender_id === user?.id ? 'flex-end' : 'flex-start' }}>
+                    <View style={{ backgroundColor: msg.sender_id === user?.id ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
+                      <Text style={{ color: msg.sender_id === user?.id ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
+                    </View>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>{msg.sender_first}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+              <View style={{ flexDirection: 'row', padding: 12, gap: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+                <TextInput
+                  style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, color: '#fff', fontSize: 14 }}
+                  placeholder="Message..."
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  value={chatInput}
+                  onChangeText={setChatInput}
+                />
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (!chatInput.trim()) return
+                    await fetch(`${API_URL}/dispatch/chat/${chatBookingId}/messages`, {
+                      method: 'POST',
+                      headers: { ...headers, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ message: chatInput.trim() })
+                    })
+                    setChatInput('')
+                    const res = await fetch(`${API_URL}/dispatch/chat/${chatBookingId}/messages`, { headers })
+                    const data = await res.json()
+                    if (data.success) setChatMessages(data.messages)
+                  }}
+                  style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, justifyContent: 'center' }}
+                >
+                  <Text style={{ color: secondaryColor, fontWeight: '700' }}>Send</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 32, marginBottom: 12 }}>💬</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center', paddingHorizontal: 24 }}>Tap a booking to open patient chat</Text>
+            </View>
+          )}
+        </View>
+      )}
+      </View>
   )
 }
 

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
 import { useState } from 'react'
 
 const API_URL = 'https://api.infusepro.app'
@@ -21,6 +21,7 @@ export default function SignupScreen({ route, navigation }) {
   const [dob, setDob] = useState('')
   const [password, setPassword] = useState('')
   const [companyCode, setCompanyCode] = useState(company.code || '')
+  const [referralCode, setReferralCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -47,6 +48,15 @@ export default function SignupScreen({ route, navigation }) {
       })
       const data = await response.json()
       if (data.success) {
+        if (referralCode) {
+          try {
+            await fetch(`${API_URL}/referrals/apply`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: referralCode.toUpperCase(), newUserId: data.user.id })
+            })
+          } catch (e) {}
+        }
         navigation.navigate('EmailVerification', { email: data.user.email })
       } else {
         setError(data.message || 'Something went wrong')
@@ -58,6 +68,7 @@ export default function SignupScreen({ route, navigation }) {
   }
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {company.name !== 'Infuse Pro' && (
         <View style={[styles.companyBadge, { borderColor: company.primary_color }]}>
@@ -156,6 +167,16 @@ export default function SignupScreen({ route, navigation }) {
         </>
       )}
 
+      <Text style={styles.label}>Referral code (optional)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="e.g. PATRIO964"
+        placeholderTextColor="#666"
+        value={referralCode}
+        onChangeText={setReferralCode}
+        autoCapitalize="characters"
+      />
+
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <TouchableOpacity
@@ -179,6 +200,7 @@ export default function SignupScreen({ route, navigation }) {
         <Text style={styles.loginLinkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   )
 }
 
