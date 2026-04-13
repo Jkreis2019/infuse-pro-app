@@ -41,6 +41,7 @@ const [wcPhone, setWcPhone] = useState('')
 const [wcDob, setWcDob] = useState('')
 const [creatingWalkin, setCreatingWalkin] = useState(false)
 const [clinicPatientSearchModal, setClinicPatientSearchModal] = useState(false)
+const [clinicProfileModal, setClinicProfileModal] = useState(false)
 const [cpsQuery, setCpsQuery] = useState('')
 const [cpsResults, setCpsResults] = useState([])
 const [cpsSearching, setCpsSearching] = useState(false)
@@ -236,18 +237,30 @@ const createWalkinPatient = async () => {
             <Text style={styles.headerTitle}>Clinic Console</Text>
             <Text style={styles.headerSub}>{user?.firstName} · FRONT DESK</Text>
           </View>
-          <View style={{ alignItems: 'flex-end' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <TouchableOpacity
               style={[styles.walkinBtn, { backgroundColor: primaryColor }]}
               onPress={() => setWalkinModal(true)}
             >
               <Text style={[styles.walkinBtnText, { color: secondaryColor }]}>+ Walk-In</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setClinicPatientSearchModal(true)}>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>🔍 Patients</Text>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => setClinicPatientSearchModal(true)}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🔍 Patients</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => setClinicProfileModal(true)}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -417,6 +430,33 @@ const createWalkinPatient = async () => {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Profile Modal */}
+<Modal visible={clinicProfileModal} transparent animationType="slide">
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>{user?.firstName} {user?.lastName}</Text>
+      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>{user?.email}</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Role</Text>
+        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>FRONT DESK</Text>
+      </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', marginBottom: 24 }}>
+        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Company</Text>
+        <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{company?.name}</Text>
+      </View>
+      <TouchableOpacity
+        style={{ backgroundColor: 'rgba(220,80,80,0.15)', borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 8 }}
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+      >
+        <Text style={{ color: '#f09090', fontSize: 15, fontWeight: '500' }}>Log out</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={{ alignItems: 'center', padding: 12 }} onPress={() => setClinicProfileModal(false)}>
+        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
 
 {/* Create Walkin Patient Modal */}
 <Modal visible={showCreateWalkin} transparent animationType="slide">

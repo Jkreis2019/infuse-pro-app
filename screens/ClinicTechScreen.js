@@ -612,6 +612,15 @@ export default function ClinicTechScreen({ route, navigation }) {
                 <Text style={styles.cardPatient}>👤 {patient.patient_name}</Text>
                 {patient.patient_dob && <Text style={styles.cardSub}>Age {getAge(patient.patient_dob)}</Text>}
                 {!patient.has_intake && <Text style={styles.noIntake}>⚠️ No intake on file</Text>}
+                {patient.has_gfe && !patient.gfe_not_candidate && (
+                  <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>✅ GFE on file</Text>
+                )}
+                {patient.gfe_not_candidate && (
+                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>🚫 Not a candidate</Text>
+                )}
+                {!patient.has_gfe && !patient.gfe_not_candidate && (
+                  <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No GFE on file</Text>
+                )}
                 <TouchableOpacity
                   style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
                   onPress={() => { 
@@ -721,6 +730,20 @@ export default function ClinicTechScreen({ route, navigation }) {
                     {selectedPatient.has_intake ? '✅ On file' : '⚠️ Not on file'}
                   </Text>
                 </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>GFE</Text>
+                  <Text style={[styles.infoValue, { color: selectedPatient.gfe_not_candidate ? '#e53e3e' : selectedPatient.has_gfe ? '#4CAF50' : '#FF9800' }]}>
+                    {selectedPatient.gfe_not_candidate ? '🚫 Not a candidate' : selectedPatient.has_gfe ? '✅ On file' : '⚠️ Not on file'}
+                  </Text>
+                </View>
+                {selectedPatient.has_gfe && selectedPatient.gfe_approved_services?.length > 0 && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Approved</Text>
+                    <Text style={[styles.infoValue, { color: '#4CAF50' }]}>
+                      {Array.isArray(selectedPatient.gfe_approved_services) ? selectedPatient.gfe_approved_services.join(', ') : selectedPatient.gfe_approved_services}
+                    </Text>
+                  </View>
+                )}
                 {selectedPatient.notes && (
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Notes</Text>
