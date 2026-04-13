@@ -6,7 +6,7 @@ const API_URL = 'https://api.infusepro.app'
 
 const STATUS_COLORS = {
   available: '#4CAF50',
-  assigned: '#5BBFB5',
+  assigned: '#C9A84C',
   en_route: '#2196F3',
   on_scene: '#9C27B0',
   clear: '#4CAF50'
@@ -21,7 +21,7 @@ const STATUS_LABELS = {
 }
 
 const BOOKING_STATUS_COLORS = {
-  confirmed: '#5BBFB5',
+  confirmed: '#C9A84C',
   en_route: '#2196F3',
   on_scene: '#9C27B0'
 }
@@ -47,7 +47,7 @@ function formatTime(seconds) {
 
 export default function DispatcherHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#5BBFB5'
+  const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
   const [activeTab, setActiveTab] = useState('queue')
@@ -2412,11 +2412,11 @@ const submitSendIntake = async () => {
       <ScrollView>
         <Text style={styles.modalTitle}>{detailBooking?.service}</Text>
         <View style={[styles.statusBadge, { 
-          borderColor: detailBooking?.source === 'phone' ? '#a0c0f0' : '#5BBFB5',
+          borderColor: detailBooking?.source === 'phone' ? '#a0c0f0' : '#C9A84C',
           alignSelf: 'flex-start', marginBottom: 12
         }]}>
           <Text style={[styles.statusBadgeText, { 
-            color: detailBooking?.source === 'phone' ? '#a0c0f0' : '#5BBFB5' 
+            color: detailBooking?.source === 'phone' ? '#a0c0f0' : '#C9A84C' 
           }]}>
             {detailBooking?.source === 'phone' ? 'PHONE' : 'APP'}
           </Text>

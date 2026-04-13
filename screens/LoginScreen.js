@@ -7,7 +7,7 @@ const API_URL = 'https://api.infusepro.app'
 
 const DEFAULT_COMPANY = {
   name: 'Infuse Pro',
-  primaryColor: '#5BBFB5',
+  primaryColor: '#C9A84C',
   secondaryColor: '#0D1B4B',
   location: ''
 }
@@ -177,14 +177,14 @@ export default function LoginScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B', paddingHorizontal: 24, paddingTop: 60 },
-  logo: { fontSize: 28, fontWeight: '600', color: '#5BBFB5', letterSpacing: 3, marginBottom: 32, textAlign: 'center' },
+  logo: { fontSize: 28, fontWeight: '600', color: '#C9A84C', letterSpacing: 3, marginBottom: 32, textAlign: 'center' },
   successBanner: { backgroundColor: 'rgba(100,180,80,0.15)', borderWidth: 1, borderColor: 'rgba(100,180,80,0.3)', borderRadius: 8, padding: 12, marginBottom: 20 },
   successText: { color: '#8fda74', fontSize: 13, textAlign: 'center' },
   title: { fontSize: 26, fontWeight: '600', color: '#fff', marginBottom: 24 },
   label: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff' },
   error: { color: '#f09090', fontSize: 13, marginTop: 12, marginBottom: 4 },
-  button: { backgroundColor: '#5BBFB5', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
+  button: { backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonText: { color: '#0D1B4B', fontSize: 15, fontWeight: '600', letterSpacing: 0.5 },
   signupLink: { padding: 16, alignItems: 'center' },
   signupLinkText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -53,9 +53,9 @@ const [cpsProfileModal, setCpsProfileModal] = useState(false)
   const fetchAll = useCallback(async () => {
     try {
       const [qRes, aRes, lRes] = await Promise.all([
-        fetch(`${API_URL}/dispatch/queue`, { headers }),
-        fetch(`${API_URL}/dispatch/active`, { headers }),
-        fetch(`${API_URL}/dispatch/log`, { headers })
+        fetch(`${API_URL}/clinic/queue`, { headers }),
+        fetch(`${API_URL}/clinic/active`, { headers }),
+        fetch(`${API_URL}/clinic/log`, { headers })
       ])
       const [qData, aData, lData] = await Promise.all([
         qRes.json(), aRes.json(), lRes.json()
@@ -208,7 +208,7 @@ const createWalkinPatient = async () => {
   }
 
   const getStatusColor = (status) => {
-    const colors = { pending: '#5BBFB5', confirmed: '#2196F3', on_scene: '#4CAF50', completed: '#aaa', cancelled: '#e53e3e' }
+    const colors = { pending: '#C9A84C', confirmed: '#2196F3', on_scene: '#4CAF50', completed: '#aaa', cancelled: '#e53e3e' }
     return colors[status] || '#aaa'
   }
 
@@ -227,7 +227,9 @@ const createWalkinPatient = async () => {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <View>
             {company?.logoUrl ? (
-  <Image source={{ uri: company.logoUrl }} style={{ height: 36, width: 140, resizeMode: 'contain', marginBottom: 4 }} />
+  <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: primaryColor + '20', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 4 }}>
+    <Image source={{ uri: company.logoUrl }} style={{ width: 42, height: 42, resizeMode: 'contain' }} />
+  </View>
 ) : (
   <Text style={[styles.companyName, { color: primaryColor }]}>{company?.name}</Text>
 )}
@@ -693,7 +695,7 @@ const createWalkinPatient = async () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0a2420' },
   centered: { flex: 1, backgroundColor: '#0a2420', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
+  header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },

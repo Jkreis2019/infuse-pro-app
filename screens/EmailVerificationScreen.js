@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 16,
-    color: '#5BBFB5',
+    color: '#C9A84C',
     fontWeight: 'bold',
     marginBottom: 16,
     textAlign: 'center'
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     lineHeight: 22
   },
   resendButton: {
-    backgroundColor: '#5BBFB5',
+    backgroundColor: '#C9A84C',
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 10,

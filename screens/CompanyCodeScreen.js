@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '600', color: '#fff', marginBottom: 8 },
   subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 32, fontWeight: '300' },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', borderRadius: 10, padding: 16, fontSize: 22, color: '#fff', letterSpacing: 6, marginBottom: 12, textAlign: 'center' },
-  button: { backgroundColor: '#5BBFB5', borderRadius: 10, padding: 16, alignItems: 'center', marginBottom: 16 },
+  button: { backgroundColor: '#C9A84C', borderRadius: 10, padding: 16, alignItems: 'center', marginBottom: 16 },
   buttonText: { color: '#0D1B4B', fontSize: 15, fontWeight: '600' },
   error: { color: '#f09090', textAlign: 'center', fontSize: 13, marginBottom: 16 },
   companyCard: { borderWidth: 1.5, borderRadius: 12, padding: 20, marginTop: 8, backgroundColor: 'rgba(255,255,255,0.04)' },

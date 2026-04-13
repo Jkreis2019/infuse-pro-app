@@ -6,7 +6,7 @@ export default function ChartScreen({ route, navigation }) {
     <View style={{ flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ color: '#fff', fontSize: 24 }}>Chart Screen</Text>
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={{ color: '#5BBFB5', marginTop: 20 }}>Go Back</Text>
+        <Text style={{ color: '#C9A84C', marginTop: 20 }}>Go Back</Text>
       </TouchableOpacity>
     </View>
   )

@@ -35,7 +35,7 @@ function AuditLogTab({ token, primaryColor, secondaryColor }) {
   const actionColor = (action) => {
     if (action.includes('create')) return '#4CAF50'
     if (action.includes('update') || action.includes('status')) return '#2196F3'
-    if (action.includes('view')) return '#5BBFB5'
+    if (action.includes('view')) return '#C9A84C'
     if (action.includes('delete')) return '#f09090'
     return '#aaa'
   }
@@ -82,7 +82,7 @@ function AuditLogTab({ token, primaryColor, secondaryColor }) {
 
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#5BBFB5'
+  const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -256,7 +256,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
   // Branding
   const [brandingLogo, setBrandingLogo] = useState(company?.logo || null)
-  const [brandingPrimary, setBrandingPrimary] = useState(company?.primaryColor || '#5BBFB5')
+  const [brandingPrimary, setBrandingPrimary] = useState(company?.primaryColor || '#C9A84C')
   const [brandingSecondary, setBrandingSecondary] = useState(company?.secondaryColor || '#0D1B4B')
   const [savingBranding, setSavingBranding] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
@@ -283,7 +283,7 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [editRegionModal, setEditRegionModal] = useState(false)
   const [selectedRegion, setSelectedRegion] = useState(null)
   const [rName, setRName] = useState('')
-  const [rColor, setRColor] = useState('#5BBFB5')
+  const [rColor, setRColor] = useState('#C9A84C')
   const [rCities, setRCities] = useState('')
   const [savingRegion, setSavingRegion] = useState(false)
 
@@ -661,7 +661,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       const data = await res.json()
       if (data.success) {
         setNewRegionModal(false); setEditRegionModal(false); setSelectedRegion(null)
-        setRName(''); setRColor('#5BBFB5'); setRCities('')
+        setRName(''); setRColor('#C9A84C'); setRCities('')
         fetchAll()
       } else Alert.alert('Error', data.message || 'Could not save region')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingRegion(false) }
@@ -1214,7 +1214,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* ── REGIONS ── */}
       {activeTab === 'regions' && (
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
-          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 20 }]} onPress={() => { setRName(''); setRColor('#5BBFB5'); setRCities(''); setSelectedRegion(null); setNewRegionModal(true) }}>
+          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 20 }]} onPress={() => { setRName(''); setRColor('#C9A84C'); setRCities(''); setSelectedRegion(null); setNewRegionModal(true) }}>
             <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ Add Region</Text>
           </TouchableOpacity>
           {regions.length === 0 ? (
@@ -1319,7 +1319,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           <Text style={styles.sectionTitle}>Brand Colors</Text>
           <View style={styles.card}>
             <Text style={styles.fieldLabel}>Primary Color</Text>
-            <TextInput style={[styles.input, { borderColor: brandingPrimary }]} value={brandingPrimary} onChangeText={setBrandingPrimary} placeholder="#5BBFB5" placeholderTextColor="#444" autoCapitalize="characters" />
+            <TextInput style={[styles.input, { borderColor: brandingPrimary }]} value={brandingPrimary} onChangeText={setBrandingPrimary} placeholder="#C9A84C" placeholderTextColor="#444" autoCapitalize="characters" />
             <View style={{ height: 40, borderRadius: 8, backgroundColor: brandingPrimary, marginBottom: 16 }} />
             <Text style={styles.fieldLabel}>Secondary Color</Text>
             <TextInput style={[styles.input, { borderColor: brandingSecondary }]} value={brandingSecondary} onChangeText={setBrandingSecondary} placeholder="#0D1B4B" placeholderTextColor="#444" autoCapitalize="characters" />
@@ -2119,7 +2119,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.fieldLabel}>Region Name *</Text>
             <TextInput style={styles.input} value={rName} onChangeText={setRName} placeholder="e.g. Phoenix Metro" placeholderTextColor="#444" />
             <Text style={styles.fieldLabel}>Color</Text>
-            <TextInput style={[styles.input, { borderColor: rColor }]} value={rColor} onChangeText={setRColor} placeholder="#5BBFB5" placeholderTextColor="#444" autoCapitalize="characters" />
+            <TextInput style={[styles.input, { borderColor: rColor }]} value={rColor} onChangeText={setRColor} placeholder="#C9A84C" placeholderTextColor="#444" autoCapitalize="characters" />
             <View style={{ height: 40, borderRadius: 8, backgroundColor: rColor, marginBottom: 16 }} />
             <Text style={styles.fieldLabel}>Cities (comma separated)</Text>
             <TextInput style={[styles.input, { height: 120, textAlignVertical: 'top' }]} value={rCities} onChangeText={setRCities} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" multiline />
@@ -2199,7 +2199,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
+  header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
