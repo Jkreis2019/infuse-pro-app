@@ -248,6 +248,12 @@ export default function HomeScreen({ route, navigation }) {
       >
         <Text style={[styles.bookButtonText, { color: company.secondaryColor }]}>Book an appointment</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={{ marginHorizontal: 24, marginTop: -16, marginBottom: 28, alignItems: 'center', padding: 10 }}
+        onPress={() => navigation.navigate('Map', { token, user, company, bookingMode: true })}
+      >
+        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>🗺 Browse other companies</Text>
+      </TouchableOpacity>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Your appointments</Text>
