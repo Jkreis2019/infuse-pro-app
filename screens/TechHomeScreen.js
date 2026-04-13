@@ -469,6 +469,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const [showChart, setShowChart] = useState(false)
   const [chartPatient, setChartPatient] = useState(null)
+const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   const [showNpOrders, setShowNpOrders] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
   const [patientPerks, setPatientPerks] = useState(null)
@@ -584,6 +585,13 @@ export default function TechHomeScreen({ route, navigation }) {
           fetch(`${API_URL}/perks/patient/${data.call.user_id}`, { headers }).then(r => r.json()).then(d => { if (d.hasPerks) setPatientPerks(d); else setPatientPerks(null) }).catch(() => setPatientPerks(null))
         }
         setPatients(data.patients || [])
+        // Check if primary patient has a submitted chart
+if (data.call?.call_id) {
+  fetch(`${API_URL}/charts/call/${data.call.call_id}?patientName=${encodeURIComponent(data.call.patient_name)}`, { headers })
+    .then(r => r.json())
+    .then(d => setPrimaryChartCompleted(d.chart?.status === 'submitted' || d.chart?.status === 'amended'))
+    .catch(() => setPrimaryChartCompleted(false))
+}
         setUpcoming(data.upcoming || [])
         setMySchedule(data.mySchedule || [])
         if (data.call?.tech_status === 'on_scene' && data.call?.tech_onscene_at) {
@@ -665,7 +673,7 @@ export default function TechHomeScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <ChartModal visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null) }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
+      <ChartModal visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
 
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -752,7 +760,7 @@ export default function TechHomeScreen({ route, navigation }) {
                 <View style={styles.card}>
                   <Text style={styles.cardTitle}>Patients on this Call</Text>
                   {[
-                    { name: call.patient_name, dob: call.patient_dob, phone: call.patient_phone, isPrimary: true },
+                    { name: call.patient_name, dob: call.patient_dob, phone: call.patient_phone, isPrimary: true, chartCompleted: primaryChartCompleted },
                     ...patients.map(p => ({ name: p.patient_name, dob: p.patient_dob, phone: p.patient_phone, isPrimary: false, chartCompleted: p.chart_completed }))
                   ].map((p, index) => (
                     <View key={index} style={[styles.patientRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
