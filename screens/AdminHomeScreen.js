@@ -792,37 +792,49 @@ const [showImportModal, setShowImportModal] = useState(false)
           <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
 
             <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 12 }}>📋 HOW TO IMPORT YOUR PATIENTS</Text>
-              
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 1 — Get the template</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Download our CSV template below and open it in Excel, Google Sheets, or Numbers.</Text>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 12 }}>📋 HOW TO IMPORT YOUR PATIENTS — 3 EASY STEPS</Text>
 
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 2 — Fill it in</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 4 }}>Add one patient per row. Required columns:</Text>
-              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 2 }}>• first_name</Text>
-              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 2 }}>• last_name</Text>
-              <Text style={{ color: primaryColor, fontSize: 13, marginBottom: 8 }}>• email</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 4 }}>Optional columns (leave blank if you don't have them):</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• phone</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• address</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• insurance_provider</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 2 }}>• insurance_member_id</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>• insurance_group_number</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'flex-start' }}>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: secondaryColor, fontWeight: '800', fontSize: 13 }}>1</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 4 }}>Tap "Get Template" below</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20 }}>This opens a Google Sheet with the correct column headers already set up. Tap "Make a copy" when prompted to get your own editable version.</Text>
+                </View>
+              </View>
 
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 3 — Save as CSV</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>In Excel or Google Sheets, go to File → Download → CSV (.csv). Save it to your phone or cloud storage.</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'flex-start' }}>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: secondaryColor, fontWeight: '800', fontSize: 13 }}>2</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 4 }}>Fill in your patients</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 6 }}>Add one patient per row. Fill in as many or as few columns as you have. The only ones we need are:</Text>
+                  <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>first_name, last_name, email</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4, lineHeight: 18 }}>Everything else (phone, address, insurance info) is optional — you or the patient can fill it in later.</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginTop: 6 }}>When done, go to <Text style={{ color: '#fff', fontWeight: '600' }}>File → Download → CSV</Text> and save it to your phone.</Text>
+                </View>
+              </View>
 
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', marginBottom: 4 }}>Step 4 — Upload below</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20, marginBottom: 16 }}>Tap the upload button, find your CSV file, and we'll do the rest!</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, alignItems: 'flex-start' }}>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: secondaryColor, fontWeight: '800', fontSize: 13 }}>3</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 4 }}>Upload the file below</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 20 }}>Tap "Select CSV File", find the file you just saved, and we'll automatically create accounts for all your patients and link them to your company. That's it!</Text>
+                </View>
+              </View>
 
               <TouchableOpacity
-                style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 12, alignItems: 'center' }}
+                style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 14, alignItems: 'center' }}
                 onPress={() => {
                   const { Linking } = require('react-native')
                   Linking.openURL('https://docs.google.com/spreadsheets/d/1DUUy8lnUlm857FMfQXWjSuf-DV3y0JT6ggBR1e3qimM/copy')
                 }}
               >
-                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>⬇️ Download Template CSV</Text>
+                <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>📊 Get Template</Text>
               </TouchableOpacity>
             </View>
 
