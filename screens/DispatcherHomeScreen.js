@@ -1953,7 +1953,12 @@ const submitSendIntake = async () => {
 
           <Text style={styles.reasonLabel}>Date of Birth *</Text>
           <TextInput style={styles.reasonInput} placeholder="MM/DD/YYYY" placeholderTextColor="#666"
-            value={cpDob} onChangeText={setCpDob} />
+            value={cpDob} onChangeText={(text) => {
+              let v = text.replace(/\D/g, '').slice(0, 8)
+              if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4)
+              else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2)
+              setCpDob(v)
+            }} keyboardType="numeric" />
 
           <TouchableOpacity
             style={[styles.confirmCancelBtn, { backgroundColor: primaryColor }, creatingPatient && { opacity: 0.6 }]}
