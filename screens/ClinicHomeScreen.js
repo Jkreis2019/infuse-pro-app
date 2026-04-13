@@ -73,6 +73,11 @@ const [cpsProfileModal, setCpsProfileModal] = useState(false)
   }, [token])
 
   const [companyServices, setCompanyServices] = useState([])
+  const [assignTechModal, setAssignTechModal] = useState(false)
+const [assignBookingId, setAssignBookingId] = useState(null)
+const [assignPatientName, setAssignPatientName] = useState('')
+const [clinicTechs, setClinicTechs] = useState([])
+const [assigningTech, setAssigningTech] = useState(false)
 
   React.useEffect(() => {
     fetchAll()
@@ -88,6 +93,42 @@ const [cpsProfileModal, setCpsProfileModal] = useState(false)
   }, [company?.id])
 
   const onRefresh = () => { setRefreshing(true); fetchAll() }
+  const openAssignTech = async (bookingId, patientName) => {
+    setAssignBookingId(bookingId)
+    setAssignPatientName(patientName)
+    setClinicTechs([])
+    setAssignTechModal(true)
+    try {
+      const res = await fetch(`${API_URL}/clinic/techs`, { headers })
+      const data = await res.json()
+      if (data.success) setClinicTechs(data.techs)
+    } catch (err) {
+      Alert.alert('Error', 'Could not load techs')
+    }
+  }
+
+  const assignTech = async (techId, techName) => {
+    setAssigningTech(true)
+    try {
+      const res = await fetch(`${API_URL}/clinic/assign-tech`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: assignBookingId, techId })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAssignTechModal(false)
+        fetchAll()
+        Alert.alert('✅ Assigned', `${techName} has been assigned to ${assignPatientName}`)
+      } else {
+        Alert.alert('Error', data.error || 'Could not assign tech')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setAssigningTech(false)
+    }
+  }
 
   const searchWalkinPatients = async (query) => {
   setWSearchQuery(query)
@@ -366,7 +407,7 @@ const createWalkinPatient = async () => {
                 <View style={styles.cardActions}>
                   <TouchableOpacity
                     style={[styles.assignButton, { backgroundColor: primaryColor }]}
-                    onPress={() => Alert.alert('Assign Tech', 'Coming soon — assign a clinic tech to this patient')}
+                    onPress={() => openAssignTech(booking.id, booking.patient_name)}
                   >
                     <Text style={[styles.assignButtonText, { color: secondaryColor }]}>Assign Tech →</Text>
                   </TouchableOpacity>
@@ -439,6 +480,43 @@ const createWalkinPatient = async () => {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Assign Tech Modal */}
+      <Modal visible={assignTechModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Assign Tech</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>
+              Patient: {assignPatientName}
+            </Text>
+            {clinicTechs.length === 0 ? (
+              <View style={{ alignItems: 'center', padding: 20 }}>
+                <ActivityIndicator color={primaryColor} />
+              </View>
+            ) : (
+              clinicTechs.map(tech => (
+                <TouchableOpacity
+                  key={tech.id}
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, marginBottom: 10 }}
+                  onPress={() => assignTech(tech.id, `${tech.first_name} ${tech.last_name}`)}
+                  disabled={assigningTech}
+                >
+                  <View>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{tech.first_name} {tech.last_name}</Text>
+                    <Text style={{ color: tech.status === 'available' ? '#4CAF50' : 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>
+                      {tech.status === 'available' ? '🟢 Available' : tech.status === 'on_scene' ? '🟣 On Scene' : tech.status === 'assigned' ? '🟡 Assigned' : '⚪ ' + (tech.status || 'Offline')}
+                    </Text>
+                  </View>
+                  <Text style={{ color: primaryColor, fontSize: 20 }}>›</Text>
+                </TouchableOpacity>
+              ))
+            )}
+            <TouchableOpacity style={styles.cancelModal} onPress={() => setAssignTechModal(false)}>
+              <Text style={styles.cancelModalText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Profile Modal */}
 <Modal visible={clinicProfileModal} transparent animationType="slide">
