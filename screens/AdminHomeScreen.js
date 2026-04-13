@@ -818,11 +818,8 @@ const [showImportModal, setShowImportModal] = useState(false)
               <TouchableOpacity
                 style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 12, alignItems: 'center' }}
                 onPress={() => {
-                  const { Share } = require('react-native')
-                  Share.share({
-                    message: 'first_name,last_name,email,phone,address,insurance_provider,insurance_member_id,insurance_group_number\nJane,Smith,jane@example.com,6025550100,123 Main St Phoenix AZ,Blue Cross,MEM123456,GRP789',
-                    title: 'Infuse Pro Patient Import Template'
-                  })
+                  const { Linking } = require('react-native')
+                  Linking.openURL('https://docs.google.com/spreadsheets/d/1DUUy8lnUlm857FMfQXWjSuf-DV3y0JT6ggBR1e3qimM/copy')
                 }}
               >
                 <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>⬇️ Download Template CSV</Text>
