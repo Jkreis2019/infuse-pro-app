@@ -289,8 +289,55 @@ const createWalkinPatient = async () => {
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
-                {!booking.has_valid_intake && (
-                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
+                {booking.has_valid_intake ? (
+                  <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: '600', marginBottom: 8 }}>✅ Intake on file</Text>
+                ) : (
+                  <View style={{ marginBottom: 8 }}>
+                    <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 8 }}>⚠️ No intake on file</Text>
+                    <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                      {booking.patient_email && (
+                        <TouchableOpacity
+                          style={{ backgroundColor: 'rgba(33,150,243,0.15)', borderWidth: 1, borderColor: '#2196F3', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}
+                          onPress={async () => {
+                            try {
+                              const res = await fetch(`${API_URL}/dispatch/send-intake`, {
+                                method: 'POST',
+                                headers: { ...headers, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ bookingId: booking.id, userId: booking.user_id })
+                              })
+                              const data = await res.json()
+                              if (data.success) Alert.alert('✅ Sent', `Intake link sent to ${booking.patient_email}`)
+                              else Alert.alert('Error', data.message || 'Could not send intake')
+                            } catch (err) { Alert.alert('Error', 'Network error') }
+                          }}
+                        >
+                          <Text style={{ color: '#2196F3', fontSize: 11, fontWeight: '700' }}>📧 Send Email</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}
+                        onPress={() => {
+                          const { Linking } = require('react-native')
+                          Linking.openURL(`https://intake.infusepro.app?bookingId=${booking.id}`)
+                        }}
+                      >
+                        <Text style={{ color: '#4CAF50', fontSize: 11, fontWeight: '700' }}>📱 Open on Device</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ backgroundColor: 'rgba(255,152,0,0.15)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6 }}
+                        onPress={async () => {
+                          try {
+                            const DocumentPicker = require('expo-document-picker')
+                            const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*'], copyToCacheDirectory: true })
+                            if (result.canceled) return
+                            Alert.alert('📄 Paper Upload', 'PDF upload for paper forms coming soon — for now use Send Email or Open on Device')
+                          } catch (err) { Alert.alert('Error', 'Could not open file picker') }
+                        }}
+                      >
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700' }}>📄 Upload Paper</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 )}
                 {booking.notes && <Text style={styles.cardNotes}>📝 {booking.notes}</Text>}
                 <Text style={styles.cardTime}>🕐 {new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
