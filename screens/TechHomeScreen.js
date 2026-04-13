@@ -149,6 +149,9 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
   const [ivTimeDiscontinued, setIvTimeDiscontinued] = useState('')
   const [techNotes, setTechNotes] = useState('')
 
+  const [companyServices, setCompanyServices] = useState([])
+const [selectedServices, setSelectedServices] = useState([])
+const [showServicePicker, setShowServicePicker] = useState(false)
   const isLocked = savedStatus === 'submitted' || savedStatus === 'amended'
 
   useEffect(() => {
@@ -200,6 +203,10 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
         })
         .catch(err => console.error('Load chart error:', err))
     }
+    fetch(`${API_URL}/tech/services`, { headers })
+      .then(r => r.json())
+      .then(d => setCompanyServices(d.services || []))
+      .catch(() => {})
   }, [visible, call?.call_id])
 
   const toggleFluid = (fluid) => {
@@ -259,7 +266,15 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
       }
       const responseData = await res.json()
       if (responseData.success) {
+        const savedChartId = chartId || responseData.chart?.id
         if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
+        if (savedChartId) {
+          await fetch(`${API_URL}/charts/${savedChartId}/services`, {
+            method: 'POST',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ services: selectedServices })
+          }).catch(() => {})
+        }
         if (submit) { setSavedStatus('submitted'); Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
       } else {
         Alert.alert('Error', responseData.message || 'Could not save chart')
@@ -342,6 +357,68 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
               ))}
             </View>
           </View>
+
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>SERVICES ADMINISTERED</Text>
+            {selectedServices.length > 0 && selectedServices.map((svc, i) => (
+              <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{svc.name}</Text>
+                  {svc.price && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>${svc.price}</Text>}
+                </View>
+                {!isLocked && (
+                  <TouchableOpacity onPress={() => setSelectedServices(prev => prev.filter((_, idx) => idx !== i))}>
+                    <Text style={{ color: '#f09090', fontSize: 20, paddingHorizontal: 8 }}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            {!isLocked && (
+              <TouchableOpacity
+                style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 10 }}
+                onPress={() => setShowServicePicker(true)}
+              >
+                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>+ Add Service</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <Modal visible={showServicePicker} transparent animationType="slide">
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
+              <View style={{ backgroundColor: '#0D1B4B', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Select Service</Text>
+                <ScrollView>
+                  {companyServices.length === 0 ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 20 }}>No services found. Add services in the admin panel.</Text>
+                  ) : companyServices.map(svc => {
+                    const isSelected = selectedServices.some(s => s.id === svc.id)
+                    return (
+                      <TouchableOpacity
+                        key={svc.id}
+                        style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}
+                        onPress={() => {
+                          if (isSelected) {
+                            setSelectedServices(prev => prev.filter(s => s.id !== svc.id))
+                          } else {
+                            setSelectedServices(prev => [...prev, { id: svc.id, name: svc.name, price: svc.price }])
+                          }
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{svc.name}</Text>
+                          {svc.price && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>${svc.price}</Text>}
+                        </View>
+                        <Text style={{ color: isSelected ? primaryColor : 'rgba(255,255,255,0.2)', fontSize: 22 }}>{isSelected ? '✓' : '+'}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </ScrollView>
+                <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 16 }} onPress={() => setShowServicePicker(false)}>
+                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <View style={cStyles.section}>
             <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>PRN IV MEDICATIONS</Text>

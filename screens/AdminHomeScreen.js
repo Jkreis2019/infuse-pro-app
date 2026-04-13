@@ -1451,6 +1451,17 @@ export default function AdminHomeScreen({ route, navigation }) {
                         <Text style={{ color: '#fff', fontSize: 14 }}>{psSelectedChart.complications_detail}</Text>
                       </View>
                     )}
+                    {psSelectedChart.chartServices?.length > 0 && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>SERVICES ADMINISTERED</Text>
+                        {psSelectedChart.chartServices.map((svc, i) => (
+                          <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: i < psSelectedChart.chartServices.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                            <Text style={{ color: '#fff', fontSize: 13 }}>{svc.service_name}</Text>
+                            {svc.service_price && <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>${svc.service_price}</Text>}
+                          </View>
+                        ))}
+                      </View>
+                    )}
                     {psSelectedChart.tech_notes && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.tech_notes}</Text></View>}
                     {psSelectedChart.amendment_notes && (
                       <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 16, marginBottom: 12 }}>
