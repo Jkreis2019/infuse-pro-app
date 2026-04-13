@@ -12,7 +12,7 @@ const APPROVED_SERVICES = [
 ]
 
 function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -394,7 +394,7 @@ const rStyles = StyleSheet.create({
 
 export default function NPHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 

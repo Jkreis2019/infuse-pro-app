@@ -10,7 +10,7 @@ import { Calendar } from 'react-native-calendars'
 const API_URL = 'https://api.infusepro.app'
 
 const STATUS_COLORS = {
-  confirmed: '#C9A84C', assigned: '#C9A84C', en_route: '#2196F3',
+  confirmed: '#5BBFB5', assigned: '#5BBFB5', en_route: '#2196F3',
   on_scene: '#4CAF50', cleared: '#aaa', completed: '#aaa'
 }
 
@@ -114,7 +114,7 @@ const cStyles = StyleSheet.create({
 })
 
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -528,7 +528,7 @@ const [showServicePicker, setShowServicePicker] = useState(false)
 
 export default function TechHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
   const [activeTab, setActiveTab] = useState('call')
@@ -911,15 +911,15 @@ if (data.call?.call_id) {
               </Modal>
 
               {call.tech_status === 'on_scene' && patientPerks && (
-                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#C9A84C', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>⭐ PATIENT HAS ACTIVE PERKS</Text>
+                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#5BBFB5', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: '#5BBFB5', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>⭐ PATIENT HAS ACTIVE PERKS</Text>
                   {patientPerks.referralPerks?.map(perk => (
                     <View key={perk.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                       <View>
                         <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{perk.perk_type === 'fixed' ? `$${perk.perk_amount} off` : `${perk.perk_amount}% off`}</Text>
                         <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Referral perk</Text>
                       </View>
-                      <TouchableOpacity style={{ backgroundColor: '#C9A84C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }} disabled={redeemingPerk} onPress={async () => {
+                      <TouchableOpacity style={{ backgroundColor: '#5BBFB5', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }} disabled={redeemingPerk} onPress={async () => {
                         setRedeemingPerk(true)
                         try { const res = await fetch(`${API_URL}/perks/redeem`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'referral', id: perk.id }) }); const data = await res.json(); if (data.success) { setPatientPerks(null); Alert.alert('✅ Redeemed!', 'Perk has been marked as used.') } } catch (e) {} finally { setRedeemingPerk(false) }
                       }}>

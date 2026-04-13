@@ -176,13 +176,13 @@ export default function ForgotPasswordScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B', paddingHorizontal: 24, paddingTop: 60 },
-  logo: { fontSize: 28, fontWeight: '600', color: '#C9A84C', letterSpacing: 3, marginBottom: 32, textAlign: 'center' },
+  logo: { fontSize: 28, fontWeight: '600', color: '#5BBFB5', letterSpacing: 3, marginBottom: 32, textAlign: 'center' },
   title: { fontSize: 26, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 32, lineHeight: 20 },
   label: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
   input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff' },
   error: { color: '#f09090', fontSize: 13, marginTop: 12, marginBottom: 4 },
-  button: { backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
+  button: { backgroundColor: '#5BBFB5', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonText: { color: '#0D1B4B', fontSize: 15, fontWeight: '600' },
   backLink: { padding: 16, alignItems: 'center' },
   backLinkText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },

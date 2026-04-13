@@ -8,7 +8,7 @@ const API_URL = 'https://api.infusepro.app'
 
 export default function TechMessagingScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 

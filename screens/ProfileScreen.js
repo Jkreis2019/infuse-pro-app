@@ -5,7 +5,7 @@ const API_URL = 'https://api.infusepro.app'
 
 export default function ProfileScreen({ route, navigation, onCompanyChange }) {
   const { token, user, company } = route.params
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [linkedCompanies, setLinkedCompanies] = useState([])

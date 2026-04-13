@@ -208,7 +208,7 @@ const createWalkinPatient = async () => {
   }
 
   const getStatusColor = (status) => {
-    const colors = { pending: '#C9A84C', confirmed: '#2196F3', on_scene: '#4CAF50', completed: '#aaa', cancelled: '#e53e3e' }
+    const colors = { pending: '#5BBFB5', confirmed: '#2196F3', on_scene: '#4CAF50', completed: '#aaa', cancelled: '#e53e3e' }
     return colors[status] || '#aaa'
   }
 

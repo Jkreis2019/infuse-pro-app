@@ -8,7 +8,7 @@ const API_URL = 'https://api.infusepro.app'
 
 export default function PatientSearchScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -54,7 +54,7 @@ export default function PatientSearchScreen({ route, navigation }) {
   }
 
   const STATUS_COLORS = {
-    confirmed: '#C9A84C', en_route: '#2196F3', on_scene: '#4CAF50',
+    confirmed: '#5BBFB5', en_route: '#2196F3', on_scene: '#4CAF50',
     completed: '#aaa', cancelled: '#e53e3e', pending: '#888'
   }
 
