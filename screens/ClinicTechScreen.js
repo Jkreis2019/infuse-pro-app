@@ -551,7 +551,7 @@ export default function ClinicTechScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <ClinicChartModal visible={showChart} onClose={() => { setShowChart(false); setChartBooking(null); fetchAll() }} booking={chartBooking} token={token} company={company} />
+      <ClinicChartModal key={showChart ? (chartBooking?.id || 'chart') : 'closed'} visible={showChart} onClose={() => { setShowChart(false); setChartBooking(null); fetchAll() }} booking={chartBooking} token={token} company={company} />
       {/* Header */}
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
