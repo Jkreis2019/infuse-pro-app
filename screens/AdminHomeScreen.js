@@ -1178,12 +1178,33 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No services yet</Text>
           ) : services.map(svc => (
             <View key={svc.id} style={styles.card}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <Text style={styles.cardName}>{svc.name}</Text>
                 <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>${svc.price}</Text>
               </View>
               {svc.duration && <Text style={styles.cardSub}>{svc.duration}</Text>}
               {svc.description && <Text style={styles.cardSub}>{svc.description}</Text>}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
+                <View>
+                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Show to patients</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>Appears in booking menu</Text>
+                </View>
+                <TouchableOpacity
+                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: svc.show_to_patients !== false ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                  onPress={async () => {
+                    try {
+                      await fetch(`${API_URL}/admin/services/${svc.id}`, {
+                        method: 'PUT',
+                        headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ showToPatients: !svc.show_to_patients })
+                      })
+                      fetchAll()
+                    } catch (err) { Alert.alert('Error', 'Could not update service') }
+                  }}
+                >
+                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: svc.show_to_patients !== false ? 'flex-end' : 'flex-start' }} />
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
           <View style={{ height: 40 }} />

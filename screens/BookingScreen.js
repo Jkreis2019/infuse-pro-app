@@ -32,7 +32,7 @@ export default function BookingScreen({ route, navigation }) {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(`${API_URL}/tech/services`, {
+        const res = await fetch(`${API_URL}/companies/${company?.id}/services`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const data = await res.json()
