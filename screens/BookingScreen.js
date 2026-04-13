@@ -4,18 +4,11 @@ import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
 
-const SERVICES = [
-  { name: 'Hangover Rescue', price: '$149', duration: '60-75 min' },
-  { name: 'Myers Cocktail', price: '$179', duration: '60-75 min' },
-  { name: 'Immunity Boost', price: '$159', duration: '45-60 min' },
-  { name: 'NAD+ Therapy', price: '$299', duration: '90-120 min' },
-  { name: 'Migraine Relief', price: '$149', duration: '45-60 min' },
-  { name: 'Energy Boost', price: '$139', duration: '45-60 min' },
-]
-
 export default function BookingScreen({ route, navigation }) {
   const { token, user, company } = route.params
 
+  const [companyServices, setCompanyServices] = useState([])
+  const [loadingServices, setLoadingServices] = useState(true)
   const [selectedService, setSelectedService] = useState(null)
   const [address, setAddress] = useState('')
   const [loadingAddress, setLoadingAddress] = useState(true)
@@ -36,6 +29,26 @@ export default function BookingScreen({ route, navigation }) {
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
 
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await fetch(`${API_URL}/tech/services`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (data.success) {
+          const services = data.services.slice(0, 10)
+          services.push({ id: 'other', name: 'Other', description: 'Something else — dispatcher will follow up', price: null })
+          setCompanyServices(services)
+        }
+      } catch (err) {
+        console.error('Fetch services error:', err)
+      } finally {
+        setLoadingServices(false)
+      }
+    }
+    fetchServices()
+  }, [token])
 useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -133,9 +146,11 @@ useEffect(() => {
       <Text style={styles.subtitle}>{company.name} · {company.location}</Text>
 
       <Text style={styles.sectionLabel}>Select a service</Text>
-      {SERVICES.map((service) => (
+      {loadingServices ? (
+        <ActivityIndicator color={company.primaryColor} style={{ marginBottom: 16 }} />
+      ) : companyServices.map((service) => (
         <TouchableOpacity
-          key={service.name}
+          key={service.id || service.name}
           style={[
             styles.serviceCard,
             selectedService?.name === service.name && {
@@ -147,11 +162,13 @@ useEffect(() => {
         >
           <View style={styles.serviceInfo}>
             <Text style={styles.serviceName}>{service.name}</Text>
-            <Text style={styles.serviceDuration}>{service.duration}</Text>
+            {service.description ? <Text style={styles.serviceDuration}>{service.description}</Text> : null}
           </View>
-          <Text style={[styles.servicePrice, selectedService?.name === service.name && { color: company.primaryColor }]}>
-            {service.price}
-          </Text>
+          {service.price ? (
+            <Text style={[styles.servicePrice, selectedService?.name === service.name && { color: company.primaryColor }]}>
+              ${service.price}
+            </Text>
+          ) : null}
         </TouchableOpacity>
       ))}
 
