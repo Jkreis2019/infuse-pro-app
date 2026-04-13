@@ -1,7 +1,439 @@
-import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Image, Platform } from 'react-native'
+import React, { useState, useCallback, useEffect } from 'react'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, RefreshControl, Image, Platform, KeyboardAvoidingView, TextInput } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
+
+const IV_MEDICATIONS = [
+  { key: 'second_liter', label: '2nd Liter 1000ml (NS/LR)' },
+  { key: 'second_half_liter', label: '2nd Half-Liter 500ml (NS/LR)' },
+  { key: 'zofran_1', label: 'Zofran 4mg/2ml' },
+  { key: 'zofran_2', label: 'Zofran 4mg/2ml (2nd Dose)' },
+  { key: 'toradol_1', label: 'Toradol 15mg/0.5ml' },
+  { key: 'toradol_2', label: 'Toradol 15mg/0.5ml (2nd Dose)' },
+  { key: 'famotidine_1', label: 'Famotidine 20mg/2ml' },
+  { key: 'famotidine_2', label: 'Famotidine 20mg/2ml (2nd Dose)' },
+  { key: 'glutathione', label: 'Glutathione 200mg/ml (max 1200mg)' },
+  { key: 'benadryl_1', label: 'Benadryl 25mg/0.5ml' },
+  { key: 'benadryl_2', label: 'Benadryl 25mg/0.5ml (2nd Dose)' },
+  { key: 'decadron_1', label: 'Decadron 4mg/0.4ml' },
+  { key: 'decadron_2', label: 'Decadron 4mg/0.4ml (2nd Dose)' },
+]
+const BAG_ADDONS = [
+  { key: 'vitamin_c', label: 'Vitamin C 500mg/ml (500mg-5000mg)' },
+  { key: 'b_complex', label: 'B-Complex 1ml-3ml' },
+  { key: 'b6', label: 'B6 100mg (max 100mg)' },
+  { key: 'biotin', label: 'Biotin 1ml (max 3ml)' },
+  { key: 'zinc', label: 'Zinc 10mg (max 20mg)' },
+  { key: 'magnesium', label: 'Magnesium 200mg (max 800mg)' },
+  { key: 'l_carnitine', label: 'L-Carnitine 500mg (max 500mg)' },
+  { key: 'taurine', label: 'Taurine 50mg (max 100mg)' },
+  { key: 'b12', label: 'Methylcobalamin B12 1ml (max 2ml)' },
+  { key: 'tri_amino', label: 'Tri-Amino Blend 1ml (max 1ml)' },
+]
+const IM_INJECTIONS = [
+  { key: 'promethazine_1', label: 'Promethazine 12.5mg/0.5ml IM' },
+  { key: 'promethazine_2', label: 'Promethazine 12.5mg/0.5ml IM (2nd Dose)' },
+  { key: 'toradol_im_1', label: 'Toradol 15mg/0.5ml IM' },
+  { key: 'toradol_im_2', label: 'Toradol 15mg/0.5ml IM (2nd Dose)' },
+  { key: 'famotidine_im_1', label: 'Famotidine 20mg/2ml IM' },
+  { key: 'famotidine_im_2', label: 'Famotidine 20mg/2ml IM (2nd Dose)' },
+  { key: 'benadryl_im_1', label: 'Benadryl 25mg/0.5ml IM' },
+  { key: 'benadryl_im_2', label: 'Benadryl 25mg/0.5ml IM (2nd Dose)' },
+  { key: 'glutathione_im', label: 'Glutathione 200mg/ml IM (max 600mg/3ml)' },
+  { key: 'biotin_im', label: 'Biotin 2ml IM (Gluteal)' },
+  { key: 'b12_im', label: 'Methylcobalamin B12 5000mg/ml 1ml IM' },
+]
+const IV_SITES = ['L AC', 'R AC', 'L Hand', 'R Hand', 'L Forearm', 'R Forearm', 'L Wrist', 'R Wrist', 'Does Not Apply']
+const CATHETER_SIZES = ['18g', '20g', '22g', '24g', 'Does Not Apply']
+const IV_FLUIDS = ['Normal Saline 250mls', 'Normal Saline 500mls', 'Normal Saline 1000mls', 'Lactated Ringers 500mls', 'Lactated Ringers 1000mls']
+
+const MedRow = ({ item, medSet, setMedSet, showDose, primaryColor, secondaryColor, locked }) => {
+  const checked = !!medSet[item.key]
+  const toggle = () => { if (locked) return; setMedSet(prev => ({ ...prev, [item.key]: prev[item.key] ? null : { time: '', dose: '' } })) }
+  const setTime = (t) => setMedSet(prev => ({ ...prev, [item.key]: { ...prev[item.key], time: t } }))
+  const setDose = (d) => setMedSet(prev => ({ ...prev, [item.key]: { ...prev[item.key], dose: d } }))
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
+      <TouchableOpacity style={[cStyles.checkbox, checked && { backgroundColor: primaryColor, borderColor: primaryColor }]} onPress={toggle}>
+        {checked && <Text style={{ color: secondaryColor, fontSize: 12 }}>✓</Text>}
+      </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: locked ? 'rgba(255,255,255,0.4)' : '#fff', fontSize: 13 }}>{item.label}</Text>
+        {checked && (
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+            <TextInput style={[cStyles.input, { flex: 1 }]} placeholder="Time" placeholderTextColor="#666" value={medSet[item.key]?.time || ''} onChangeText={setTime} editable={!locked} />
+            {showDose && <TextInput style={[cStyles.input, { flex: 1 }]} placeholder="Dose/Location" placeholderTextColor="#666" value={medSet[item.key]?.dose || ''} onChangeText={setDose} editable={!locked} />}
+          </View>
+        )}
+      </View>
+    </View>
+  )
+}
+
+const SelectRow = ({ label, options, value, onSelect, primaryColor, secondaryColor, locked }) => (
+  <View style={{ marginBottom: 14 }}>
+    <Text style={cStyles.fieldLabel}>{label}</Text>
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      {options.map(opt => (
+        <TouchableOpacity key={opt} style={[cStyles.optionBtn, value === opt && { backgroundColor: primaryColor, borderColor: primaryColor }]} onPress={() => { if (!locked) onSelect(opt) }}>
+          <Text style={[cStyles.optionText, value === opt && { color: secondaryColor }]}>{opt}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+)
+
+const cStyles = StyleSheet.create({
+  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  section: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, marginBottom: 12, padding: 16 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 16 },
+  fieldLabel: { fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 14, color: '#fff', marginBottom: 10 },
+  optionBtn: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 8 },
+  optionText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
+  checkbox: { width: 22, height: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderRadius: 4, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+})
+
+function ClinicChartModal({ visible, onClose, booking, token, company }) {
+  const primaryColor = company?.primaryColor || '#1D9E75'
+  const secondaryColor = company?.secondaryColor || '#0a2420'
+  const headers = { Authorization: `Bearer ${token}` }
+  const [saving, setSaving] = useState(false)
+  const [chartId, setChartId] = useState(null)
+  const [savedStatus, setSavedStatus] = useState('')
+  const [amendmentText, setAmendmentText] = useState('')
+  const [chiefComplaint, setChiefComplaint] = useState('')
+  const [medicalHistoryChanges, setMedicalHistoryChanges] = useState('')
+  const [allergiesDetail, setAllergiesDetail] = useState('')
+  const [bp, setBp] = useState('')
+  const [hr, setHr] = useState('')
+  const [o2, setO2] = useState('')
+  const [temp, setTemp] = useState('')
+  const [painScale, setPainScale] = useState('')
+  const [vitalTime, setVitalTime] = useState('')
+  const [ivSite, setIvSite] = useState('')
+  const [catheterSize, setCatheterSize] = useState('')
+  const [ivAttempts, setIvAttempts] = useState('1')
+  const [ivTimeInitiated, setIvTimeInitiated] = useState('')
+  const [ivFluids, setIvFluids] = useState([])
+  const [ivMeds, setIvMeds] = useState({})
+  const [bagAddons, setBagAddons] = useState({})
+  const [imInjections, setImInjections] = useState({})
+  const [postBp, setPostBp] = useState('')
+  const [postHr, setPostHr] = useState('')
+  const [postO2, setPostO2] = useState('')
+  const [postTime, setPostTime] = useState('')
+  const [complications, setComplications] = useState('No')
+  const [complicationsDetail, setComplicationsDetail] = useState('')
+  const [catheterStatus, setCatheterStatus] = useState('Normal and Intact')
+  const [ivTimeDiscontinued, setIvTimeDiscontinued] = useState('')
+  const [techNotes, setTechNotes] = useState('')
+  const [companyServices, setCompanyServices] = useState([])
+  const [selectedServices, setSelectedServices] = useState([])
+  const [showServicePicker, setShowServicePicker] = useState(false)
+  const isLocked = savedStatus === 'submitted' || savedStatus === 'amended'
+
+  useEffect(() => {
+    if (visible && booking?.id) {
+      fetch(`${API_URL}/charts/call/${booking.call_id || booking.id}?patientName=${encodeURIComponent(booking.patient_name)}`, { headers })
+        .then(r => r.json())
+        .then(data => {
+          if (data.chart) {
+            const c = data.chart
+            setChartId(c.id)
+            setChiefComplaint(c.chief_complaint || '')
+            setMedicalHistoryChanges(c.medical_history_changes || '')
+            setAllergiesDetail(c.allergies_detail || '')
+            setBp(c.blood_pressure || '')
+            setHr(c.heart_rate?.toString() || '')
+            setO2(c.oxygen_sat?.toString() || '')
+            setTemp(c.temperature?.toString() || '')
+            setPainScale(c.pain_scale?.toString() || '')
+            setIvSite(c.iv_insertion_site || '')
+            setCatheterSize(c.iv_catheter_size || '')
+            setIvAttempts(c.iv_attempts?.toString() || '1')
+            setIvTimeInitiated(c.iv_time_initiated || '')
+            setIvFluids(c.iv_fluids_used || [])
+            setIvMeds(c.prn_iv_medications || {})
+            setBagAddons(c.prn_bag_addons || {})
+            setImInjections(c.prn_im_injections || {})
+            setPostBp(c.vitals_post?.bp || '')
+            setPostHr(c.vitals_post?.hr || '')
+            setPostO2(c.vitals_post?.o2 || '')
+            setPostTime(c.vitals_post?.time || '')
+            setComplications(c.complications || 'No')
+            setComplicationsDetail(c.complications_detail || '')
+            setCatheterStatus(c.iv_catheter_status || 'Normal and Intact')
+            setIvTimeDiscontinued(c.iv_time_discontinued || '')
+            setTechNotes(c.tech_notes || '')
+            setSavedStatus(c.status || '')
+          } else {
+            setChartId(null); setSavedStatus('')
+            setChiefComplaint(''); setMedicalHistoryChanges(''); setAllergiesDetail('')
+            setBp(''); setHr(''); setO2(''); setTemp(''); setPainScale(''); setVitalTime('')
+            setIvSite(''); setCatheterSize(''); setIvAttempts('1'); setIvTimeInitiated('')
+            setIvFluids([]); setIvMeds({}); setBagAddons({}); setImInjections({})
+            setPostBp(''); setPostHr(''); setPostO2(''); setPostTime('')
+            setComplications('No'); setComplicationsDetail(''); setCatheterStatus('Normal and Intact')
+            setIvTimeDiscontinued(''); setTechNotes('')
+          }
+        }).catch(err => console.error('Load chart error:', err))
+    }
+    fetch(`${API_URL}/tech/services`, { headers })
+      .then(r => r.json())
+      .then(d => setCompanyServices(d.services || []))
+      .catch(() => {})
+  }, [visible, booking?.id])
+
+  const toggleFluid = (fluid) => {
+    if (isLocked) return
+    setIvFluids(prev => prev.includes(fluid) ? prev.filter(f => f !== fluid) : [...prev, fluid])
+  }
+
+  const submitAmendment = async () => {
+    if (!amendmentText.trim()) { Alert.alert('Required', 'Please enter amendment notes'); return }
+    try {
+      const res = await fetch(`${API_URL}/charts/${chartId}/amend`, {
+        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amendmentNotes: amendmentText })
+      })
+      const data = await res.json()
+      if (data.success) { Alert.alert('✅ Amendment Saved', 'Your amendment has been recorded.'); setAmendmentText(''); setSavedStatus('amended') }
+      else Alert.alert('Error', data.error || 'Could not save amendment')
+    } catch (err) { Alert.alert('Error', 'Network error') }
+  }
+
+  const saveChart = async (submit = false) => {
+    if (isLocked) return
+    setSaving(true)
+    try {
+      const data = {
+        callId: booking?.call_id || booking?.id,
+        bookingId: booking?.id,
+        patientName: booking?.patient_name,
+        patientDob: booking?.patient_dob,
+        chiefComplaint, medicalHistoryChanges, allergiesDetail,
+        bloodPressure: bp, heartRate: hr ? parseInt(hr) : null,
+        oxygenSat: o2 ? parseInt(o2) : null, temperature: temp || null,
+        painScale: painScale ? parseInt(painScale) : null,
+        vitalsSets: [{ bp, hr, o2, temp, painScale, time: vitalTime }],
+        ivInsertionSite: ivSite, ivCatheterSize: catheterSize,
+        ivAttempts: ivAttempts ? parseInt(ivAttempts) : null,
+        ivTimeInitiated: ivTimeInitiated || null,
+        ivFluidsUsed: ivFluids,
+        prnIvMedications: ivMeds, prnBagAddons: bagAddons, prnImInjections: imInjections,
+        vitalsPost: { bp: postBp, hr: postHr, o2: postO2, time: postTime },
+        complications, complicationsDetail,
+        ivCatheterStatus: catheterStatus,
+        ivTimeDiscontinued: ivTimeDiscontinued || null,
+        techNotes, status: submit ? 'submitted' : 'open'
+      }
+      let res
+      if (chartId) {
+        res = await fetch(`${API_URL}/charts/${chartId}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      } else {
+        res = await fetch(`${API_URL}/charts`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      }
+      const responseData = await res.json()
+      if (responseData.success) {
+        const savedChartId = chartId || responseData.chart?.id
+        if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
+        if (savedChartId) {
+          await fetch(`${API_URL}/charts/${savedChartId}/services`, {
+            method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ services: selectedServices })
+          }).catch(() => {})
+        }
+        if (submit) { setSavedStatus('submitted'); Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
+      } else {
+        Alert.alert('Error', responseData.message || 'Could not save chart')
+      }
+    } catch (err) { Alert.alert('Error', 'Network error') }
+    finally { setSaving(false) }
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={[cStyles.header, { backgroundColor: secondaryColor }]}>
+          <TouchableOpacity onPress={() => { if (!isLocked) saveChart(false); onClose() }}>
+            <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>{isLocked ? '← Back' : '← Save & Back'}</Text>
+          </TouchableOpacity>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Chart</Text>
+            {isLocked && <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700' }}>🔒 SUBMITTED</Text>}
+          </View>
+          {!isLocked ? (
+            <TouchableOpacity onPress={() => saveChart(false)}>
+              <Text style={{ color: primaryColor, fontSize: 14 }}>{saving ? '...' : 'Save'}</Text>
+            </TouchableOpacity>
+          ) : <View style={{ width: 40 }} />}
+        </View>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16 }}>
+          <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700', marginBottom: 4 }}>{booking?.patient_name}</Text>
+          {isLocked && (
+            <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+              <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '700' }}>🔒 This chart has been submitted and is locked.</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Use the amendment section below to add notes.</Text>
+            </View>
+          )}
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>NURSING ASSESSMENT</Text>
+            <Text style={cStyles.fieldLabel}>Chief Complaint *</Text>
+            <TextInput style={[cStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Chief complaint..." placeholderTextColor="#666" value={chiefComplaint} onChangeText={setChiefComplaint} multiline editable={!isLocked} />
+            <Text style={cStyles.fieldLabel}>Changes to Medical History, Allergies or Medications?</Text>
+            <TextInput style={cStyles.input} placeholder="Any changes..." placeholderTextColor="#666" value={medicalHistoryChanges} onChangeText={setMedicalHistoryChanges} editable={!isLocked} />
+            <Text style={cStyles.fieldLabel}>Allergies & Reactions</Text>
+            <TextInput style={cStyles.input} placeholder="Allergies..." placeholderTextColor="#666" value={allergiesDetail} onChangeText={setAllergiesDetail} editable={!isLocked} />
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>INITIAL VITALS</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>BP (mmHg)</Text><TextInput style={cStyles.input} placeholder="120/80" placeholderTextColor="#666" value={bp} onChangeText={setBp} editable={!isLocked} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pulse (BPM)</Text><TextInput style={cStyles.input} placeholder="72" placeholderTextColor="#666" value={hr} onChangeText={setHr} keyboardType="numeric" editable={!isLocked} /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>O2 Sat (%)</Text><TextInput style={cStyles.input} placeholder="98" placeholderTextColor="#666" value={o2} onChangeText={setO2} keyboardType="numeric" editable={!isLocked} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Temp (°C)</Text><TextInput style={cStyles.input} placeholder="36.8" placeholderTextColor="#666" value={temp} onChangeText={setTemp} keyboardType="decimal-pad" editable={!isLocked} /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pain Scale (1-10)</Text><TextInput style={cStyles.input} placeholder="0" placeholderTextColor="#666" value={painScale} onChangeText={setPainScale} keyboardType="numeric" editable={!isLocked} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Time</Text><TextInput style={cStyles.input} placeholder="2:30 PM" placeholderTextColor="#666" value={vitalTime} onChangeText={setVitalTime} editable={!isLocked} /></View>
+            </View>
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>IV INSERTION</Text>
+            <SelectRow label="IV Site" options={IV_SITES} value={ivSite} onSelect={setIvSite} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            <SelectRow label="Catheter Size" options={CATHETER_SIZES} value={catheterSize} onSelect={setCatheterSize} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            <SelectRow label="Attempts" options={['1', '2', '3']} value={ivAttempts} onSelect={setIvAttempts} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            <Text style={cStyles.fieldLabel}>Time IV Initiated</Text>
+            <TextInput style={cStyles.input} placeholder="2:35 PM" placeholderTextColor="#666" value={ivTimeInitiated} onChangeText={setIvTimeInitiated} editable={!isLocked} />
+            <Text style={cStyles.fieldLabel}>Fluids Used</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {IV_FLUIDS.map(fluid => (
+                <TouchableOpacity key={fluid} style={[cStyles.optionBtn, ivFluids.includes(fluid) && { backgroundColor: primaryColor, borderColor: primaryColor }]} onPress={() => toggleFluid(fluid)}>
+                  <Text style={[cStyles.optionText, ivFluids.includes(fluid) && { color: secondaryColor }]}>{fluid}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>SERVICES ADMINISTERED</Text>
+            {selectedServices.length > 0 && selectedServices.map((svc, i) => (
+              <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{svc.name}</Text>
+                  {svc.price && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>${svc.price}</Text>}
+                </View>
+                {!isLocked && (
+                  <TouchableOpacity onPress={() => setSelectedServices(prev => prev.filter((_, idx) => idx !== i))}>
+                    <Text style={{ color: '#f09090', fontSize: 20, paddingHorizontal: 8 }}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            {!isLocked && (
+              <TouchableOpacity style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 10 }} onPress={() => setShowServicePicker(true)}>
+                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>+ Add Service</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <Modal visible={showServicePicker} transparent animationType="slide">
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
+              <View style={{ backgroundColor: '#0a2420', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Select Service</Text>
+                <ScrollView>
+                  {companyServices.length === 0 ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 20 }}>No services found.</Text>
+                  ) : companyServices.map(svc => {
+                    const isSelected = selectedServices.some(s => s.id === svc.id)
+                    return (
+                      <TouchableOpacity key={svc.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}
+                        onPress={() => {
+                          if (isSelected) setSelectedServices(prev => prev.filter(s => s.id !== svc.id))
+                          else setSelectedServices(prev => [...prev, { id: svc.id, name: svc.name, price: svc.price }])
+                        }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{svc.name}</Text>
+                          {svc.price && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>${svc.price}</Text>}
+                        </View>
+                        <Text style={{ color: isSelected ? primaryColor : 'rgba(255,255,255,0.2)', fontSize: 22 }}>{isSelected ? '✓' : '+'}</Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </ScrollView>
+                <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 16 }} onPress={() => setShowServicePicker(false)}>
+                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>PRN IV MEDICATIONS</Text>
+            {IV_MEDICATIONS.map(item => <MedRow key={item.key} item={item} medSet={ivMeds} setMedSet={setIvMeds} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />)}
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>PRN BAG ADD-ONS</Text>
+            {BAG_ADDONS.map(item => <MedRow key={item.key} item={item} medSet={bagAddons} setMedSet={setBagAddons} showDose primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />)}
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>IM INJECTIONS</Text>
+            {IM_INJECTIONS.map(item => <MedRow key={item.key} item={item} medSet={imInjections} setMedSet={setImInjections} showDose primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />)}
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>POST INFUSION VITALS</Text>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>BP (mmHg)</Text><TextInput style={cStyles.input} placeholder="120/80" placeholderTextColor="#666" value={postBp} onChangeText={setPostBp} editable={!isLocked} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Pulse (BPM)</Text><TextInput style={cStyles.input} placeholder="72" placeholderTextColor="#666" value={postHr} onChangeText={setPostHr} keyboardType="numeric" editable={!isLocked} /></View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>O2 Sat (%)</Text><TextInput style={cStyles.input} placeholder="98" placeholderTextColor="#666" value={postO2} onChangeText={setPostO2} keyboardType="numeric" editable={!isLocked} /></View>
+              <View style={{ flex: 1 }}><Text style={cStyles.fieldLabel}>Time</Text><TextInput style={cStyles.input} placeholder="3:30 PM" placeholderTextColor="#666" value={postTime} onChangeText={setPostTime} editable={!isLocked} /></View>
+            </View>
+          </View>
+          <View style={cStyles.section}>
+            <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>POST INFUSION ASSESSMENT</Text>
+            <SelectRow label="Complications?" options={['No', 'Yes']} value={complications} onSelect={setComplications} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            {complications === 'Yes' && (
+              <>
+                <Text style={cStyles.fieldLabel}>Please explain</Text>
+                <TextInput style={[cStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Describe..." placeholderTextColor="#666" value={complicationsDetail} onChangeText={setComplicationsDetail} multiline editable={!isLocked} />
+              </>
+            )}
+            <SelectRow label="Catheter Status on Removal" options={['Normal and Intact', 'Broken, Severed']} value={catheterStatus} onSelect={setCatheterStatus} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            <Text style={cStyles.fieldLabel}>Time IV Discontinued</Text>
+            <TextInput style={cStyles.input} placeholder="3:30 PM" placeholderTextColor="#666" value={ivTimeDiscontinued} onChangeText={setIvTimeDiscontinued} editable={!isLocked} />
+            <Text style={cStyles.fieldLabel}>Tech Notes</Text>
+            <TextInput style={[cStyles.input, { height: 100, textAlignVertical: 'top' }]} placeholder="Any additional notes..." placeholderTextColor="#666" value={techNotes} onChangeText={setTechNotes} multiline editable={!isLocked} />
+          </View>
+          {!isLocked && (
+            <TouchableOpacity
+              style={[{ borderRadius: 14, padding: 18, alignItems: 'center', marginBottom: 16, backgroundColor: primaryColor }, saving && { opacity: 0.6 }]}
+              onPress={() => Alert.alert('Submit Chart', 'Submit this chart? It will be locked after submission.', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Submit', onPress: () => saveChart(true) }
+              ])}
+              disabled={saving}
+            >
+              {saving ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ fontSize: 16, fontWeight: '700', color: secondaryColor }}>Submit Chart</Text>}
+            </TouchableOpacity>
+          )}
+          {isLocked && (
+            <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 14, padding: 16, marginBottom: 16 }}>
+              <Text style={[cStyles.sectionTitle, { color: '#FF9800' }]}>📝 ADD AMENDMENT</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Chart is locked. Describe what you are correcting or adding.</Text>
+              <TextInput style={[cStyles.input, { height: 120, textAlignVertical: 'top' }]} placeholder="e.g. Forgot to document..." placeholderTextColor="#666" value={amendmentText} onChangeText={setAmendmentText} multiline />
+              <TouchableOpacity style={{ backgroundColor: '#FF9800', borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 4 }} onPress={submitAmendment}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>Save Amendment</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          <View style={{ height: 60 }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
+  )
+}
 
 export default function ClinicTechScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
@@ -17,6 +449,8 @@ export default function ClinicTechScreen({ route, navigation }) {
   const [selectedPatient, setSelectedPatient] = useState(null)
   const [patientModal, setPatientModal] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [showChart, setShowChart] = useState(false)
+  const [chartBooking, setChartBooking] = useState(null)
 
   const fetchAll = useCallback(async () => {
     try {
@@ -177,7 +611,12 @@ export default function ClinicTechScreen({ route, navigation }) {
                 <Text style={styles.cardPatient}>👤 {patient.patient_name}</Text>
                 {patient.patient_dob && <Text style={styles.cardSub}>Age {getAge(patient.patient_dob)}</Text>}
                 {!patient.has_intake && <Text style={styles.noIntake}>⚠️ No intake on file</Text>}
-                <Text style={styles.cardSub}>Tap to view details →</Text>
+                <TouchableOpacity
+                  style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8 }}
+                  onPress={(e) => { e.stopPropagation(); setChartBooking(patient); setShowChart(true) }}
+                >
+                  <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>📋 Chart</Text>
+                </TouchableOpacity>
               </TouchableOpacity>
             ))
           )}
