@@ -113,7 +113,7 @@ const cStyles = StyleSheet.create({
   checkbox: { width: 22, height: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderRadius: 4, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
 })
 
-function ChartModal({ visible, onClose, call, token, company }) {
+function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
@@ -153,7 +153,7 @@ function ChartModal({ visible, onClose, call, token, company }) {
 
   useEffect(() => {
     if (visible && call?.call_id) {
-      fetch(`${API_URL}/charts/call/${call.call_id}`, { headers })
+      fetch(`${API_URL}/charts/call/${call.call_id}?patientName=${encodeURIComponent(patientName)}`, { headers })
         .then(r => r.json())
         .then(data => {
           if (data.chart) {
@@ -234,7 +234,7 @@ function ChartModal({ visible, onClose, call, token, company }) {
     try {
       const data = {
         callId: call?.call_id, bookingId: call?.id,
-        patientName: call?.patient_name, patientDob: call?.patient_dob,
+        patientName: patientName || call?.patient_name, patientDob: patientDob || call?.patient_dob,
         chiefComplaint, medicalHistoryChanges, allergiesDetail,
         bloodPressure: bp, heartRate: hr ? parseInt(hr) : null,
         oxygenSat: o2 ? parseInt(o2) : null, temperature: temp || null,
@@ -468,6 +468,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [mySchedule, setMySchedule] = useState([])
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const [showChart, setShowChart] = useState(false)
+  const [chartPatient, setChartPatient] = useState(null)
   const [showNpOrders, setShowNpOrders] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
   const [patientPerks, setPatientPerks] = useState(null)
@@ -664,7 +665,7 @@ export default function TechHomeScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <ChartModal visible={showChart} onClose={() => setShowChart(false)} call={call} token={token} company={company} />
+      <ChartModal visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null) }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
 
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -747,13 +748,28 @@ export default function TechHomeScreen({ route, navigation }) {
                 {call.patient_dob && <Text style={styles.value}>🎂 {new Date(call.patient_dob).toLocaleDateString()}</Text>}
               </View>
 
-              {patients.length > 0 && (
+              {call.tech_status === 'on_scene' && (
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>Additional Patients</Text>
-                  {patients.map(p => (
-                    <View key={p.id} style={styles.patientRow}>
-                      <Text style={styles.patientName}>{p.patient_name}</Text>
-                      <Text style={styles.patientDetail}>{p.patient_phone || 'No phone'} · Chart: {p.chart_completed ? '✅' : '⏳'}</Text>
+                  <Text style={styles.cardTitle}>Patients on this Call</Text>
+                  {[
+                    { name: call.patient_name, dob: call.patient_dob, phone: call.patient_phone, isPrimary: true },
+                    ...patients.map(p => ({ name: p.patient_name, dob: p.patient_dob, phone: p.patient_phone, isPrimary: false, chartCompleted: p.chart_completed }))
+                  ].map((p, index) => (
+                    <View key={index} style={[styles.patientRow, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.patientName}>{p.name}{p.isPrimary ? ' (Primary)' : ''}</Text>
+                        {p.phone ? <Text style={styles.patientDetail}>📞 {p.phone}</Text> : null}
+                      </View>
+                      <TouchableOpacity
+                        style={[{ borderRadius: 8, padding: 10, marginLeft: 8, alignItems: 'center', minWidth: 90 },
+                          p.chartCompleted ? { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' } : { backgroundColor: primaryColor }
+                        ]}
+                        onPress={() => { setChartPatient({ name: p.name, dob: p.dob }); setShowChart(true) }}
+                      >
+                        <Text style={[{ fontSize: 12, fontWeight: '700' }, p.chartCompleted ? { color: 'rgba(255,255,255,0.4)' } : { color: secondaryColor }]}>
+                          {p.chartCompleted ? '🔒 View' : '📋 Chart'}
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   ))}
                 </View>
@@ -826,7 +842,7 @@ export default function TechHomeScreen({ route, navigation }) {
                       </TouchableOpacity>
                     </View>
                   ))}
-                  
+
                   {patientPerks.loyaltyRewards?.map(reward => (
                     <View key={reward.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                       <View>
@@ -842,12 +858,6 @@ export default function TechHomeScreen({ route, navigation }) {
                     </View>
                   ))}
                 </View>
-              )}
-
-              {call.tech_status === 'on_scene' && (
-                <TouchableOpacity style={[styles.chartButton, { backgroundColor: primaryColor }]} onPress={() => setShowChart(true)}>
-                  <Text style={[styles.chartButtonText, { color: secondaryColor }]}>📋 Start/View Chart — {call.patient_name}</Text>
-                </TouchableOpacity>
               )}
 
               {call.tech_status === 'on_scene' && (

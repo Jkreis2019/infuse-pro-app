@@ -147,6 +147,8 @@ const [creatingPatient, setCreatingPatient] = useState(false)
   const [apPhone, setApPhone] = useState('')
   const [apDob, setApDob] = useState('')
   const [addingPatient, setAddingPatient] = useState(false)
+  const [apSearchResults, setApSearchResults] = useState([])
+  const [apEmail, setApEmail] = useState('')
 
   // Patient list modal
   const [patientListModal, setPatientListModal] = useState(false)
@@ -679,6 +681,8 @@ const selectPatient = (patient) => {
     setApName('')
     setApPhone('')
     setApDob('')
+    setApEmail('')
+    setApSearchResults([])
     setPatientListModal(false)
     setAddPatientModal(true)
   }
@@ -2279,10 +2283,49 @@ const submitSendIntake = async () => {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Add Patient to Call</Text>
             <Text style={styles.modalSub}>Each patient gets their own intake and chart</Text>
-            <Text style={styles.reasonLabel}>Patient name *</Text>
-            <TextInput style={styles.reasonInput} placeholder="Full name" placeholderTextColor="#666" value={apName} onChangeText={setApName} />
+            <Text style={styles.reasonLabel}>Search existing patient</Text>
+            <TextInput
+              style={styles.reasonInput}
+              placeholder="Search by name or phone..."
+              placeholderTextColor="#666"
+              value={apName}
+              onChangeText={async (text) => {
+                setApName(text)
+                if (text.length >= 2) {
+                  try {
+                    const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(text)}`, { headers })
+                    const data = await res.json()
+                    setApSearchResults(data.patients || [])
+                  } catch(e) {}
+                } else {
+                  setApSearchResults([])
+                }
+              }}
+            />
+            {apSearchResults.length > 0 && (
+              <View style={{ backgroundColor: '#1a1a1a', borderRadius: 8, marginBottom: 8 }}>
+                {apSearchResults.map(p => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' }}
+                    onPress={() => {
+                      setApName(p.first_name + ' ' + p.last_name)
+                      setApPhone(p.phone || '')
+                      setApEmail(p.email || '')
+                      setApDob(p.dob ? new Date(p.dob).toLocaleDateString('en-US') : '')
+                      setApSearchResults([])
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+                    <Text style={{ color: '#aaa', fontSize: 12 }}>{p.phone || 'No phone'}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
             <Text style={styles.reasonLabel}>Phone number</Text>
             <TextInput style={styles.reasonInput} placeholder="(602) 555-0100" placeholderTextColor="#666" value={apPhone} onChangeText={setApPhone} keyboardType="phone-pad" />
+            <Text style={styles.reasonLabel}>Email</Text>
+            <TextInput style={styles.reasonInput} placeholder="patient@email.com" placeholderTextColor="#666" value={apEmail} onChangeText={setApEmail} keyboardType="email-address" autoCapitalize="none" />
             <Text style={styles.reasonLabel}>Date of birth</Text>
             <TextInput style={styles.reasonInput} placeholder="MM/DD/YYYY" placeholderTextColor="#666" value={apDob} onChangeText={setApDob} keyboardType="numeric" />
             <TouchableOpacity
