@@ -142,6 +142,11 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [anBgColor, setAnBgColor] = useState('')
   const [anActive, setAnActive] = useState(true)
   const [savingAnnouncement, setSavingAnnouncement] = useState(false)
+const [showImportModal, setShowImportModal] = useState(false)
+  const [importCsv, setImportCsv] = useState('')
+  const [importSendEmails, setImportSendEmails] = useState(true)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
 
   // Patients search
   const [psQuery, setPsQuery] = useState('')
@@ -774,6 +779,98 @@ export default function AdminHomeScreen({ route, navigation }) {
         </ScrollView>
       )}
 
+      <Modal visible={showImportModal} animationType="slide" presentationStyle="fullScreen">
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+            <TouchableOpacity onPress={() => { setShowImportModal(false); setImportCsv(''); setImportResult(null) }}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Import Patients</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', marginBottom: 8 }}>CSV FORMAT</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 20 }}>Paste your CSV data below. First row must be headers. Required: first_name, last_name, email. Optional: phone, address, insurance_provider, insurance_member_id, insurance_group_number</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 8, fontFamily: 'monospace' }}>first_name,last_name,email,phone{'\n'}John,Smith,john@email.com,6025550100</Text>
+            </View>
+
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Paste CSV Data</Text>
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, fontSize: 12, color: '#fff', height: 200, textAlignVertical: 'top', fontFamily: 'monospace', marginBottom: 16 }}
+              placeholder="first_name,last_name,email,phone&#10;John,Smith,john@example.com,6025550100"
+              placeholderTextColor="#444"
+              value={importCsv}
+              onChangeText={setImportCsv}
+              multiline
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}
+              onPress={() => setImportSendEmails(!importSendEmails)}
+            >
+              <View style={{ width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: importSendEmails ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: importSendEmails ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                {importSendEmails && <Text style={{ color: secondaryColor, fontSize: 12, fontWeight: '700' }}>✓</Text>}
+              </View>
+              <View>
+                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Send welcome emails to new patients</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Includes app download link and password reset code</Text>
+              </View>
+            </TouchableOpacity>
+
+            {importResult && (
+              <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                <Text style={{ color: '#4CAF50', fontSize: 15, fontWeight: '700', marginBottom: 4 }}>✅ Import Complete</Text>
+                <Text style={{ color: '#fff', fontSize: 14 }}>Imported: {importResult.imported}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Skipped (already exist): {importResult.skipped}</Text>
+                {importResult.errors > 0 && <Text style={{ color: '#f09090', fontSize: 13 }}>Errors: {importResult.errors}</Text>}
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }, importing && { opacity: 0.6 }]}
+              disabled={importing || !importCsv.trim()}
+              onPress={async () => {
+                if (!importCsv.trim()) return
+                setImporting(true)
+                setImportResult(null)
+                try {
+                  const lines = importCsv.trim().split('\n')
+                  const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/\r/g, ''))
+                  const patients = lines.slice(1).map(line => {
+                    const vals = line.split(',').map(v => v.trim().replace(/\r/g, ''))
+                    const obj = {}
+                    headers.forEach((h, i) => { obj[h] = vals[i] || '' })
+                    return obj
+                  }).filter(p => p.first_name || p.last_name || p.email)
+
+                  const res = await fetch(`${API_URL}/admin/patients/import`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patients, sendEmails: importSendEmails })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    setImportResult(data)
+                    setImportCsv('')
+                  } else {
+                    Alert.alert('Error', data.error || 'Import failed')
+                  }
+                } catch (err) {
+                  Alert.alert('Error', 'Network error')
+                } finally {
+                  setImporting(false)
+                }
+              }}
+            >
+              {importing ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Import Patients</Text>}
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {/* ── PATIENTS ── */}
       {activeTab === 'patients' && (
         <View style={{ flex: 1 }}>
@@ -785,6 +882,12 @@ export default function AdminHomeScreen({ route, navigation }) {
               value={psQuery}
               onChangeText={searchPsPatients}
             />
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 10, flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+              onPress={() => setShowImportModal(true)}
+            >
+              <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>⬆️ Import Patients from CSV</Text>
+            </TouchableOpacity>
           </View>
           <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
             {psSearching && <View style={{ alignItems: 'center', padding: 20 }}><ActivityIndicator color={primaryColor} /></View>}
