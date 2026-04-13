@@ -913,7 +913,6 @@ const [showImportModal, setShowImportModal] = useState(false)
                     body: JSON.stringify({ patients: importPatients, sendEmails: importSendEmails })
                   })
                   const data = await res.json()
-                  console.log('Import response:', JSON.stringify(data))
                   if (data.success) {
                     setImportResult(data)
                     setImportFileName('')
@@ -922,8 +921,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     Alert.alert('Error', data.error || 'Import failed')
                   }
                 } catch (err) {
-                  console.error('Import error:', err)
-                  Alert.alert('Error', err.message || 'Network error')
+                  Alert.alert('Error', 'Network error')
                 } finally {
                   setImporting(false)
                 }
