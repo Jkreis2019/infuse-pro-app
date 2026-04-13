@@ -252,7 +252,7 @@ export default function HomeScreen({ route, navigation }) {
         style={{ marginHorizontal: 24, marginTop: -16, marginBottom: 28, alignItems: 'center', padding: 10 }}
         onPress={() => navigation.navigate('Map', { token, user, company, bookingMode: true })}
       >
-        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>🗺 Browse other companies</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>🗺 Guest Booking Map</Text>
       </TouchableOpacity>
 
       <View style={styles.section}>
