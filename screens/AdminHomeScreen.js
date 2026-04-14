@@ -787,9 +787,20 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.headerTitle}>Admin Console</Text>
             <Text style={styles.headerSub}>{user?.firstName} {user?.lastName} · {user?.role?.toUpperCase()}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🩺 NP Channel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
