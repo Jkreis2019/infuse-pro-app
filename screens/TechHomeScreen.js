@@ -738,13 +738,18 @@ if (data.call?.call_id) {
   const timerDanger = onSceneSeconds >= 3600
 
   const markedDates = mySchedule.reduce((acc, booking) => {
-    const date = new Date(booking.requested_time).toISOString().split('T')[0]
+    const dateToUse = booking.confirmed_time || booking.requested_time
+    if (!dateToUse) return acc
+    const date = new Date(dateToUse).toISOString().split('T')[0]
     acc[date] = { marked: true, dotColor: primaryColor }
     return acc
   }, {})
   if (selectedScheduleDate) markedDates[selectedScheduleDate] = { ...markedDates[selectedScheduleDate], selected: true, selectedColor: primaryColor }
 
-  const selectedDayBookings = selectedScheduleDate ? mySchedule.filter(b => new Date(b.requested_time).toISOString().split('T')[0] === selectedScheduleDate) : []
+  const selectedDayBookings = selectedScheduleDate ? mySchedule.filter(b => {
+    const dateToCheck = b.confirmed_time || b.requested_time
+    return dateToCheck && new Date(dateToCheck).toISOString().split('T')[0] === selectedScheduleDate
+  }) : []
 
   if (loading) return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
 

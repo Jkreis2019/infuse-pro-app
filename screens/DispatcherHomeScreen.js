@@ -266,9 +266,12 @@ const cancelAttentionBooking = async (bookingId) => {
       return
     }
 
-    // If booking already has a scheduled time, skip time picker
+    // If booking already has a scheduled time, show time picker to confirm or adjust
     if (selectedBooking?.requested_time) {
-      await executeAssign(techIds)
+      setPendingTechIds(techIds)
+      setConfirmedTime(new Date(selectedBooking.requested_time))
+      setAssignModal(false)
+      setConfirmTimeModal(true)
       return
     }
 
