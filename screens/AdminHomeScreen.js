@@ -792,7 +792,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
               onPress={() => navigation.navigate('DispatcherMessaging', { token, user, company })}
             >
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🩺 NP Channel</Text>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Messaging</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
