@@ -27,6 +27,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true)
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [showChat, setShowChat] = useState(false)
   const flatListRef = useRef(null)
 
   // Decode userId from token
@@ -146,6 +147,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     setSelectedPatient(null)
     setMessages([])
     fetchDMMessages(contact.id, true)
+    if (!isWeb) setShowChat(true)
   }
 
   const selectRegion = (region) => {
@@ -155,6 +157,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     setMessages([])
     setRegionMessages([])
     fetchRegionMessages(region.id, true)
+    if (!isWeb) setShowChat(true)
   }
 
   const sendRegionMessage = async () => {
@@ -182,6 +185,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     setSelectedContact(null)
     setMessages([])
     fetchPatientMessages(chat.booking_id, true)
+    if (!isWeb) setShowChat(true)
   }
 
   const sendDM = async () => {
@@ -296,7 +300,8 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     <View style={[styles.container, { flexDirection: isWeb ? 'row' : 'column' }]}>
 
       {/* LEFT PANE */}
-      <View style={[styles.leftPane, { borderRightColor: 'rgba(255,255,255,0.08)', maxHeight: (!isWeb && activeTab === 'np') ? 130 : undefined }]}>
+      {(!showChat || isWeb) && (
+      <View style={[styles.leftPane, { borderRightColor: 'rgba(255,255,255,0.08)' }]}>
         {/* Header */}
         <View style={[styles.leftHeader, { backgroundColor: secondaryColor }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
@@ -468,8 +473,10 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
           }
         />
       </View>
+      )}
 
       {/* RIGHT PANE */}
+      {(showChat || isWeb) && (
       <View style={styles.rightPane}>
         {!selectedContact && !selectedPatient && !selectedRegion ? (
           <View style={styles.emptyChat}>
@@ -480,6 +487,11 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
           <>
             {/* Chat Header */}
             <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
+              {!isWeb && (
+                <TouchableOpacity onPress={() => { setShowChat(false); setSelectedContact(null); setSelectedPatient(null); setSelectedRegion(null) }} style={{ marginRight: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
+                </TouchableOpacity>
+              )}
               <View style={{ flex: 1 }}>
                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
                   {selectedRegion ? `📍 ${selectedRegion.name}` : selectedContact ? `${selectedContact.first_name} ${selectedContact.last_name}` : selectedPatient?.patient_name}
@@ -550,6 +562,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
           </>
         )}
       </View>
+      )}
     </View>
   )
 }
