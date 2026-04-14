@@ -314,10 +314,6 @@ export default function NPHomeScreen({ route, navigation }) {
   const [loadingGFE, setLoadingGFE] = useState(false)
   const [profileModal, setProfileModal] = useState(false)
   const [activeTab, setActiveTab] = useState('queue')
-  const [messages, setMessages] = useState([])
-  const [messageInput, setMessageInput] = useState('')
-  const [sendingMessage, setSendingMessage] = useState(false)
-  const messagesScrollRef = React.useRef(null)
   const [log, setLog] = useState([])
   const [logSearch, setLogSearch] = useState('')
   const [logLoading, setLogLoading] = useState(false)
@@ -390,40 +386,7 @@ export default function NPHomeScreen({ route, navigation }) {
     }
   }
 
-  const loadMessages = async () => {
-    try {
-      const res = await fetch(`${API_URL}/messages/np-dispatch`, { headers })
-      const data = await res.json()
-      if (data.messages) setMessages(data.messages)
-    } catch (err) {
-      console.error('Load messages error:', err)
-    }
-  }
-
-  const sendMessage = async () => {
-    if (!messageInput.trim()) return
-    setSendingMessage(true)
-    try {
-      const res = await fetch(`${API_URL}/messages/channel`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: 'np-dispatch', body: messageInput.trim() })
-      })
-      const data = await res.json()
-      if (data.success) { setMessageInput(''); loadMessages() }
-    } catch (err) {
-      console.error('Send message error:', err)
-    } finally {
-      setSendingMessage(false)
-    }
-  }
-
   React.useEffect(() => {
-    if (activeTab === 'messages') {
-      loadMessages()
-      const interval = setInterval(loadMessages, 5000)
-      return () => clearInterval(interval)
-    }
     if (activeTab === 'log') fetchLog()
   }, [activeTab])
 
@@ -488,13 +451,19 @@ export default function NPHomeScreen({ route, navigation }) {
           {[
             { key: 'queue', label: `🩺 GFE${queue.length > 0 ? ` (${queue.length})` : ''}` },
             { key: 'log', label: '📋 Log' },
-            { key: 'messages', label: '💬 Dispatch' },
+            { key: 'messages', label: '💬 Messages' },
             { key: 'search', label: '🔍 Patients' }
           ].map(tab => (
             <TouchableOpacity
               key={tab.key}
               style={{ paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: activeTab === tab.key ? primaryColor : 'transparent' }}
-              onPress={() => setActiveTab(tab.key)}
+              onPress={() => {
+              if (tab.key === 'messages') {
+                navigation.navigate('DispatcherMessaging', { token, user, company })
+              } else {
+                setActiveTab(tab.key)
+              }
+            }}
             >
               <Text style={{ color: activeTab === tab.key ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>{tab.label}</Text>
             </TouchableOpacity>
@@ -530,47 +499,6 @@ export default function NPHomeScreen({ route, navigation }) {
           ))}
           <View style={{ height: 40 }} />
         </ScrollView>
-      )}
-
-      {/* Messages Tab */}
-      {activeTab === 'messages' && (
-        <View style={{ flex: 1 }}>
-          <ScrollView style={{ flex: 1, padding: 16 }} ref={messagesScrollRef}>
-            {messages.length === 0 ? (
-              <View style={{ alignItems: 'center', paddingTop: 60 }}>
-                <Text style={{ fontSize: 32, marginBottom: 12 }}>💬</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No messages yet</Text>
-              </View>
-            ) : messages.map((msg, i) => (
-              <View key={i} style={{ marginBottom: 12, alignItems: Number(msg.senderId) === Number(user?.id) ? 'flex-end' : 'flex-start' }}>
-                <View style={{ backgroundColor: Number(msg.senderId) === Number(user?.id) ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
-                  <Text style={{ color: Number(msg.senderId) === Number(user?.id) ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
-                </View>
-                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
-                  {msg.senderName} · {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-            <View style={{ flexDirection: 'row', padding: 12, gap: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
-              <TextInput
-                style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, color: '#fff', fontSize: 14 }}
-                placeholder="Message dispatch..."
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                value={messageInput}
-                onChangeText={setMessageInput}
-                returnKeyType="send"
-                onSubmitEditing={sendMessage}
-                blurOnSubmit={false}
-                onKeyPress={({ nativeEvent }) => { if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) sendMessage() }}
-              />
-              <TouchableOpacity onPress={sendMessage} disabled={sendingMessage || !messageInput.trim()} style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, justifyContent: 'center', opacity: sendingMessage || !messageInput.trim() ? 0.5 : 1 }}>
-                <Text style={{ color: secondaryColor, fontWeight: '700' }}>Send</Text>
-              </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
       )}
 
       {/* Log Tab */}
