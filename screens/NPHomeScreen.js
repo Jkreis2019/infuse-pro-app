@@ -733,33 +733,30 @@ export default function NPHomeScreen({ route, navigation }) {
                   <>
                     {!selectedPatientProfile.intake ? (
                       <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake form on file</Text>
-                    ) : (
-                      <>
-                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
-                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUBMITTED</Text>
-                          <Text style={{ color: '#fff', fontSize: 13 }}>{new Date(selectedPatientProfile.intake.submitted_at).toLocaleDateString()}</Text>
-                        </View>
-                        {selectedPatientProfile.intake.medications && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>MEDICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.intake.medications}</Text></View>}
-                        {selectedPatientProfile.intake.supplements && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUPPLEMENTS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.intake.supplements}</Text></View>}
-                        {(() => {
-                          try {
-                            const allergies = typeof selectedPatientProfile.intake.allergies_detail === 'string'
-                              ? JSON.parse(selectedPatientProfile.intake.allergies_detail)
-                              : selectedPatientProfile.intake.allergies_detail
-                            return allergies?.length > 0 ? (
-                              <View style={{ backgroundColor: 'rgba(229,62,62,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }}>
-                                <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>ALLERGIES</Text>
-                                {allergies.map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}
-                              </View>
-                            ) : null
-                          } catch (e) { return null }
-                        })()}
-                        {selectedPatientProfile.intake.medical_history_cardiovascular?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CARDIOVASCULAR</Text>{selectedPatientProfile.intake.medical_history_cardiovascular.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
-                        {selectedPatientProfile.intake.medical_history_respiratory?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RESPIRATORY</Text>{selectedPatientProfile.intake.medical_history_respiratory.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
-                        {selectedPatientProfile.intake.medical_history_renal?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RENAL</Text>{selectedPatientProfile.intake.medical_history_renal.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
-                        {selectedPatientProfile.intake.important_history?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>IMPORTANT HISTORY</Text>{selectedPatientProfile.intake.important_history.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
-                      </>
-                    )}
+                    ) : (() => {
+                      const intake = selectedPatientProfile.intake
+                      const parseArr = (val) => { try { return typeof val === 'string' ? JSON.parse(val) : (Array.isArray(val) ? val : []) } catch(e) { return [] } }
+                      const allergies = parseArr(intake.allergies_detail)
+                      const cardio = parseArr(intake.medical_history_cardiovascular)
+                      const respiratory = parseArr(intake.medical_history_respiratory)
+                      const renal = parseArr(intake.medical_history_renal)
+                      const history = parseArr(intake.important_history)
+                      return (
+                        <>
+                          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUBMITTED</Text>
+                            <Text style={{ color: '#fff', fontSize: 13 }}>{new Date(intake.submitted_at).toLocaleDateString()}</Text>
+                          </View>
+                          {intake.medications ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>MEDICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{intake.medications}</Text></View> : null}
+                          {intake.supplements ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUPPLEMENTS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{intake.supplements}</Text></View> : null}
+                          {allergies.length > 0 ? <View style={{ backgroundColor: 'rgba(229,62,62,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>ALLERGIES</Text>{allergies.map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}</View> : null}
+                          {cardio.length > 0 ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CARDIOVASCULAR</Text>{cardio.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View> : null}
+                          {respiratory.length > 0 ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RESPIRATORY</Text>{respiratory.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View> : null}
+                          {renal.length > 0 ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RENAL</Text>{renal.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View> : null}
+                          {history.length > 0 ? <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>IMPORTANT HISTORY</Text>{history.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View> : null}
+                        </>
+                      )
+                    })()}
                   </>
                 )}
 
