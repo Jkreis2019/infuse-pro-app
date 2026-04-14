@@ -1976,14 +1976,73 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No GFE on file</Text>
                   ) : (
                     <>
+                      {/* Status Banner */}
                       <View style={{ backgroundColor: psProfileData.gfe.notACandidate ? 'rgba(229,62,62,0.1)' : 'rgba(76,175,80,0.1)', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
-                        <Text style={{ color: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>{psProfileData.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED FOR TREATMENT'}</Text>
+                        <Text style={{ color: psProfileData.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 13, fontWeight: '700', marginBottom: 8 }}>{psProfileData.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED FOR TREATMENT'}</Text>
                         <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {psProfileData.gfe.npName}</Text>
-                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Valid until {new Date(psProfileData.gfe.validUntil).toLocaleDateString()}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Completed: {psProfileData.gfe.completedAt ? new Date(psProfileData.gfe.completedAt).toLocaleDateString() : '—'}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Valid until: {psProfileData.gfe.validUntil ? new Date(psProfileData.gfe.validUntil).toLocaleDateString() : '—'}</Text>
                       </View>
-                      {psProfileData.gfe.approvedServices?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>✅ APPROVED SERVICES</Text>{psProfileData.gfe.approvedServices.map((s, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {s}</Text>)}</View>}
-                      {psProfileData.gfe.restrictions && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>❌ RESTRICTIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.restrictions}</Text></View>}
-                      {psProfileData.gfe.npOrders && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>📝 NP ORDERS</Text><Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.gfe.npOrders}</Text></View>}
+
+                      {/* Reason for Treatment */}
+                      {psProfileData.gfe.reasonForTreatment && (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🎯 REASON FOR TREATMENT</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.gfe.reasonForTreatment}</Text>
+                        </View>
+                      )}
+
+                      {/* Review Checkboxes */}
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 12 }}>📋 REVIEW CHECKLIST</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <Text style={{ fontSize: 16 }}>{psProfileData.gfe.medicationsReviewed ? '✅' : '⬜'}</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Medications Reviewed</Text>
+                        </View>
+                        {psProfileData.gfe.medicationsNotes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 8, marginLeft: 24 }}>{psProfileData.gfe.medicationsNotes}</Text>}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                          <Text style={{ fontSize: 16 }}>{psProfileData.gfe.medicalHxReviewed ? '✅' : '⬜'}</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Medical History Reviewed</Text>
+                        </View>
+                        {psProfileData.gfe.medicalHxNotes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 8, marginLeft: 24 }}>{psProfileData.gfe.medicalHxNotes}</Text>}
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Text style={{ fontSize: 16 }}>{psProfileData.gfe.allergiesReviewed ? '✅' : '⬜'}</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>Allergies Reviewed</Text>
+                        </View>
+                        {psProfileData.gfe.allergiesNotes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4, marginLeft: 24 }}>{psProfileData.gfe.allergiesNotes}</Text>}
+                      </View>
+
+                      {/* Approved Services */}
+                      {psProfileData.gfe.approvedServices?.length > 0 && (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>✅ APPROVED SERVICES</Text>
+                          {psProfileData.gfe.approvedServices.map((s, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {s}</Text>)}
+                        </View>
+                      )}
+
+                      {/* Restrictions */}
+                      {psProfileData.gfe.restrictions && (
+                        <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}>
+                          <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>❌ RESTRICTIONS</Text>
+                          <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.restrictions}</Text>
+                        </View>
+                      )}
+
+                      {/* NP Orders */}
+                      {psProfileData.gfe.npOrders && (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>📝 NP ORDERS</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.gfe.npOrders}</Text>
+                        </View>
+                      )}
+
+                      {/* Not a Candidate Reason */}
+                      {psProfileData.gfe.notACandidate && psProfileData.gfe.notACandidateReason && (
+                        <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#e53e3e' }}>
+                          <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🚫 REASON NOT A CANDIDATE</Text>
+                          <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.gfe.notACandidateReason}</Text>
+                        </View>
+                      )}
                     </>
                   )}
                 </>
