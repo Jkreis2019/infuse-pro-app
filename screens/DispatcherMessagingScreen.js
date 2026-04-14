@@ -97,7 +97,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
       fetchPatientChats()
       fetchRegions()
       if (selectedRegion) fetchRegionMessages(selectedRegion.id)
-      if (activeTab === 'np') fetchNpMessages()
     }, 10000)
     return () => clearInterval(interval)
   }, [fetchContacts, fetchPatientChats])
@@ -167,6 +166,13 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
       if (showLoader) setMessagesLoading(false)
     }
   }, [token])
+
+  useEffect(() => {
+    if (activeTab !== 'np') return
+    fetchNpMessages(false)
+    const interval = setInterval(() => fetchNpMessages(false), 5000)
+    return () => clearInterval(interval)
+  }, [activeTab])
 
   useEffect(() => {
     if (!selectedContact && !selectedPatient) return
@@ -305,7 +311,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   )
 
   const renderMessage = ({ item }) => {
-    const isMe = item.sender_id === userId
+    const isMe = Number(item.sender_id) === Number(userId)
     return (
       <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
         {!isMe && (

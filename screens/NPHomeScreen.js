@@ -721,7 +721,9 @@ export default function NPHomeScreen({ route, navigation }) {
                 placeholderTextColor="rgba(255,255,255,0.3)"
                 value={messageInput}
                 onChangeText={setMessageInput}
-                multiline
+                returnKeyType="send"
+                onSubmitEditing={sendMessage}
+                blurOnSubmit={false}
               />
               <TouchableOpacity
                 onPress={sendMessage}
