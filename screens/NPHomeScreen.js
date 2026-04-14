@@ -6,13 +6,8 @@ import {
 
 const API_URL = 'https://api.infusepro.app'
 
-const APPROVED_SERVICES = [
-  'Hangover Rescue', 'Myers Cocktail', 'Immunity Boost',
-  'NAD+ Therapy', 'Migraine Relief', 'Energy Boost'
-]
-
 function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -27,6 +22,19 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
   const [activeTab, setActiveTab] = useState('intake')
   const [chartData, setChartData] = useState(null)
   const [chartLoading, setChartLoading] = useState(false)
+  const [companyServices, setCompanyServices] = useState([
+    'Hangover Rescue', 'Myers Cocktail', 'Immunity Boost',
+    'NAD+ Therapy', 'Migraine Relief', 'Energy Boost'
+  ])
+
+  React.useEffect(() => {
+    if (company?.id) {
+      fetch(`${API_URL}/companies/${company.id}/services`)
+        .then(r => r.json())
+        .then(d => { if (d.services?.length > 0) setCompanyServices(d.services.map(s => s.name)) })
+        .catch(() => {})
+    }
+  }, [company?.id])
 
   useEffect(() => {
     if (activeTab === 'chart' && gfe?.call_id && !chartData) {
@@ -301,7 +309,7 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                 <View style={rStyles.section}>
                   <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>APPROVED SERVICES</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Select all services this patient is approved for</Text>
-                  {APPROVED_SERVICES.map(service => (
+                  {companyServices.map(service => (
                     <TouchableOpacity
                       key={service}
                       style={[rStyles.serviceBtn, approvedServices.includes(service) && { borderColor: primaryColor, backgroundColor: primaryColor + '22' }]}
@@ -394,7 +402,7 @@ const rStyles = StyleSheet.create({
 
 export default function NPHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#5BBFB5'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -404,6 +412,7 @@ export default function NPHomeScreen({ route, navigation }) {
   const [selectedGFE, setSelectedGFE] = useState(null)
   const [reviewModal, setReviewModal] = useState(false)
   const [loadingGFE, setLoadingGFE] = useState(false)
+  const [profileModal, setProfileModal] = useState(false)
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -485,9 +494,20 @@ export default function NPHomeScreen({ route, navigation }) {
             <Text style={styles.headerTitle}>GFE Queue</Text>
             <Text style={styles.headerSub}>{user?.firstName} · NP</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => setProfileModal(true)}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+            >
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -532,6 +552,32 @@ export default function NPHomeScreen({ route, navigation }) {
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
+      {/* Profile Modal */}
+      <Modal visible={profileModal} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: secondaryColor, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 6 }}>{user?.firstName} {user?.lastName}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>{user?.email}</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Role</Text>
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>NURSE PRACTITIONER</Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', marginBottom: 24 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Company</Text>
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{company?.name}</Text>
+            </View>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(220,80,80,0.15)', borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 8 }}
+              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
+            >
+              <Text style={{ color: '#f09090', fontSize: 15, fontWeight: '500' }}>Log out</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ alignItems: 'center', padding: 12 }} onPress={() => setProfileModal(false)}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -539,7 +585,7 @@ export default function NPHomeScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24 },
+  header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
