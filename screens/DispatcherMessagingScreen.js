@@ -26,8 +26,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
   const [messagesLoading, setMessagesLoading] = useState(false)
-  const [npMessages, setNpMessages] = useState([])
-  const [npMessage, setNpMessage] = useState('')
   const [search, setSearch] = useState('')
   const flatListRef = useRef(null)
 
@@ -91,7 +89,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     fetchContacts()
     fetchPatientChats()
     fetchRegions()
-    fetchNpMessages()
     const interval = setInterval(() => {
       fetchContacts()
       fetchPatientChats()
@@ -114,46 +111,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     }
   }, [token])
 
-  const fetchNpMessages = useCallback(async (showLoader = false) => {
-    if (showLoader) setMessagesLoading(true)
-    try {
-      const res = await fetch(`${API_URL}/messages/np-dispatch`, { headers })
-      const data = await res.json()
-      if (data.messages) setNpMessages(data.messages.map(m => ({
-        ...m,
-        sender_id: m.senderId,
-        sender_first: m.senderName?.split(' ')[0],
-        sender_last: m.senderName?.split(' ')[1] || '',
-        created_at: m.createdAt,
-        body: m.body
-      })))
-    } catch (err) {
-      console.error('Fetch NP messages error:', err)
-    } finally {
-      if (showLoader) setMessagesLoading(false)
-    }
-  }, [token])
-
-  const sendNpMessage = async () => {
-    if (!npMessage.trim()) return
-    setSending(true)
-    const text = npMessage.trim()
-    setNpMessage('')
-    try {
-      const res = await fetch(`${API_URL}/messages/channel`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channel: 'np-dispatch', body: text })
-      })
-      const data = await res.json()
-      if (data.success) fetchNpMessages()
-    } catch (err) {
-      console.error('Send NP message error:', err)
-    } finally {
-      setSending(false)
-    }
-  }
-
   const fetchPatientMessages = useCallback(async (bookingId, showLoader = false) => {
     if (showLoader) setMessagesLoading(true)
     try {
@@ -166,13 +123,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
       if (showLoader) setMessagesLoading(false)
     }
   }, [token])
-
-  useEffect(() => {
-    if (activeTab !== 'np') return
-    fetchNpMessages(false)
-    const interval = setInterval(() => fetchNpMessages(false), 5000)
-    return () => clearInterval(interval)
-  }, [activeTab])
 
   useEffect(() => {
     if (!selectedContact && !selectedPatient) return
@@ -346,7 +296,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     <View style={[styles.container, { flexDirection: isWeb ? 'row' : 'column' }]}>
 
       {/* LEFT PANE */}
-      <View style={[styles.leftPane, { borderRightColor: 'rgba(255,255,255,0.08)' }]}>
+      <View style={[styles.leftPane, { borderRightColor: 'rgba(255,255,255,0.08)', maxHeight: (!isWeb && activeTab === 'np') ? 130 : undefined }]}>
         {/* Header */}
         <View style={[styles.leftHeader, { backgroundColor: secondaryColor }]}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
@@ -382,17 +332,11 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
               🏥 Patients {patientChats.filter(c => c.status === 'open').length > 0 ? `(${patientChats.filter(c => c.status === 'open').length})` : ''}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'np' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
-            onPress={() => { setActiveTab('np'); fetchNpMessages(true) }}
-          >
-            <Text style={[styles.tabText, activeTab === 'np' && { color: primaryColor }]}>🩺 NP</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Contact List */}
         <FlatList
-          data={activeTab === 'np' ? [] : activeTab === 'team'
+          data={activeTab === 'team'
             ? [
                 { type: 'groupHeader' },
                 ...regions.map(r => ({ type: 'region', ...r })),
@@ -527,47 +471,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
 
       {/* RIGHT PANE */}
       <View style={styles.rightPane}>
-        {activeTab === 'np' ? (
-          <View style={{ flex: 1 }}>
-            <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>🩺 NP · Dispatch Channel</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Private channel — NP, Dispatch & Admin only</Text>
-              </View>
-            </View>
-            <FlatList
-              ref={flatListRef}
-              data={npMessages}
-              keyExtractor={item => item.id.toString()}
-              renderItem={renderMessage}
-              contentContainerStyle={styles.messageList}
-              ListEmptyComponent={
-                <View style={styles.emptyChat}>
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet</Text>
-                </View>
-              }
-              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-            />
-            <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
-              <TextInput
-                style={styles.input}
-                value={npMessage}
-                onChangeText={setNpMessage}
-                placeholder="Message NP..."
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                style={[styles.sendBtn, { backgroundColor: primaryColor }, (!npMessage.trim() || sending) && { opacity: 0.4 }]}
-                onPress={sendNpMessage}
-                disabled={!npMessage.trim() || sending}
-              >
-                {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : !selectedContact && !selectedPatient && !selectedRegion ? (
+        {!selectedContact && !selectedPatient && !selectedRegion ? (
           <View style={styles.emptyChat}>
             <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Select a conversation</Text>
@@ -652,7 +556,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
-  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', borderRightWidth: 1, backgroundColor: '#0a1540' },
+  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', borderRightWidth: 1, backgroundColor: '#0a1540', overflow: 'hidden' },
   rightPane: { flex: 1, backgroundColor: '#0D1B4B' },
   leftHeader: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
   searchInput: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, color: '#fff', fontSize: 14 },

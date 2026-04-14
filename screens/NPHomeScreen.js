@@ -522,9 +522,11 @@ export default function NPHomeScreen({ route, navigation }) {
   const onRefresh = () => { setRefreshing(true); fetchQueue() }
 
   const loadMessages = async () => {
+    console.log('loadMessages called, token:', token ? 'exists' : 'MISSING')
     try {
       const res = await fetch(`${API_URL}/messages/np-dispatch`, { headers })
       const data = await res.json()
+      console.log('NP fetched messages:', data)
       if (data.messages) setMessages(data.messages)
     } catch (err) {
       console.error('Load messages error:', err)
@@ -534,6 +536,7 @@ export default function NPHomeScreen({ route, navigation }) {
   const sendMessage = async () => {
     if (!messageInput.trim()) return
     setSendingMessage(true)
+    console.log('NP sending message:', messageInput.trim())
     try {
       const res = await fetch(`${API_URL}/messages/channel`, {
         method: 'POST',
@@ -638,7 +641,7 @@ export default function NPHomeScreen({ route, navigation }) {
           <TouchableOpacity
             key={tab.key}
             style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === tab.key ? primaryColor : 'transparent' }}
-            onPress={() => { setActiveTab(tab.key); if (tab.key === 'messages') loadMessages() }}
+            onPress={() => { if (tab.key === 'messages') { navigation.navigate('DispatcherMessaging', { token, user, company }) } else { setActiveTab(tab.key) } }}
           >
             <Text style={{ color: activeTab === tab.key ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>{tab.label}</Text>
           </TouchableOpacity>
@@ -702,9 +705,9 @@ export default function NPHomeScreen({ route, navigation }) {
               </View>
             ) : (
               messages.map((msg, i) => (
-                <View key={i} style={{ marginBottom: 12, alignItems: msg.senderId === user?.id ? 'flex-end' : 'flex-start' }}>
+                <View key={i} style={{ marginBottom: 12, alignItems: Number(msg.senderId) === Number(user?.id) ? 'flex-end' : 'flex-start' }}>
                   <View style={{ backgroundColor: msg.senderId === user?.id ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
-                    <Text style={{ color: msg.senderId === user?.id ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
+                    <Text style={{ color: Number(msg.senderId) === Number(user?.id) ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
                   </View>
                   <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
                     {msg.senderName} · {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -724,6 +727,11 @@ export default function NPHomeScreen({ route, navigation }) {
                 returnKeyType="send"
                 onSubmitEditing={sendMessage}
                 blurOnSubmit={false}
+                onKeyPress={({ nativeEvent }) => {
+                  if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) {
+                    sendMessage()
+                  }
+                }}
               />
               <TouchableOpacity
                 onPress={sendMessage}
