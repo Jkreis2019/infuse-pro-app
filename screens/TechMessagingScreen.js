@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
-  ActivityIndicator, Image, Platform
+  ActivityIndicator, Image, Platform, KeyboardAvoidingView
 } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -253,27 +253,29 @@ export default function TechMessagingScreen({ route, navigation }) {
             />
           )}
 
-          <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
-            <TextInput
-              style={styles.input}
-              value={message}
-              onChangeText={setMessage}
-              placeholder="Type a message..."
-              placeholderTextColor="rgba(255,255,255,0.3)"
-              multiline
-              maxLength={500}
-              onKeyPress={({ nativeEvent }) => {
-                if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) sendMessage()
-              }}
-            />
-            <TouchableOpacity
-              style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}
-              onPress={sendMessage}
-              disabled={!message.trim() || sending}
-            >
-              {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}
-            </TouchableOpacity>
-          </View>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
+              <TextInput
+                style={styles.input}
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Type a message..."
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                multiline
+                maxLength={500}
+                onKeyPress={({ nativeEvent }) => {
+                  if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) sendMessage()
+                }}
+              />
+              <TouchableOpacity
+                style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}
+                onPress={sendMessage}
+                disabled={!message.trim() || sending}
+              >
+                {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
         </>
       )}
     </View>
