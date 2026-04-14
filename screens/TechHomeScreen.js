@@ -812,6 +812,26 @@ if (data.call?.call_id) {
                 <Text style={styles.label}>📍 Address</Text>
                 <Text style={styles.value}>{call.address}</Text>
                 {call.address_note && <Text style={styles.valueNote}>{call.address_note}</Text>}
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12 }}
+                  onPress={() => {
+                    const { Linking, Platform } = require('react-native')
+                    const encoded = encodeURIComponent(call.address)
+                    const url = Platform.OS === 'ios'
+                      ? `maps://app?daddr=${encoded}`
+                      : `google.navigation:q=${encoded}`
+                    Linking.canOpenURL(url).then(supported => {
+                      if (supported) {
+                        Linking.openURL(url)
+                      } else {
+                        Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encoded}`)
+                      }
+                    })
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>🗺</Text>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Guide Me</Text>
+                </TouchableOpacity>
                 {call.notes && (<><Text style={styles.label}>📝 Notes</Text><Text style={styles.value}>{call.notes}</Text></>)}
                 <Text style={styles.label}>🕐 Dispatched</Text>
                 <Text style={styles.value}>{new Date(call.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
