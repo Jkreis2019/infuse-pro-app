@@ -552,6 +552,14 @@ export default function NPHomeScreen({ route, navigation }) {
     }
   }
 
+  React.useEffect(() => {
+    if (activeTab === 'messages') {
+      loadMessages()
+      const interval = setInterval(loadMessages, 5000)
+      return () => clearInterval(interval)
+    }
+  }, [activeTab])
+
   const openGFE = async (gfe) => {
     setLoadingGFE(true)
     try {
