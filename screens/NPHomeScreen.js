@@ -22,6 +22,13 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
   const [activeTab, setActiveTab] = useState('intake')
   const [chartData, setChartData] = useState(null)
   const [chartLoading, setChartLoading] = useState(false)
+  const [reasonForTreatment, setReasonForTreatment] = useState('')
+  const [medicationsReviewed, setMedicationsReviewed] = useState(false)
+  const [medicationsNotes, setMedicationsNotes] = useState('')
+  const [medicalHxReviewed, setMedicalHxReviewed] = useState(false)
+  const [medicalHxNotes, setMedicalHxNotes] = useState('')
+  const [allergiesReviewed, setAllergiesReviewed] = useState(false)
+  const [allergiesNotes, setAllergiesNotes] = useState('')
   const [companyServices, setCompanyServices] = useState([
     'Hangover Rescue', 'Myers Cocktail', 'Immunity Boost',
     'NAD+ Therapy', 'Migraine Relief', 'Energy Boost'
@@ -36,7 +43,7 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
     }
   }, [company?.id])
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeTab === 'chart' && gfe?.call_id && !chartData) {
       setChartLoading(true)
       fetch(`${API_URL}/charts/call/${gfe.call_id}`, { headers })
@@ -82,7 +89,14 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
           notACandidate: decision === 'not_a_candidate',
           notACandidateReason: notACandidateReason || null,
           declineReason: declineReason || null,
-          npNotes: npOrders || null
+          npNotes: npOrders || null,
+          reasonForTreatment: reasonForTreatment || null,
+          medicationsReviewed,
+          medicationsNotes: medicationsNotes || null,
+          medicalHxReviewed,
+          medicalHxNotes: medicalHxNotes || null,
+          allergiesReviewed,
+          allergiesNotes: allergiesNotes || null
         })
       })
       const data = await res.json()
@@ -255,6 +269,82 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
           {/* Orders Tab */}
           {activeTab === 'orders' && (
             <>
+            {/* Reason for Treatment */}
+              <View style={rStyles.section}>
+                <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>REASON FOR TREATMENT *</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>Primary reason patient is seeking IV therapy today</Text>
+                <TextInput
+                  style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]}
+                  placeholder="e.g. Dehydration, hangover recovery, immune support..."
+                  placeholderTextColor="#666"
+                  value={reasonForTreatment}
+                  onChangeText={setReasonForTreatment}
+                  multiline
+                />
+              </View>
+
+              {/* Medications Reviewed */}
+              <View style={rStyles.section}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
+                  onPress={() => setMedicationsReviewed(!medicationsReviewed)}
+                >
+                  <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: medicationsReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: medicationsReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                    {medicationsReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
+                  </View>
+                  <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>MEDICATIONS REVIEWED</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
+                  placeholder="Notes on medications reviewed..."
+                  placeholderTextColor="#666"
+                  value={medicationsNotes}
+                  onChangeText={setMedicationsNotes}
+                  multiline
+                />
+              </View>
+
+              {/* Medical History Reviewed */}
+              <View style={rStyles.section}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
+                  onPress={() => setMedicalHxReviewed(!medicalHxReviewed)}
+                >
+                  <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: medicalHxReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: medicalHxReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                    {medicalHxReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
+                  </View>
+                  <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>MEDICAL HISTORY REVIEWED</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
+                  placeholder="Notes on medical history reviewed..."
+                  placeholderTextColor="#666"
+                  value={medicalHxNotes}
+                  onChangeText={setMedicalHxNotes}
+                  multiline
+                />
+              </View>
+
+              {/* Allergies Reviewed */}
+              <View style={rStyles.section}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
+                  onPress={() => setAllergiesReviewed(!allergiesReviewed)}
+                >
+                  <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: allergiesReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: allergiesReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                    {allergiesReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
+                  </View>
+                  <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>ALLERGIES REVIEWED</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
+                  placeholder="Notes on allergies reviewed..."
+                  placeholderTextColor="#666"
+                  value={allergiesNotes}
+                  onChangeText={setAllergiesNotes}
+                  multiline
+                />
+              </View>
               {/* Decision */}
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>DECISION</Text>
