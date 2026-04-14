@@ -694,12 +694,12 @@ export default function NPHomeScreen({ route, navigation }) {
               </View>
             ) : (
               messages.map((msg, i) => (
-                <View key={i} style={{ marginBottom: 12, alignItems: msg.sender_id === user?.id ? 'flex-end' : 'flex-start' }}>
-                  <View style={{ backgroundColor: msg.sender_id === user?.id ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
+                <View key={i} style={{ marginBottom: 12, alignItems: msg.senderId === user?.id ? 'flex-end' : 'flex-start' }}>
+                  <View style={{ backgroundColor: msg.senderId === user?.id ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
                     <Text style={{ color: msg.sender_id === user?.id ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
                   </View>
                   <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
-                    {msg.sender_first_name} · {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {msg.senderName} · {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </Text>
                 </View>
               ))

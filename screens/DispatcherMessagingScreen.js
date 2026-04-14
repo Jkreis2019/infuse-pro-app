@@ -120,7 +120,14 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     try {
       const res = await fetch(`${API_URL}/messages/np-dispatch`, { headers })
       const data = await res.json()
-      if (data.messages) setNpMessages(data.messages)
+      if (data.messages) setNpMessages(data.messages.map(m => ({
+        ...m,
+        sender_id: m.senderId,
+        sender_first: m.senderName?.split(' ')[0],
+        sender_last: m.senderName?.split(' ')[1] || '',
+        created_at: m.createdAt,
+        body: m.body
+      })))
     } catch (err) {
       console.error('Fetch NP messages error:', err)
     } finally {
