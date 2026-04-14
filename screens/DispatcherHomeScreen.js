@@ -934,8 +934,8 @@ const submitSendIntake = async () => {
                 return (
                   <>
                     <Text style={styles.cardTime}>
-                      {booking.requested_time
-                        ? `📅 Scheduled: ${new Date(booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
+                      {(booking.confirmed_time || booking.requested_time)
+                        ? `📅 ${booking.confirmed_time ? 'Confirmed' : 'Scheduled'}: ${new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
                         : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                       }
                     </Text>

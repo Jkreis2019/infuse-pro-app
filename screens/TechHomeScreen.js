@@ -1174,7 +1174,7 @@ if (data.call?.call_id) {
                     <Text style={styles.patientName}>{b.service}</Text>
                     <Text style={styles.patientDetail}>👤 {b.patient_name}</Text>
                     <Text style={styles.patientDetail}>📍 {b.address}</Text>
-                    <Text style={[styles.patientDetail, { color: primaryColor, fontWeight: '600' }]}>🕐 {new Date(b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}</Text>
+                    <Text style={[styles.patientDetail, { color: primaryColor, fontWeight: '600' }]}>🕐 {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}{b.confirmed_time && b.requested_time && b.confirmed_time !== b.requested_time ? ' (confirmed)' : ''}</Text>
                     {b.patient_count > 1 && <Text style={styles.patientDetail}>👥 {b.patient_count} patients</Text>}
                   </View>
                 </View>
