@@ -834,7 +834,19 @@ if (data.call?.call_id) {
                 </TouchableOpacity>
                 {call.notes && (<><Text style={styles.label}>📝 Notes</Text><Text style={styles.value}>{call.notes}</Text></>)}
                 <Text style={styles.label}>🕐 Dispatched</Text>
-                <Text style={styles.value}>{new Date(call.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                <Text style={styles.value}>{call.dispatched_at ? new Date(call.dispatched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</Text>
+                {call.confirmed_time && (
+                  <>
+                    <Text style={[styles.label, { marginTop: 8 }]}>✅ Confirmed for</Text>
+                    <Text style={styles.value}>{new Date(call.confirmed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(call.confirmed_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })}</Text>
+                  </>
+                )}
+                {call.requested_time && !call.confirmed_time && (
+                  <>
+                    <Text style={[styles.label, { marginTop: 8 }]}>📅 Scheduled for</Text>
+                    <Text style={styles.value}>{new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(call.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })}</Text>
+                  </>
+                )}
                 {call.requested_time && (
                   <>
                     <Text style={styles.label}>📅 Confirmed For</Text>
