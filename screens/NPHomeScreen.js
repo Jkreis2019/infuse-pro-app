@@ -119,7 +119,6 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
       <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        {/* Header */}
         <View style={[rStyles.header, { backgroundColor: secondaryColor }]}>
           <TouchableOpacity onPress={onClose}>
             <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
@@ -128,7 +127,6 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
           <View style={{ width: 60 }} />
         </View>
 
-        {/* Tab Bar */}
         <View style={{ flexDirection: 'row', backgroundColor: secondaryColor }}>
           {['intake', 'chart', 'orders'].map(tab => (
             <TouchableOpacity
@@ -144,8 +142,6 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
         </View>
 
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16 }}>
-
-          {/* Intake Tab */}
           {activeTab === 'intake' && (
             <>
               <View style={rStyles.section}>
@@ -155,7 +151,6 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                 <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Tech</Text><Text style={rStyles.infoValue}>{gfe.techName}</Text></View>
                 <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Service</Text><Text style={rStyles.infoValue}>{gfe.chiefComplaint || 'Not specified'}</Text></View>
               </View>
-
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>VITALS</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -164,68 +159,25 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                   {gfe.vitals?.oxygenSat && <View style={rStyles.vitalChip}><Text style={rStyles.vitalLabel}>O2</Text><Text style={rStyles.vitalValue}>{gfe.vitals.oxygenSat}%</Text></View>}
                 </View>
               </View>
-
               {intake && (
                 <>
-                  {intake.medications && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>MEDICATIONS</Text>
-                      <Text style={rStyles.infoValue}>{intake.medications}</Text>
-                    </View>
-                  )}
-                  {intake.supplements && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>SUPPLEMENTS</Text>
-                      <Text style={rStyles.infoValue}>{intake.supplements}</Text>
-                    </View>
-                  )}
-                  {intake.allergies_detail && intake.allergies_detail.length > 0 && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>ALLERGIES</Text>
-                      {intake.allergies_detail.map((a, i) => <Text key={i} style={rStyles.infoValue}>• {a}</Text>)}
-                    </View>
-                  )}
-                  {intake.medical_history_cardiovascular && intake.medical_history_cardiovascular.length > 0 && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>CARDIOVASCULAR</Text>
-                      {intake.medical_history_cardiovascular.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}
-                    </View>
-                  )}
-                  {intake.medical_history_respiratory && intake.medical_history_respiratory.length > 0 && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RESPIRATORY</Text>
-                      {intake.medical_history_respiratory.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}
-                    </View>
-                  )}
-                  {intake.medical_history_renal && intake.medical_history_renal.length > 0 && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RENAL</Text>
-                      {intake.medical_history_renal.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}
-                    </View>
-                  )}
-                  {intake.important_history && intake.important_history.length > 0 && (
-                    <View style={rStyles.section}>
-                      <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>IMPORTANT HISTORY</Text>
-                      {intake.important_history.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}
-                    </View>
-                  )}
+                  {intake.medications && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>MEDICATIONS</Text><Text style={rStyles.infoValue}>{intake.medications}</Text></View>}
+                  {intake.supplements && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>SUPPLEMENTS</Text><Text style={rStyles.infoValue}>{intake.supplements}</Text></View>}
+                  {intake.allergies_detail?.length > 0 && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>ALLERGIES</Text>{intake.allergies_detail.map((a, i) => <Text key={i} style={rStyles.infoValue}>• {a}</Text>)}</View>}
+                  {intake.medical_history_cardiovascular?.length > 0 && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>CARDIOVASCULAR</Text>{intake.medical_history_cardiovascular.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}</View>}
+                  {intake.medical_history_respiratory?.length > 0 && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RESPIRATORY</Text>{intake.medical_history_respiratory.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}</View>}
+                  {intake.medical_history_renal?.length > 0 && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RENAL</Text>{intake.medical_history_renal.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}</View>}
+                  {intake.important_history?.length > 0 && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>IMPORTANT HISTORY</Text>{intake.important_history.map((h, i) => <Text key={i} style={rStyles.infoValue}>• {h}</Text>)}</View>}
                 </>
               )}
-              {!intake && (
-                <View style={rStyles.section}>
-                  <Text style={{ color: '#e53e3e', fontWeight: '600' }}>⚠️ No intake form on file for this patient</Text>
-                </View>
-              )}
+              {!intake && <View style={rStyles.section}><Text style={{ color: '#e53e3e', fontWeight: '600' }}>⚠️ No intake form on file for this patient</Text></View>}
             </>
           )}
 
-          {/* Chart Tab */}
           {activeTab === 'chart' && (
             <View style={rStyles.section}>
               <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>TECH CHART</Text>
-              {chartLoading ? (
-                <ActivityIndicator color={primaryColor} />
-              ) : !chartData ? (
+              {chartLoading ? <ActivityIndicator color={primaryColor} /> : !chartData ? (
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No chart submitted yet</Text>
               ) : (
                 <>
@@ -234,116 +186,49 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                   <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>HR</Text><Text style={rStyles.infoValue}>{chartData.heart_rate || '—'}</Text></View>
                   <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>O2</Text><Text style={rStyles.infoValue}>{chartData.oxygen_sat ? `${chartData.oxygen_sat}%` : '—'}</Text></View>
                   <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Pain Scale</Text><Text style={rStyles.infoValue}>{chartData.pain_scale || '—'}</Text></View>
-                  {chartData.chief_complaint && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={rStyles.infoLabel}>CHIEF COMPLAINT</Text>
-                      <Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.chief_complaint}</Text>
-                    </View>
-                  )}
-                  {chartData.tech_notes && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={rStyles.infoLabel}>TECH NOTES</Text>
-                      <Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text>
-                    </View>
-                  )}
-                  {chartData.complications === 'Yes' && (
-                    <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}>
-                      <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ COMPLICATIONS</Text>
-                      <Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text>
-                    </View>
-                  )}
-                  {chartData.amendment_notes && (
-                    <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}>
-                      <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text>
-                      <Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text>
-                    </View>
-                  )}
+                  {chartData.chief_complaint && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.chief_complaint}</Text></View>}
+                  {chartData.tech_notes && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text></View>}
+                  {chartData.complications === 'Yes' && <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ COMPLICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text></View>}
+                  {chartData.amendment_notes && <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text></View>}
                 </>
               )}
             </View>
           )}
 
-          {/* Orders Tab */}
           {activeTab === 'orders' && (
             <>
-              {/* Reason for Treatment */}
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>REASON FOR TREATMENT *</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>Primary reason patient is seeking IV therapy today</Text>
-                <TextInput
-                  style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]}
-                  placeholder="e.g. Dehydration, hangover recovery, immune support..."
-                  placeholderTextColor="#666"
-                  value={reasonForTreatment}
-                  onChangeText={setReasonForTreatment}
-                  multiline
-                />
+                <TextInput style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="e.g. Dehydration, hangover recovery..." placeholderTextColor="#666" value={reasonForTreatment} onChangeText={setReasonForTreatment} multiline />
               </View>
-
-              {/* Medications Reviewed */}
               <View style={rStyles.section}>
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
-                  onPress={() => setMedicationsReviewed(!medicationsReviewed)}
-                >
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }} onPress={() => setMedicationsReviewed(!medicationsReviewed)}>
                   <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: medicationsReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: medicationsReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                     {medicationsReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
                   </View>
                   <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>MEDICATIONS REVIEWED</Text>
                 </TouchableOpacity>
-                <TextInput
-                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
-                  placeholder="Notes on medications reviewed..."
-                  placeholderTextColor="#666"
-                  value={medicationsNotes}
-                  onChangeText={setMedicationsNotes}
-                  multiline
-                />
+                <TextInput style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]} placeholder="Notes on medications reviewed..." placeholderTextColor="#666" value={medicationsNotes} onChangeText={setMedicationsNotes} multiline />
               </View>
-
-              {/* Medical History Reviewed */}
               <View style={rStyles.section}>
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
-                  onPress={() => setMedicalHxReviewed(!medicalHxReviewed)}
-                >
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }} onPress={() => setMedicalHxReviewed(!medicalHxReviewed)}>
                   <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: medicalHxReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: medicalHxReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                     {medicalHxReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
                   </View>
                   <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>MEDICAL HISTORY REVIEWED</Text>
                 </TouchableOpacity>
-                <TextInput
-                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
-                  placeholder="Notes on medical history reviewed..."
-                  placeholderTextColor="#666"
-                  value={medicalHxNotes}
-                  onChangeText={setMedicalHxNotes}
-                  multiline
-                />
+                <TextInput style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]} placeholder="Notes on medical history reviewed..." placeholderTextColor="#666" value={medicalHxNotes} onChangeText={setMedicalHxNotes} multiline />
               </View>
-
-              {/* Allergies Reviewed */}
               <View style={rStyles.section}>
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}
-                  onPress={() => setAllergiesReviewed(!allergiesReviewed)}
-                >
+                <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }} onPress={() => setAllergiesReviewed(!allergiesReviewed)}>
                   <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: allergiesReviewed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: allergiesReviewed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                     {allergiesReviewed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✓</Text>}
                   </View>
                   <Text style={[rStyles.sectionTitle, { color: primaryColor, marginBottom: 0 }]}>ALLERGIES REVIEWED</Text>
                 </TouchableOpacity>
-                <TextInput
-                  style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]}
-                  placeholder="Notes on allergies reviewed..."
-                  placeholderTextColor="#666"
-                  value={allergiesNotes}
-                  onChangeText={setAllergiesNotes}
-                  multiline
-                />
+                <TextInput style={[rStyles.input, { height: 60, textAlignVertical: 'top' }]} placeholder="Notes on allergies reviewed..." placeholderTextColor="#666" value={allergiesNotes} onChangeText={setAllergiesNotes} multiline />
               </View>
-
-              {/* Decision */}
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>DECISION</Text>
                 {[
@@ -352,90 +237,30 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                   { key: 'declined', label: '❌ Declined' },
                   { key: 'not_a_candidate', label: '🚫 Not a Candidate' },
                 ].map(opt => (
-                  <TouchableOpacity
-                    key={opt.key}
-                    style={[rStyles.decisionBtn, decision === opt.key && { borderColor: primaryColor, backgroundColor: primaryColor + '22' }]}
-                    onPress={() => handleDecisionChange(opt.key)}
-                  >
+                  <TouchableOpacity key={opt.key} style={[rStyles.decisionBtn, decision === opt.key && { borderColor: primaryColor, backgroundColor: primaryColor + '22' }]} onPress={() => handleDecisionChange(opt.key)}>
                     <Text style={[rStyles.decisionText, decision === opt.key && { color: primaryColor }]}>{opt.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
-
-              {decision === 'not_a_candidate' && (
-                <View style={rStyles.section}>
-                  <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>REASON NOT A CANDIDATE *</Text>
-                  <TextInput
-                    style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]}
-                    placeholder="Explain why patient is not a candidate..."
-                    placeholderTextColor="#666"
-                    value={notACandidateReason}
-                    onChangeText={setNotACandidateReason}
-                    multiline
-                  />
-                </View>
-              )}
-
-              {decision === 'declined' && (
-                <View style={rStyles.section}>
-                  <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>DECLINE REASON *</Text>
-                  <TextInput
-                    style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]}
-                    placeholder="Reason for declining..."
-                    placeholderTextColor="#666"
-                    value={declineReason}
-                    onChangeText={setDeclineReason}
-                    multiline
-                  />
-                </View>
-              )}
-
+              {decision === 'not_a_candidate' && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>REASON NOT A CANDIDATE *</Text><TextInput style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Explain why..." placeholderTextColor="#666" value={notACandidateReason} onChangeText={setNotACandidateReason} multiline /></View>}
+              {decision === 'declined' && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>DECLINE REASON *</Text><TextInput style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="Reason for declining..." placeholderTextColor="#666" value={declineReason} onChangeText={setDeclineReason} multiline /></View>}
               {decision === 'approved' && (
                 <View style={rStyles.section}>
                   <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>APPROVED SERVICES</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Select all services this patient is approved for</Text>
                   {companyServices.map(service => (
-                    <TouchableOpacity
-                      key={service}
-                      style={[rStyles.serviceBtn, approvedServices.includes(service) && { borderColor: primaryColor, backgroundColor: primaryColor + '22' }]}
-                      onPress={() => toggleService(service)}
-                    >
-                      <Text style={[rStyles.serviceText, approvedServices.includes(service) && { color: primaryColor }]}>
-                        {approvedServices.includes(service) ? '✅ ' : '○ '}{service}
-                      </Text>
+                    <TouchableOpacity key={service} style={[rStyles.serviceBtn, approvedServices.includes(service) && { borderColor: primaryColor, backgroundColor: primaryColor + '22' }]} onPress={() => toggleService(service)}>
+                      <Text style={[rStyles.serviceText, approvedServices.includes(service) && { color: primaryColor }]}>{approvedServices.includes(service) ? '✅ ' : '○ '}{service}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
-
-              {decision === 'approved' && (
-                <View style={rStyles.section}>
-                  <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RESTRICTIONS</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>e.g. No Toradol, No Benadryl, limit fluids to 500ml</Text>
-                  <TextInput
-                    style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]}
-                    placeholder="List any restrictions..."
-                    placeholderTextColor="#666"
-                    value={restrictions}
-                    onChangeText={setRestrictions}
-                    multiline
-                  />
-                </View>
-              )}
-
+              {decision === 'approved' && <View style={rStyles.section}><Text style={[rStyles.sectionTitle, { color: primaryColor }]}>RESTRICTIONS</Text><TextInput style={[rStyles.input, { height: 80, textAlignVertical: 'top' }]} placeholder="e.g. No Toradol, No Benadryl..." placeholderTextColor="#666" value={restrictions} onChangeText={setRestrictions} multiline /></View>}
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>NP ORDERS & NOTES</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>These notes will be visible to the tech on every call for 12 months</Text>
-                <TextInput
-                  style={[rStyles.input, { height: 120, textAlignVertical: 'top' }]}
-                  placeholder="Write your clinical orders and notes here..."
-                  placeholderTextColor="#666"
-                  value={npOrders}
-                  onChangeText={setNpOrders}
-                  multiline
-                />
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>Visible to tech on every call for 12 months</Text>
+                <TextInput style={[rStyles.input, { height: 120, textAlignVertical: 'top' }]} placeholder="Write your clinical orders and notes here..." placeholderTextColor="#666" value={npOrders} onChangeText={setNpOrders} multiline />
               </View>
-
               <View style={rStyles.section}>
                 <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>VIDEO GFE</Text>
                 <TouchableOpacity style={[rStyles.videoBtn, { borderColor: primaryColor }]}>
@@ -443,17 +268,11 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>Daily.co integration coming soon</Text>
                 </TouchableOpacity>
               </View>
-
-              <TouchableOpacity
-                style={[rStyles.submitBtn, { backgroundColor: primaryColor }, submitting && { opacity: 0.6 }]}
-                onPress={submitSignoff}
-                disabled={submitting}
-              >
+              <TouchableOpacity style={[rStyles.submitBtn, { backgroundColor: primaryColor }, submitting && { opacity: 0.6 }]} onPress={submitSignoff} disabled={submitting}>
                 {submitting ? <ActivityIndicator color={secondaryColor} /> : <Text style={[rStyles.submitBtnText, { color: secondaryColor }]}>Submit Sign-Off</Text>}
               </TouchableOpacity>
             </>
           )}
-
           <View style={{ height: 60 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -499,6 +318,15 @@ export default function NPHomeScreen({ route, navigation }) {
   const [messageInput, setMessageInput] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const messagesScrollRef = React.useRef(null)
+  const [log, setLog] = useState([])
+  const [logSearch, setLogSearch] = useState('')
+  const [logLoading, setLogLoading] = useState(false)
+  const [expandedLog, setExpandedLog] = useState(null)
+  const [patientSearch, setPatientSearch] = useState('')
+  const [patientResults, setPatientResults] = useState([])
+  const [patientSearching, setPatientSearching] = useState(false)
+  const [selectedPatientProfile, setSelectedPatientProfile] = useState(null)
+  const [npPatientActiveTab, setNpPatientActiveTab] = useState('overview')
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -521,12 +349,51 @@ export default function NPHomeScreen({ route, navigation }) {
 
   const onRefresh = () => { setRefreshing(true); fetchQueue() }
 
+  const searchPatients = async (query) => {
+    if (!query || query.length < 2) { setPatientResults([]); return }
+    setPatientSearching(true)
+    try {
+      const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(query)}`, { headers })
+      const data = await res.json()
+      if (data.patients) setPatientResults(data.patients)
+    } catch (err) {
+      console.error('Patient search error:', err)
+    } finally {
+      setPatientSearching(false)
+    }
+  }
+
+  const fetchPatientProfile = async (patientId) => {
+    try {
+      const res = await fetch(`${API_URL}/patients/${patientId}/profile`, { headers })
+      const data = await res.json()
+      if (data.success) {
+        setSelectedPatientProfile(data)
+        setNpPatientActiveTab('overview')
+      }
+    } catch (err) {
+      console.error('Patient profile error:', err)
+    }
+  }
+
+  const fetchLog = async (search = '') => {
+    setLogLoading(true)
+    try {
+      const url = search ? `${API_URL}/gfe/log?search=${encodeURIComponent(search)}` : `${API_URL}/gfe/log`
+      const res = await fetch(url, { headers })
+      const data = await res.json()
+      if (data.success) setLog(data.log)
+    } catch (err) {
+      console.error('GFE log error:', err)
+    } finally {
+      setLogLoading(false)
+    }
+  }
+
   const loadMessages = async () => {
-    console.log('loadMessages called, token:', token ? 'exists' : 'MISSING')
     try {
       const res = await fetch(`${API_URL}/messages/np-dispatch`, { headers })
       const data = await res.json()
-      console.log('NP fetched messages:', data)
       if (data.messages) setMessages(data.messages)
     } catch (err) {
       console.error('Load messages error:', err)
@@ -536,7 +403,6 @@ export default function NPHomeScreen({ route, navigation }) {
   const sendMessage = async () => {
     if (!messageInput.trim()) return
     setSendingMessage(true)
-    console.log('NP sending message:', messageInput.trim())
     try {
       const res = await fetch(`${API_URL}/messages/channel`, {
         method: 'POST',
@@ -544,10 +410,7 @@ export default function NPHomeScreen({ route, navigation }) {
         body: JSON.stringify({ channel: 'np-dispatch', body: messageInput.trim() })
       })
       const data = await res.json()
-      if (data.success) {
-        setMessageInput('')
-        loadMessages()
-      }
+      if (data.success) { setMessageInput(''); loadMessages() }
     } catch (err) {
       console.error('Send message error:', err)
     } finally {
@@ -561,16 +424,13 @@ export default function NPHomeScreen({ route, navigation }) {
       const interval = setInterval(loadMessages, 5000)
       return () => clearInterval(interval)
     }
+    if (activeTab === 'log') fetchLog()
   }, [activeTab])
 
   const openGFE = async (gfe) => {
     setLoadingGFE(true)
     try {
-      await fetch(`${API_URL}/gfe/room`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gfeId: gfe.id })
-      })
+      await fetch(`${API_URL}/gfe/room`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ gfeId: gfe.id }) })
       const intakeRes = await fetch(`${API_URL}/intake/patient/${gfe.call_id}`, { headers })
       const intakeData = await intakeRes.json()
       setSelectedGFE({ ...gfe, intake: intakeData.intake || null })
@@ -583,11 +443,7 @@ export default function NPHomeScreen({ route, navigation }) {
   }
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={primaryColor} size="large" />
-      </View>
-    )
+    return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
   return (
@@ -616,16 +472,10 @@ export default function NPHomeScreen({ route, navigation }) {
             <Text style={styles.headerSub}>{user?.firstName} · NP</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
-              onPress={() => setProfileModal(true)}
-            >
+            <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setProfileModal(true)}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
-              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
-            >
+            <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
             </TouchableOpacity>
           </View>
@@ -633,62 +483,51 @@ export default function NPHomeScreen({ route, navigation }) {
       </View>
 
       {/* Tab Bar */}
-      <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
-        {[
-          { key: 'queue', label: `🩺 GFE Queue${queue.length > 0 ? ` (${queue.length})` : ''}` },
-          { key: 'messages', label: '💬 Dispatch' }
-        ].map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === tab.key ? primaryColor : 'transparent' }}
-            onPress={() => { if (tab.key === 'messages') { navigation.navigate('DispatcherMessaging', { token, user, company }) } else { setActiveTab(tab.key) } }}
-          >
-            <Text style={{ color: activeTab === tab.key ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>{tab.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', flexGrow: 0 }}>
+        <View style={{ flexDirection: 'row' }}>
+          {[
+            { key: 'queue', label: `🩺 GFE${queue.length > 0 ? ` (${queue.length})` : ''}` },
+            { key: 'log', label: '📋 Log' },
+            { key: 'messages', label: '💬 Dispatch' },
+            { key: 'search', label: '🔍 Patients' }
+          ].map(tab => (
+            <TouchableOpacity
+              key={tab.key}
+              style={{ paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: activeTab === tab.key ? primaryColor : 'transparent' }}
+              onPress={() => setActiveTab(tab.key)}
+            >
+              <Text style={{ color: activeTab === tab.key ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>{tab.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
 
       {/* Queue Tab */}
       {activeTab === 'queue' && (
-        <ScrollView
-          style={{ flex: 1 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}
-        >
+        <ScrollView style={{ flex: 1 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
           {queue.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🩺</Text>
               <Text style={styles.emptyText}>No pending GFE requests</Text>
               <Text style={styles.emptySub}>Pull down to refresh</Text>
             </View>
-          ) : (
-            queue.map(gfe => (
-              <View key={gfe.id} style={styles.card}>
-                <View style={styles.cardTop}>
-                  <Text style={styles.patientName}>{gfe.patientName}</Text>
-                  <View style={[styles.badge, { borderColor: primaryColor }]}>
-                    <Text style={[styles.badgeText, { color: primaryColor }]}>PENDING</Text>
-                  </View>
+          ) : queue.map(gfe => (
+            <View key={gfe.id} style={styles.card}>
+              <View style={styles.cardTop}>
+                <Text style={styles.patientName}>{gfe.patientName}</Text>
+                <View style={[styles.badge, { borderColor: primaryColor }]}>
+                  <Text style={[styles.badgeText, { color: primaryColor }]}>PENDING</Text>
                 </View>
-                <Text style={styles.cardSub}>🧑‍⚕️ Tech: {gfe.techName}</Text>
-                {gfe.chiefComplaint && <Text style={styles.cardSub}>📋 {gfe.chiefComplaint}</Text>}
-                {gfe.vitals?.bloodPressure && (
-                  <Text style={styles.cardSub}>
-                    💉 BP: {gfe.vitals.bloodPressure} · HR: {gfe.vitals.heartRate} · O2: {gfe.vitals.oxygenSat}%
-                  </Text>
-                )}
-                <Text style={styles.cardTime}>
-                  🕐 {new Date(gfe.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.reviewBtn, { backgroundColor: primaryColor }, loadingGFE && { opacity: 0.6 }]}
-                  onPress={() => openGFE(gfe)}
-                  disabled={loadingGFE}
-                >
-                  {loadingGFE ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.reviewBtnText, { color: secondaryColor }]}>Review & Sign Off →</Text>}
-                </TouchableOpacity>
               </View>
-            ))
-          )}
+              <Text style={styles.cardSub}>🧑‍⚕️ Tech: {gfe.techName}</Text>
+              {gfe.chiefComplaint && <Text style={styles.cardSub}>📋 {gfe.chiefComplaint}</Text>}
+              {gfe.vitals?.bloodPressure && <Text style={styles.cardSub}>💉 BP: {gfe.vitals.bloodPressure} · HR: {gfe.vitals.heartRate} · O2: {gfe.vitals.oxygenSat}%</Text>}
+              <Text style={styles.cardTime}>🕐 {new Date(gfe.requestedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+              <TouchableOpacity style={[styles.reviewBtn, { backgroundColor: primaryColor }, loadingGFE && { opacity: 0.6 }]} onPress={() => openGFE(gfe)} disabled={loadingGFE}>
+                {loadingGFE ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.reviewBtnText, { color: secondaryColor }]}>Review & Sign Off →</Text>}
+              </TouchableOpacity>
+            </View>
+          ))}
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -701,20 +540,17 @@ export default function NPHomeScreen({ route, navigation }) {
               <View style={{ alignItems: 'center', paddingTop: 60 }}>
                 <Text style={{ fontSize: 32, marginBottom: 12 }}>💬</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>No messages yet</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>Dedicated channel with dispatch and admin</Text>
               </View>
-            ) : (
-              messages.map((msg, i) => (
-                <View key={i} style={{ marginBottom: 12, alignItems: Number(msg.senderId) === Number(user?.id) ? 'flex-end' : 'flex-start' }}>
-                  <View style={{ backgroundColor: msg.senderId === user?.id ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
-                    <Text style={{ color: Number(msg.senderId) === Number(user?.id) ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
-                  </View>
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
-                    {msg.senderName} · {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </Text>
+            ) : messages.map((msg, i) => (
+              <View key={i} style={{ marginBottom: 12, alignItems: Number(msg.senderId) === Number(user?.id) ? 'flex-end' : 'flex-start' }}>
+                <View style={{ backgroundColor: Number(msg.senderId) === Number(user?.id) ? primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 10, maxWidth: '80%' }}>
+                  <Text style={{ color: Number(msg.senderId) === Number(user?.id) ? secondaryColor : '#fff', fontSize: 14 }}>{msg.body}</Text>
                 </View>
-              ))
-            )}
+                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
+                  {msg.senderName} · {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+            ))}
           </ScrollView>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View style={{ flexDirection: 'row', padding: 12, gap: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
@@ -727,21 +563,278 @@ export default function NPHomeScreen({ route, navigation }) {
                 returnKeyType="send"
                 onSubmitEditing={sendMessage}
                 blurOnSubmit={false}
-                onKeyPress={({ nativeEvent }) => {
-                  if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) {
-                    sendMessage()
-                  }
-                }}
+                onKeyPress={({ nativeEvent }) => { if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) sendMessage() }}
               />
-              <TouchableOpacity
-                onPress={sendMessage}
-                disabled={sendingMessage || !messageInput.trim()}
-                style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, justifyContent: 'center', opacity: sendingMessage || !messageInput.trim() ? 0.5 : 1 }}
-              >
+              <TouchableOpacity onPress={sendMessage} disabled={sendingMessage || !messageInput.trim()} style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, justifyContent: 'center', opacity: sendingMessage || !messageInput.trim() ? 0.5 : 1 }}>
                 <Text style={{ color: secondaryColor, fontWeight: '700' }}>Send</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
+        </View>
+      )}
+
+      {/* Log Tab */}
+      {activeTab === 'log' && (
+        <View style={{ flex: 1 }}>
+          <View style={{ padding: 16, backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, color: '#fff', fontSize: 14 }}
+              placeholder="Search patient name..."
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={logSearch}
+              onChangeText={text => { setLogSearch(text); fetchLog(text) }}
+            />
+          </View>
+          {logLoading ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={primaryColor} /></View>
+          ) : log.length === 0 ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 32, marginBottom: 12 }}>📋</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>{logSearch ? 'No patients found' : 'No GFEs completed today'}</Text>
+            </View>
+          ) : (
+            <ScrollView style={{ flex: 1, padding: 16 }}>
+              {log.map(item => {
+                const isExpanded = expandedLog === item.id
+                const isApproved = item.decision === 'approved'
+                const isDenied = item.decision === 'declined' || item.decision === 'not_a_candidate'
+                const decisionColor = isApproved ? '#4CAF50' : isDenied ? '#e53e3e' : '#FF9800'
+                const decisionLabel = item.decision === 'approved' ? '✅ Approved' : item.decision === 'declined' ? '❌ Declined' : item.decision === 'not_a_candidate' ? '🚫 Not a Candidate' : '⏸ Hold'
+                return (
+                  <TouchableOpacity key={item.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: decisionColor }} onPress={() => setExpandedLog(isExpanded ? null : item.id)}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', flex: 1 }}>{item.patientName}</Text>
+                      <Text style={{ color: decisionColor, fontSize: 13, fontWeight: '700' }}>{decisionLabel}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{item.service}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{new Date(item.completedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                    </View>
+                    {isExpanded && (
+                      <View style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 14 }}>
+                        {item.reasonForTreatment && <View style={{ marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>REASON FOR TREATMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{item.reasonForTreatment}</Text></View>}
+                        {item.npOrders && <View style={{ marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>NP ORDERS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{item.npOrders}</Text></View>}
+                        {item.restrictions && <View style={{ marginBottom: 10 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>RESTRICTIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{item.restrictions}</Text></View>}
+                        {item.declineReason && <View style={{ marginBottom: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>DECLINE REASON</Text><Text style={{ color: '#fff', fontSize: 13 }}>{item.declineReason}</Text></View>}
+                        {item.notACandidateReason && <View style={{ marginBottom: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>NOT A CANDIDATE REASON</Text><Text style={{ color: '#fff', fontSize: 13 }}>{item.notACandidateReason}</Text></View>}
+                        <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
+                          <Text style={{ color: item.medicationsReviewed ? '#4CAF50' : 'rgba(255,255,255,0.3)', fontSize: 12 }}>{item.medicationsReviewed ? '✓' : '○'} Medications</Text>
+                          <Text style={{ color: item.medicalHxReviewed ? '#4CAF50' : 'rgba(255,255,255,0.3)', fontSize: 12 }}>{item.medicalHxReviewed ? '✓' : '○'} Medical Hx</Text>
+                          <Text style={{ color: item.allergiesReviewed ? '#4CAF50' : 'rgba(255,255,255,0.3)', fontSize: 12 }}>{item.allergiesReviewed ? '✓' : '○'} Allergies</Text>
+                        </View>
+                      </View>
+                    )}
+                    <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 11, marginTop: 8, textAlign: 'right' }}>{isExpanded ? '▲ collapse' : '▼ details'}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          )}
+        </View>
+      )}
+
+      {/* Patient Search Tab */}
+      {activeTab === 'search' && (
+        <View style={{ flex: 1 }}>
+          {selectedPatientProfile ? (
+            <View style={{ flex: 1 }}>
+              <View style={{ paddingTop: 16, paddingBottom: 0, paddingHorizontal: 16, backgroundColor: secondaryColor }}>
+                <TouchableOpacity onPress={() => setSelectedPatientProfile(null)} style={{ marginBottom: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back to Search</Text>
+                </TouchableOpacity>
+                <Text style={{ color: '#fff', fontSize: 22, fontWeight: '700' }}>{selectedPatientProfile.patient?.first_name} {selectedPatientProfile.patient?.last_name}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 2, marginBottom: 12 }}>{selectedPatientProfile.patient?.email}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }}>
+                  <View style={{ flexDirection: 'row', paddingHorizontal: 16 }}>
+                    {['overview', 'appointments', 'charts', 'intake', 'gfe'].map(t => (
+                      <TouchableOpacity key={t} style={{ marginRight: 4, paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: 2, borderBottomColor: npPatientActiveTab === t ? primaryColor : 'transparent' }} onPress={() => setNpPatientActiveTab(t)}>
+                        <Text style={{ color: npPatientActiveTab === t ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>
+                          {t === 'overview' ? '📊 Overview' : t === 'appointments' ? '📅 Appts' : t === 'charts' ? '📋 Charts' : t === 'intake' ? '📝 Intake' : '🩺 GFE'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+
+              <ScrollView style={{ flex: 1, padding: 16 }}>
+                {/* OVERVIEW */}
+                {npPatientActiveTab === 'overview' && (
+                  <>
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>PATIENT INFO</Text>
+                      {selectedPatientProfile.patient?.phone && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Phone</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.patient.phone}</Text></View>}
+                      {selectedPatientProfile.patient?.dob && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>DOB</Text><Text style={{ color: '#fff', fontSize: 13 }}>{new Date(selectedPatientProfile.patient.dob).toLocaleDateString()}</Text></View>}
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Total Bookings</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.totalBookings}</Text></View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Completed</Text><Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>{selectedPatientProfile.completedBookings}</Text></View>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No Shows</Text><Text style={{ color: selectedPatientProfile.noShows > 0 ? '#e53e3e' : '#fff', fontSize: 13 }}>{selectedPatientProfile.noShows}</Text></View>
+                    </View>
+                    {selectedPatientProfile.gfe ? (
+                      <View style={{ backgroundColor: selectedPatientProfile.gfe.notACandidate ? 'rgba(229,62,62,0.1)' : 'rgba(76,175,80,0.1)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: selectedPatientProfile.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
+                        <Text style={{ color: selectedPatientProfile.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 13, fontWeight: '700', marginBottom: 6 }}>{selectedPatientProfile.gfe.notACandidate ? '🚫 Not a GFE Candidate' : '✅ GFE Approved'}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {selectedPatientProfile.gfe.npName}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Valid until {selectedPatientProfile.gfe.validUntil ? new Date(selectedPatientProfile.gfe.validUntil).toLocaleDateString() : '—'}</Text>
+                        {selectedPatientProfile.gfe.restrictions && <Text style={{ color: '#e53e3e', fontSize: 12, marginTop: 6 }}>⚠️ {selectedPatientProfile.gfe.restrictions}</Text>}
+                      </View>
+                    ) : (
+                      <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#FF9800' }}>
+                        <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '700' }}>⚠️ No GFE on file</Text>
+                      </View>
+                    )}
+                  </>
+                )}
+
+                {/* APPOINTMENTS */}
+                {npPatientActiveTab === 'appointments' && (
+                  <>
+                    {!selectedPatientProfile.bookings?.length ? (
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No appointments on file</Text>
+                    ) : selectedPatientProfile.bookings.map((b, i) => (
+                      <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{b.service}</Text>
+                          <Text style={{ color: b.status === 'completed' ? '#4CAF50' : b.status === 'cancelled' ? '#e53e3e' : 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700' }}>{b.status?.toUpperCase()}</Text>
+                        </View>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>📍 {b.address}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 2 }}>{new Date(b.created_at).toLocaleDateString()}</Text>
+                        {b.tech_name && <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🧑‍⚕️ {b.tech_name}</Text>}
+                      </View>
+                    ))}
+                  </>
+                )}
+
+                {/* CHARTS */}
+                {npPatientActiveTab === 'charts' && (
+                  <>
+                    {!selectedPatientProfile.charts?.length ? (
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on file</Text>
+                    ) : selectedPatientProfile.charts.map((ch, i) => (
+                      <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{ch.chief_complaint || 'Chart'}</Text>
+                          <Text style={{ color: ch.status === 'submitted' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
+                        </View>
+                        {ch.blood_pressure && <View style={{ flexDirection: 'row', gap: 12, marginBottom: 6 }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>BP: <Text style={{ color: '#fff' }}>{ch.blood_pressure}</Text></Text>
+                          {ch.heart_rate && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>HR: <Text style={{ color: '#fff' }}>{ch.heart_rate}</Text></Text>}
+                          {ch.oxygen_sat && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>O2: <Text style={{ color: '#fff' }}>{ch.oxygen_sat}%</Text></Text>}
+                        </View>}
+                        {ch.tech_notes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }} numberOfLines={2}>{ch.tech_notes}</Text>}
+                        {ch.complications === 'Yes' && <Text style={{ color: '#e53e3e', fontSize: 12, marginTop: 4 }}>⚠️ {ch.complications_detail}</Text>}
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 6 }}>🧑‍⚕️ {ch.tech_name} · {new Date(ch.created_at).toLocaleDateString()}</Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+
+                {/* INTAKE */}
+                {npPatientActiveTab === 'intake' && (
+                  <>
+                    {!selectedPatientProfile.intake ? (
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No intake form on file</Text>
+                    ) : (
+                      <>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUBMITTED</Text>
+                          <Text style={{ color: '#fff', fontSize: 13 }}>{new Date(selectedPatientProfile.intake.submitted_at).toLocaleDateString()}</Text>
+                        </View>
+                        {selectedPatientProfile.intake.medications && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>MEDICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.intake.medications}</Text></View>}
+                        {selectedPatientProfile.intake.supplements && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SUPPLEMENTS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.intake.supplements}</Text></View>}
+                        {(() => {
+                          try {
+                            const allergies = typeof selectedPatientProfile.intake.allergies_detail === 'string'
+                              ? JSON.parse(selectedPatientProfile.intake.allergies_detail)
+                              : selectedPatientProfile.intake.allergies_detail
+                            return allergies?.length > 0 ? (
+                              <View style={{ backgroundColor: 'rgba(229,62,62,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }}>
+                                <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>ALLERGIES</Text>
+                                {allergies.map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}
+                              </View>
+                            ) : null
+                          } catch (e) { return null }
+                        })()}
+                        {selectedPatientProfile.intake.medical_history_cardiovascular?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CARDIOVASCULAR</Text>{selectedPatientProfile.intake.medical_history_cardiovascular.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
+                        {selectedPatientProfile.intake.medical_history_respiratory?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RESPIRATORY</Text>{selectedPatientProfile.intake.medical_history_respiratory.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
+                        {selectedPatientProfile.intake.medical_history_renal?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>RENAL</Text>{selectedPatientProfile.intake.medical_history_renal.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
+                        {selectedPatientProfile.intake.important_history?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>IMPORTANT HISTORY</Text>{selectedPatientProfile.intake.important_history.map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}</View>}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* GFE */}
+                {npPatientActiveTab === 'gfe' && (
+                  <>
+                    {!selectedPatientProfile.gfe ? (
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No GFE on file</Text>
+                    ) : (
+                      <>
+                        <View style={{ backgroundColor: selectedPatientProfile.gfe.notACandidate ? 'rgba(229,62,62,0.1)' : 'rgba(76,175,80,0.1)', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: selectedPatientProfile.gfe.notACandidate ? '#e53e3e' : '#4CAF50' }}>
+                          <Text style={{ color: selectedPatientProfile.gfe.notACandidate ? '#e53e3e' : '#4CAF50', fontSize: 13, fontWeight: '700', marginBottom: 8 }}>{selectedPatientProfile.gfe.notACandidate ? '🚫 NOT A CANDIDATE' : '✅ APPROVED'}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Signed by {selectedPatientProfile.gfe.npName}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Completed: {selectedPatientProfile.gfe.completedAt ? new Date(selectedPatientProfile.gfe.completedAt).toLocaleDateString() : '—'}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Valid until: {selectedPatientProfile.gfe.validUntil ? new Date(selectedPatientProfile.gfe.validUntil).toLocaleDateString() : '—'}</Text>
+                        </View>
+                        {selectedPatientProfile.gfe.reasonForTreatment && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🎯 REASON FOR TREATMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.gfe.reasonForTreatment}</Text></View>}
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>📋 REVIEW CHECKLIST</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>{selectedPatientProfile.gfe.medicationsReviewed ? '✅' : '⬜'} Medications Reviewed</Text>
+                          {selectedPatientProfile.gfe.medicationsNotes && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8, marginLeft: 24 }}>{selectedPatientProfile.gfe.medicationsNotes}</Text>}
+                          <Text style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>{selectedPatientProfile.gfe.medicalHxReviewed ? '✅' : '⬜'} Medical History Reviewed</Text>
+                          {selectedPatientProfile.gfe.medicalHxNotes && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8, marginLeft: 24 }}>{selectedPatientProfile.gfe.medicalHxNotes}</Text>}
+                          <Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.gfe.allergiesReviewed ? '✅' : '⬜'} Allergies Reviewed</Text>
+                          {selectedPatientProfile.gfe.allergiesNotes && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4, marginLeft: 24 }}>{selectedPatientProfile.gfe.allergiesNotes}</Text>}
+                        </View>
+                        {selectedPatientProfile.gfe.approvedServices?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>✅ APPROVED SERVICES</Text>{selectedPatientProfile.gfe.approvedServices.map((s, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, marginBottom: 4 }}>• {s}</Text>)}</View>}
+                        {selectedPatientProfile.gfe.restrictions && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>❌ RESTRICTIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.gfe.restrictions}</Text></View>}
+                        {selectedPatientProfile.gfe.npOrders && <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>📝 NP ORDERS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.gfe.npOrders}</Text></View>}
+                        {selectedPatientProfile.gfe.notACandidateReason && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#e53e3e' }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🚫 REASON NOT A CANDIDATE</Text><Text style={{ color: '#fff', fontSize: 13 }}>{selectedPatientProfile.gfe.notACandidateReason}</Text></View>}
+                      </>
+                    )}
+                  </>
+                )}
+
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            </View>
+          ) : (
+            <View style={{ flex: 1 }}>
+              <View style={{ padding: 16, backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+                <TextInput
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 10, color: '#fff', fontSize: 14 }}
+                  placeholder="Search patients by name, email, or phone..."
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  value={patientSearch}
+                  onChangeText={text => { setPatientSearch(text); searchPatients(text) }}
+                />
+              </View>
+              {patientSearching ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={primaryColor} /></View>
+              ) : patientResults.length === 0 ? (
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: 32, marginBottom: 12 }}>🔍</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>{patientSearch.length > 0 ? 'No patients found' : 'Search by name, email or phone'}</Text>
+                </View>
+              ) : (
+                <ScrollView style={{ flex: 1 }}>
+                  {patientResults.map((p, i) => (
+                    <TouchableOpacity key={i} style={{ flexDirection: 'row', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }} onPress={() => fetchPatientProfile(p.id)}>
+                      <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: primaryColor + '22', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>{p.first_name?.[0]}{p.last_name?.[0]}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
+                        {p.phone && <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{p.phone}</Text>}
+                      </View>
+                      <Text style={{ color: p.has_valid_intake ? '#4CAF50' : 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: '700' }}>{p.has_valid_intake ? '📋 Intake' : 'No intake'}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          )}
         </View>
       )}
 
@@ -759,10 +852,7 @@ export default function NPHomeScreen({ route, navigation }) {
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Company</Text>
               <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{company?.name}</Text>
             </View>
-            <TouchableOpacity
-              style={{ backgroundColor: 'rgba(220,80,80,0.15)', borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 8 }}
-              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
-            >
+            <TouchableOpacity style={{ backgroundColor: 'rgba(220,80,80,0.15)', borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 8 }} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: '#f09090', fontSize: 15, fontWeight: '500' }}>Log out</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ alignItems: 'center', padding: 12 }} onPress={() => setProfileModal(false)}>
