@@ -329,14 +329,16 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
           >
             <Text style={[styles.tabText, activeTab === 'team' && { color: primaryColor }]}>👥 Team</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'patients' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
-            onPress={() => setActiveTab('patients')}
-          >
-            <Text style={[styles.tabText, activeTab === 'patients' && { color: primaryColor }]}>
-              🏥 Patients {patientChats.filter(c => c.status === 'open').length > 0 ? `(${patientChats.filter(c => c.status === 'open').length})` : ''}
-            </Text>
-          </TouchableOpacity>
+          {user?.role !== 'np' && (
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'patients' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab('patients')}
+            >
+              <Text style={[styles.tabText, activeTab === 'patients' && { color: primaryColor }]}>
+                🏥 Patients {patientChats.filter(c => c.status === 'open').length > 0 ? `(${patientChats.filter(c => c.status === 'open').length})` : ''}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Contact List */}
