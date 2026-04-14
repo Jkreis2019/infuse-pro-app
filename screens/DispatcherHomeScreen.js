@@ -907,6 +907,18 @@ const submitSendIntake = async () => {
                 {!booking.has_valid_intake && (
                   <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
                 )}
+                {booking.gfe_not_candidate && (
+                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>🚫 Not a GFE candidate</Text>
+                )}
+                {!booking.gfe_not_candidate && booking.gfe_valid_until && new Date(booking.gfe_valid_until) < new Date() && (
+                  <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ GFE Expired</Text>
+                )}
+                {!booking.gfe_not_candidate && booking.gfe_valid_until && new Date(booking.gfe_valid_until) > new Date() && (new Date(booking.gfe_valid_until) - new Date()) < 30 * 24 * 60 * 60 * 1000 && (
+                  <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ GFE expires soon</Text>
+                )}
+                {!booking.gfe_not_candidate && !booking.gfe_valid_until && (
+                  <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No GFE on file</Text>
+                )}
                 {booking.patient_count > 1 && (
                   <Text style={[styles.cardPatient, { color: primaryColor }]}>👥 Group booking · {booking.patient_count} IVs</Text>
                 )}
