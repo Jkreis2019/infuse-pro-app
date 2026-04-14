@@ -1057,7 +1057,7 @@ const submitSendIntake = async () => {
           ) : (
             Object.entries(
               upcoming.reduce((groups, booking) => {
-                const date = new Date(booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                const date = new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
                 if (!groups[date]) groups[date] = []
                 groups[date].push(booking)
                 return groups
@@ -1070,7 +1070,7 @@ const submitSendIntake = async () => {
                     <View style={styles.cardTop}>
                       <Text style={styles.cardService}>{booking.service}</Text>
                       <Text style={styles.cardTime}>
-                        {new Date(booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                        {new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
                       </Text>
                     </View>
                     <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
