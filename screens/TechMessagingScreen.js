@@ -11,6 +11,7 @@ export default function TechMessagingScreen({ route, navigation }) {
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
+  const isWeb = Platform.OS === 'web'
 
   const [myRegion, setMyRegion] = useState(null)
   const [contacts, setContacts] = useState([])
@@ -22,6 +23,7 @@ export default function TechMessagingScreen({ route, navigation }) {
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
   const [messagesLoading, setMessagesLoading] = useState(false)
+  const [showChat, setShowChat] = useState(false)
   const flatListRef = useRef(null)
 
   const [userId, setUserId] = useState(null)
@@ -111,6 +113,7 @@ export default function TechMessagingScreen({ route, navigation }) {
     setRegionMessages([])
     setMessages([])
     fetchRegionMessages(region.id, true)
+    if (!isWeb) setShowChat(true)
   }
 
   const selectContact = (contact) => {
@@ -119,6 +122,13 @@ export default function TechMessagingScreen({ route, navigation }) {
     setMessages([])
     setRegionMessages([])
     fetchDMMessages(contact.id, true)
+    if (!isWeb) setShowChat(true)
+  }
+
+  const goBack = () => {
+    setShowChat(false)
+    setSelectedContact(null)
+    setSelectedRegion(null)
   }
 
   const sendRegionMessage = async () => {
@@ -196,172 +206,191 @@ export default function TechMessagingScreen({ route, navigation }) {
     )
   }
 
-  const isWeb = Platform.OS === 'web'
-
   const listData = [
     ...(myRegion ? [{ type: 'groupHeader' }, { type: 'region', ...myRegion }] : []),
     { type: 'dmHeader' },
     ...contacts.map(c => ({ type: 'contact', ...c }))
   ]
 
-  return (
-    <View style={[styles.container, { flexDirection: isWeb ? 'row' : 'column' }]}>
-
-      {/* LEFT PANE */}
-      <View style={styles.leftPane}>
-        <View style={[styles.leftHeader, { backgroundColor: secondaryColor }]}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
-            <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Messages</Text>
+  const chatView = (
+    <View style={styles.rightPane}>
+      {!selectedContact && !selectedRegion ? (
+        <View style={styles.emptyChat}>
+          <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Select a conversation</Text>
         </View>
-
-        {loading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color={primaryColor} />
+      ) : (
+        <>
+          <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
+            <TouchableOpacity onPress={isWeb ? () => navigation.goBack() : goBack} style={{ marginRight: 12 }}>
+              <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                {selectedRegion ? `📍 ${selectedRegion.name}` : `${selectedContact.first_name} ${selectedContact.last_name}`}
+              </Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+                {selectedRegion ? 'Region Channel' : selectedContact.role?.toUpperCase()}
+              </Text>
+            </View>
           </View>
-        ) : (
-          <FlatList
-            data={listData}
-            keyExtractor={(item, index) => `${item.type}-${item.id || index}`}
-            renderItem={({ item }) => {
-              if (item.type === 'groupHeader') {
-                return (
-                  <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>REGION CHANNEL</Text>
-                  </View>
-                )
+
+          {messagesLoading ? (
+            <View style={styles.emptyChat}><ActivityIndicator color={primaryColor} /></View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={selectedRegion ? regionMessages : messages}
+              keyExtractor={item => item.id.toString()}
+              renderItem={renderMessage}
+              contentContainerStyle={styles.messageList}
+              ListEmptyComponent={
+                <View style={styles.emptyChat}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet — say hi!</Text>
+                </View>
               }
-              if (item.type === 'dmHeader') {
-                return (
-                  <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)', marginTop: 8 }}>
-                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>DIRECT MESSAGES</Text>
-                  </View>
-                )
-              }
-              if (item.type === 'region') {
-                const isSelected = selectedRegion?.id === item.id
-                return (
-                  <TouchableOpacity
-                    style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-                    onPress={() => selectRegion(item)}
-                  >
-                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: item.color + '33', borderWidth: 2, borderColor: item.color, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-                      <Text style={{ fontSize: 18 }}>📍</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.contactName}>{item.name}</Text>
-                      <Text style={styles.contactSub}>Region Channel</Text>
-                    </View>
-                  </TouchableOpacity>
-                )
-              }
-              if (item.type === 'contact') {
-                const isSelected = selectedContact?.id === item.id
-                return (
-                  <TouchableOpacity
-                    style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-                    onPress={() => selectContact(item)}
-                  >
-                    <View style={styles.contactAvatar}>
-                      {item.profile_photo ? (
-                        <Image source={{ uri: item.profile_photo }} style={styles.avatarImg} />
-                      ) : (
-                        <Text style={[styles.avatarText, { color: primaryColor }]}>
-                          {item.first_name?.[0]}{item.last_name?.[0]}
-                        </Text>
-                      )}
-                      <View style={[styles.onlineDot, { backgroundColor: item.in_service ? '#4CAF50' : '#aaa' }]} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.contactName}>{item.first_name} {item.last_name}</Text>
-                      <Text style={styles.contactSub}>{item.role?.toUpperCase()}</Text>
-                      {item.last_message && <Text style={styles.lastMessage} numberOfLines={1}>{item.last_message}</Text>}
-                    </View>
-                    {item.unread_count > 0 && (
-                      <View style={[styles.badge, { backgroundColor: primaryColor }]}>
-                        <Text style={[styles.badgeText, { color: secondaryColor }]}>{item.unread_count}</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                )
-              }
-            }}
-            ListEmptyComponent={
-              <View style={{ alignItems: 'center', padding: 40 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No contacts in service</Text>
-              </View>
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+            />
+          )}
+
+          <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
+            <TextInput
+              style={styles.input}
+              value={message}
+              onChangeText={setMessage}
+              placeholder="Type a message..."
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              multiline
+              maxLength={500}
+              onKeyPress={({ nativeEvent }) => {
+                if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) sendMessage()
+              }}
+            />
+            <TouchableOpacity
+              style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}
+              onPress={sendMessage}
+              disabled={!message.trim() || sending}
+            >
+              {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+    </View>
+  )
+
+  const contactList = (
+    <View style={styles.leftPane}>
+      <View style={[styles.leftHeader, { backgroundColor: secondaryColor }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
+          <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
+        </TouchableOpacity>
+        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Messages</Text>
+      </View>
+
+      {loading ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color={primaryColor} />
+        </View>
+      ) : (
+        <FlatList
+          data={listData}
+          keyExtractor={(item, index) => `${item.type}-${item.id || index}`}
+          renderItem={({ item }) => {
+            if (item.type === 'groupHeader') {
+              return (
+                <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>REGION CHANNEL</Text>
+                </View>
+              )
             }
-          />
-        )}
-      </View>
-
-      {/* RIGHT PANE */}
-      <View style={styles.rightPane}>
-        {!selectedContact && !selectedRegion ? (
-          <View style={styles.emptyChat}>
-            <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Select a conversation</Text>
-          </View>
-        ) : (
-          <>
-            <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
-                  {selectedRegion ? `📍 ${selectedRegion.name}` : `${selectedContact.first_name} ${selectedContact.last_name}`}
-                </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
-                  {selectedRegion ? 'Region Channel' : selectedContact.role?.toUpperCase()}
-                </Text>
-              </View>
-            </View>
-
-            {messagesLoading ? (
-              <View style={styles.emptyChat}><ActivityIndicator color={primaryColor} /></View>
-            ) : (
-              <FlatList
-                ref={flatListRef}
-                data={selectedRegion ? regionMessages : messages}
-                keyExtractor={item => item.id.toString()}
-                renderItem={renderMessage}
-                contentContainerStyle={styles.messageList}
-                ListEmptyComponent={
-                  <View style={styles.emptyChat}>
-                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet — say hi!</Text>
+            if (item.type === 'dmHeader') {
+              return (
+                <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.02)', marginTop: 8 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: '700', letterSpacing: 1 }}>DIRECT MESSAGES</Text>
+                </View>
+              )
+            }
+            if (item.type === 'region') {
+              const isSelected = selectedRegion?.id === item.id
+              return (
+                <TouchableOpacity
+                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+                  onPress={() => selectRegion(item)}
+                >
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: item.color + '33', borderWidth: 2, borderColor: item.color, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <Text style={{ fontSize: 18 }}>📍</Text>
                   </View>
-                }
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-              />
-            )}
-
-            <View style={[styles.inputBar, { backgroundColor: secondaryColor }]}>
-              <TextInput
-                style={styles.input}
-                value={message}
-                onChangeText={setMessage}
-                placeholder="Type a message..."
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                multiline
-                maxLength={500}
-              />
-              <TouchableOpacity
-                style={[styles.sendBtn, { backgroundColor: primaryColor }, (!message.trim() || sending) && { opacity: 0.4 }]}
-                onPress={sendMessage}
-                disabled={!message.trim() || sending}
-              >
-                {sending ? <ActivityIndicator color={secondaryColor} size="small" /> : <Text style={[styles.sendBtnText, { color: secondaryColor }]}>Send</Text>}
-              </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.contactName}>{item.name}</Text>
+                    <Text style={styles.contactSub}>Region Channel</Text>
+                  </View>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 18 }}>›</Text>
+                </TouchableOpacity>
+              )
+            }
+            if (item.type === 'contact') {
+              const isSelected = selectedContact?.id === item.id
+              return (
+                <TouchableOpacity
+                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+                  onPress={() => selectContact(item)}
+                >
+                  <View style={styles.contactAvatar}>
+                    {item.profile_photo ? (
+                      <Image source={{ uri: item.profile_photo }} style={styles.avatarImg} />
+                    ) : (
+                      <Text style={[styles.avatarText, { color: primaryColor }]}>
+                        {item.first_name?.[0]}{item.last_name?.[0]}
+                      </Text>
+                    )}
+                    <View style={[styles.onlineDot, { backgroundColor: item.in_service ? '#4CAF50' : '#aaa' }]} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.contactName}>{item.first_name} {item.last_name}</Text>
+                    <Text style={styles.contactSub}>{item.role?.toUpperCase()}</Text>
+                    {item.last_message && <Text style={styles.lastMessage} numberOfLines={1}>{item.last_message}</Text>}
+                  </View>
+                  {item.unread_count > 0 && (
+                    <View style={[styles.badge, { backgroundColor: primaryColor }]}>
+                      <Text style={[styles.badgeText, { color: secondaryColor }]}>{item.unread_count}</Text>
+                    </View>
+                  )}
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 18, marginLeft: 8 }}>›</Text>
+                </TouchableOpacity>
+              )
+            }
+          }}
+          ListEmptyComponent={
+            <View style={{ alignItems: 'center', padding: 40 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No contacts in service</Text>
             </View>
-          </>
-        )}
+          }
+        />
+      )}
+    </View>
+  )
+
+  // Web: side by side | Mobile: show contact list OR chat
+  if (isWeb) {
+    return (
+      <View style={[styles.container, { flexDirection: 'row' }]}>
+        {contactList}
+        {chatView}
       </View>
+    )
+  }
+
+  return (
+    <View style={styles.container}>
+      {!showChat ? contactList : chatView}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
-  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0a1540' },
+  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', flex: Platform.OS === 'web' ? undefined : 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0a1540' },
   rightPane: { flex: 1, backgroundColor: '#0D1B4B' },
   leftHeader: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
   contactRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
