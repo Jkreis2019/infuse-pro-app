@@ -8,12 +8,12 @@ const API_URL = 'https://api.infusepro.app'
 
 export default function DispatcherMessagingScreen({ route, navigation }) {
     console.log('DispatcherMessagingScreen loaded')
-  const { token, user, company } = route.params || {}
+  const { token, user, company, soloMode } = route.params || {}
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
-  const [activeTab, setActiveTab] = useState('team')
+  const [activeTab, setActiveTab] = useState(soloMode === true ? 'patients' : 'team')
   const [regions, setRegions] = useState([])
   const [selectedRegion, setSelectedRegion] = useState(null)
   const [regionMessages, setRegionMessages] = useState([])
@@ -323,12 +323,14 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
 
         {/* Tabs */}
         <View style={[styles.tabRow, { backgroundColor: secondaryColor }]}>
-          <TouchableOpacity
-            style={[styles.tabBtn, activeTab === 'team' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
-            onPress={() => setActiveTab('team')}
-          >
-            <Text style={[styles.tabText, activeTab === 'team' && { color: primaryColor }]}>👥 Team</Text>
-          </TouchableOpacity>
+          {!soloMode && (
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'team' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
+              onPress={() => setActiveTab('team')}
+            >
+              <Text style={[styles.tabText, activeTab === 'team' && { color: primaryColor }]}>👥 Team</Text>
+            </TouchableOpacity>
+          )}
           {user?.role !== 'np' && (
             <TouchableOpacity
               style={[styles.tabBtn, activeTab === 'patients' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
@@ -454,14 +456,16 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                     <Text style={styles.contactSub}>{item.service}</Text>
                     {item.last_message && <Text style={styles.lastMessage} numberOfLines={1}>{item.last_message}</Text>}
                   </View>
-                  <TouchableOpacity
-                    style={[styles.chatToggle, { borderColor: isOpen ? '#4CAF50' : '#aaa' }]}
-                    onPress={() => togglePatientChat(item)}
-                  >
-                    <Text style={{ color: isOpen ? '#4CAF50' : '#aaa', fontSize: 10, fontWeight: '700' }}>
-                      {isOpen ? 'OPEN' : 'CLOSED'}
-                    </Text>
-                  </TouchableOpacity>
+                  {!soloMode && (
+                    <TouchableOpacity
+                      style={[styles.chatToggle, { borderColor: isOpen ? '#4CAF50' : '#aaa' }]}
+                      onPress={() => togglePatientChat(item)}
+                    >
+                      <Text style={{ color: isOpen ? '#4CAF50' : '#aaa', fontSize: 10, fontWeight: '700' }}>
+                        {isOpen ? 'OPEN' : 'CLOSED'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </TouchableOpacity>
               )
             }
@@ -502,7 +506,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                   {selectedRegion ? 'Region Channel' : selectedContact ? `${selectedContact.role?.toUpperCase()} · ${selectedContact.region_name || ''}` : selectedPatient?.service}
                 </Text>
               </View>
-              {selectedPatient && (
+              {selectedPatient && !soloMode && (
                 <TouchableOpacity
                   style={[styles.chatToggle, { borderColor: selectedPatient.status === 'open' ? '#4CAF50' : '#aaa' }]}
                   onPress={() => togglePatientChat(selectedPatient)}
