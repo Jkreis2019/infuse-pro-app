@@ -213,6 +213,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [anBgColor, setAnBgColor] = useState('')
   const [anActive, setAnActive] = useState(true)
   const [savingAnnouncement, setSavingAnnouncement] = useState(false)
+  const [anTarget, setAnTarget] = useState('patient')
 const [showImportModal, setShowImportModal] = useState(false)
   const [importFileName, setImportFileName] = useState('')
   const [importPatients, setImportPatients] = useState([])
@@ -1414,7 +1415,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
           <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]} onPress={() => {
             setEditingAnnouncement(null); setAnTitle(''); setAnBody(''); setAnEmoji('📢')
-            setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true)
+            setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true); setAnTarget('patient')
             setAnnouncementModal(true)
           }}>
             <Text style={[styles.addButtonText, { color: secondaryColor }]}>+ New Announcement</Text>
@@ -1440,7 +1441,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
                 <TouchableOpacity style={[styles.actionBtn, { borderColor: primaryColor }]} onPress={() => {
                   setEditingAnnouncement(an); setAnTitle(an.title); setAnBody(an.body || ''); setAnEmoji(an.emoji || '📢')
-                  setAnCtaLabel(an.cta_label || ''); setAnCtaUrl(an.cta_url || ''); setAnBgStyle(an.bg_style || 'solid'); setAnBgColor(an.bg_color || ''); setAnActive(an.active)
+                  setAnCtaLabel(an.cta_label || ''); setAnCtaUrl(an.cta_url || ''); setAnBgStyle(an.bg_style || 'solid'); setAnBgColor(an.bg_color || ''); setAnActive(an.active); setAnTarget(an.target || 'patient')
                   setAnnouncementModal(true)
                 }}>
                   <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>Edit</Text>
@@ -2182,6 +2183,14 @@ const [showImportModal, setShowImportModal] = useState(false)
             <View style={{ width: 60 }} />
           </View>
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+            <Text style={styles.fieldLabel}>Show To</Text>
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+              {[{key:'patient',label:'👤 Patients'},{key:'staff',label:'🧑‍⚕️ Staff'},{key:'all',label:'🌐 Everyone'}].map(t => (
+                <TouchableOpacity key={t.key} style={{ flex:1, borderWidth:1, borderRadius:8, padding:10, alignItems:'center', borderColor: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: anTarget === t.key ? primaryColor+'20' : 'transparent' }} onPress={() => setAnTarget(t.key)}>
+                  <Text style={{ color: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.5)', fontSize:12, fontWeight:'600' }}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <Text style={styles.fieldLabel}>Title *</Text>
             <TextInput style={styles.input} value={anTitle} onChangeText={setAnTitle} placeholder="Spring Special!" placeholderTextColor="#666" />
             <Text style={styles.fieldLabel}>Message</Text>
@@ -2229,7 +2238,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               if (!anTitle.trim()) { Alert.alert('Required', 'Title is required'); return }
               setSavingAnnouncement(true)
               try {
-                const payload = { title: anTitle, body: anBody, emoji: anEmoji, ctaLabel: anCtaLabel, ctaUrl: anCtaUrl, bgStyle: anBgStyle, bgColor: anBgColor, active: anActive, sortOrder: editingAnnouncement?.sort_order || 0 }
+                const payload = { title: anTitle, body: anBody, emoji: anEmoji, ctaLabel: anCtaLabel, ctaUrl: anCtaUrl, bgStyle: anBgStyle, bgColor: anBgColor, active: anActive, sortOrder: editingAnnouncement?.sort_order || 0, target: anTarget }
                 if (editingAnnouncement) await fetch(`${API_URL}/admin/announcements/${editingAnnouncement.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
                 else await fetch(`${API_URL}/admin/announcements`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
                 setAnnouncementModal(false); fetchAll()
