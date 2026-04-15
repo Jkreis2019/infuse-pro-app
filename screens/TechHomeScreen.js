@@ -240,6 +240,10 @@ const [showServicePicker, setShowServicePicker] = useState(false)
 
   const takeIvSitePhoto = async () => {
     try {
+      if (!chartId) {
+        Alert.alert('Save Chart First', 'Please tap Save Draft before adding a photo', [{ text: 'OK' }])
+        return
+      }
       const permission = await ImagePicker.requestCameraPermissionsAsync()
       if (!permission.granted) {
         const libPermission = await ImagePicker.requestMediaLibraryPermissionsAsync()
@@ -250,7 +254,7 @@ const [showServicePicker, setShowServicePicker] = useState(false)
           text: '📷 Camera', onPress: async () => {
             const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true })
             if (!result.canceled && result.assets[0].base64) {
-              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`)
+              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`, chartId)
             }
           }
         },
@@ -258,7 +262,7 @@ const [showServicePicker, setShowServicePicker] = useState(false)
           text: '🖼 Library', onPress: async () => {
             const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true })
             if (!result.canceled && result.assets[0].base64) {
-              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`)
+              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`, chartId)
             }
           }
         },
@@ -269,11 +273,12 @@ const [showServicePicker, setShowServicePicker] = useState(false)
     }
   }
 
-  const uploadIvPhoto = async (base64Photo) => {
-    if (!chartId) { Alert.alert('Save First', 'Please save the chart before adding a photo'); return }
+  const uploadIvPhoto = async (base64Photo, overrideChartId) => {
+    const idToUse = overrideChartId || chartId
+    if (!idToUse) { Alert.alert('Save First', 'Please save the chart before adding a photo'); return }
     setUploadingIvPhoto(true)
     try {
-      const res = await fetch(`${API_URL}/charts/${chartId}/photo`, {
+      const res = await fetch(`${API_URL}/charts/${idToUse}/photo`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ photo: base64Photo })
