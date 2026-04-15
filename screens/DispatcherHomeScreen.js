@@ -2614,7 +2614,7 @@ const submitSendIntake = async () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
-  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 24 },
+  header: { paddingTop: 56, paddingBottom: 8, paddingHorizontal: 24 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 24, fontWeight: '700', color: '#fff', marginBottom: 6 },
