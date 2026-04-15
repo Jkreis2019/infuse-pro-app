@@ -190,6 +190,12 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
                   {chartData.tech_notes && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text></View>}
                   {chartData.complications === 'Yes' && <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ COMPLICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text></View>}
                   {chartData.amendment_notes && <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text></View>}
+                  {chartData.iv_site_photo && (
+                    <View style={{ marginTop: 10 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>📷 IV SITE PHOTO</Text>
+                      <Image source={{ uri: chartData.iv_site_photo }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
+                    </View>
+                  )}
                 </>
               )}
             </View>
@@ -651,6 +657,9 @@ export default function NPHomeScreen({ route, navigation }) {
                         {ch.tech_notes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }} numberOfLines={2}>{ch.tech_notes}</Text>}
                         {ch.complications === 'Yes' && <Text style={{ color: '#e53e3e', fontSize: 12, marginTop: 4 }}>⚠️ {ch.complications_detail}</Text>}
                         <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 6 }}>🧑‍⚕️ {ch.tech_name} · {new Date(ch.created_at).toLocaleDateString()}</Text>
+                        {ch.iv_site_photo && (
+                          <Image source={{ uri: ch.iv_site_photo }} style={{ width: '100%', height: 160, borderRadius: 8, marginTop: 8 }} resizeMode="cover" />
+                        )}
                       </View>
                     ))}
                   </>
