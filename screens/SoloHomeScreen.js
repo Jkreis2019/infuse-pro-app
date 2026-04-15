@@ -304,12 +304,7 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
             body: JSON.stringify({ services: selectedServices })
           }).catch(() => {})
         }
-        if (submit) {
-          // Lock the chart — stay open showing locked state
-          setSavedStatus('submitted')
-          Alert.alert('✅ Chart Submitted', 'Your chart has been locked. Use the amendment section to add notes if needed.')
-          // DO NOT call onClose() — user taps ← Back themselves
-        }
+        if (submit) { setSavedStatus('submitted'); Alert.alert('✅ Chart Submitted', 'Chart has been saved.'); onClose() }
         // If just saving (not submitting), no alert needed
       } else {
         Alert.alert('Error', resp.message || 'Could not save chart')
