@@ -80,6 +80,7 @@ function AuditLogTab({ token, primaryColor, secondaryColor }) {
   )
 }
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 function IntakeCard({ intake, index, primaryColor }) {
   const [expanded, setExpanded] = React.useState(index === 0)
   return (
@@ -365,8 +366,6 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [scheduleSaving, setScheduleSaving] = useState(false)
   const [blackoutDate, setBlackoutDate] = useState('')
   const [blackouts, setBlackouts] = useState([])
-
-  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
   const fetchSchedule = useCallback(async () => {
     setScheduleLoading(true)
