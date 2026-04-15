@@ -73,7 +73,7 @@ useEffect(() => {
     setLoadingSlots(true)
     setSelectedSlot(null)
     try {
-      const res = await fetch(`${API_URL}/schedule/available?date=${date}`, {
+      const res = await fetch(`${API_URL}/schedule/available?date=${date}&companyId=${company?.id || ''}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const data = await res.json()
