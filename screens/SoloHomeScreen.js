@@ -438,6 +438,9 @@ export default function SoloHomeScreen({ route, navigation }) {
   const [nbNotes, setNbNotes] = useState('')
   const [nbTime, setNbTime] = useState('')
   const [creatingBooking, setCreatingBooking] = useState(false)
+  const [confirmTimeModal, setConfirmTimeModal] = useState(false)
+  const [confirmingBooking, setConfirmingBooking] = useState(null)
+  const [confirmTime, setConfirmTime] = useState('')
   const [services, setServices] = useState([])
 
   // ── Tech state ──
@@ -615,11 +618,11 @@ export default function SoloHomeScreen({ route, navigation }) {
     finally { setCreatingBooking(false) }
   }
 
-  const confirmBooking = async (bookingId) => {
+  const confirmBooking = async (bookingId, time) => {
     try {
-      const res = await fetch(`${API_URL}/dispatch/bookings/${bookingId}/confirm`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ assignedTechId: user?.id }) })
+      const res = await fetch(`${API_URL}/dispatch/bookings/${bookingId}/confirm`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ confirmedTime: time || null }) })
       const data = await res.json()
-      if (data.success) { fetchDispatch(); fetchCall(); Alert.alert('✅ Confirmed', 'Booking confirmed and assigned to you.') }
+      if (data.success) { fetchDispatch(); fetchCall(); setConfirmTimeModal(false); setConfirmingBooking(null); setConfirmTime(''); Alert.alert('✅ Confirmed', 'Booking confirmed!') }
       else Alert.alert('Error', data.message || 'Could not confirm booking')
     } catch { Alert.alert('Error', 'Network error') }
   }
@@ -761,9 +764,14 @@ export default function SoloHomeScreen({ route, navigation }) {
                   <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginBottom: 4 }}>{b.service}</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>📍 {b.address}</Text>
                   {b.requested_time && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 12 }}>🕐 {new Date(b.requested_time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>}
-                  <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }} onPress={() => Alert.alert('Confirm Booking', `Confirm and assign this booking to yourself?`, [{ text: 'Cancel', style: 'cancel' }, { text: 'Confirm', onPress: () => confirmBooking(b.id) }])}>
-                    <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✅ Confirm & Assign to Me</Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }} onPress={() => { setConfirmingBooking(b); setConfirmTime(''); setConfirmTimeModal(true) }}>
+                      <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✅ Confirm</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', paddingHorizontal: 16 }} onPress={() => navigation.navigate('BookingChat', { token, userId: user?.id || user?.userId, company, bookingId: b.id, patientName: b.patient_name })}>
+                      <Text style={{ color: primaryColor, fontSize: 14 }}>💬</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
               <View style={{ height: 40 }} />
@@ -1168,6 +1176,24 @@ export default function SoloHomeScreen({ route, navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* ── CONFIRM TIME MODAL ── */}
+      <Modal visible={confirmTimeModal} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: secondaryColor, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Confirm Booking</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{confirmingBooking?.patient_name} · {confirmingBooking?.service}</Text>
+            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CONFIRM TIME (OPTIONAL)</Text>
+            <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 20 }} placeholder="e.g. 2:00 PM" placeholderTextColor="#444" value={confirmTime} onChangeText={setConfirmTime} />
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 10 }} onPress={() => confirmBooking(confirmingBooking?.id, confirmTime)}>
+              <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>✅ Confirm & Assign to Me</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ alignItems: 'center', padding: 12 }} onPress={() => { setConfirmTimeModal(false); setConfirmingBooking(null) }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── NEW BOOKING MODAL ── */}
       <Modal visible={newBookingModal} animationType="slide" presentationStyle="fullScreen">
