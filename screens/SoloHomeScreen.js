@@ -1468,6 +1468,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [blackouts, setBlackouts] = useState([])
 
   const fetchSchedule = useCallback(async () => {
+    const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     setScheduleLoading(true)
     try {
       const [hoursRes, blackoutRes] = await Promise.all([
@@ -2097,7 +2098,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           ) : scheduleHours.map((day, i) => (
             <View key={i} style={[sStyles.card, { borderLeftWidth: 3, borderLeftColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.15)' }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: day.is_open ? 14 : 0 }}>
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{DAY_NAMES[i]}</Text>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i]}</Text>
                 <TouchableOpacity
                   style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
                   onPress={() => {
