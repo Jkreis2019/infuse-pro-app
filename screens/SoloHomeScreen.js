@@ -1460,6 +1460,68 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [auditLoading, setAuditLoading] = useState(false)
   const [auditFilter, setAuditFilter] = useState('all')
 
+// Schedule
+  const [scheduleHours, setScheduleHours] = useState([])
+  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [scheduleSaving, setScheduleSaving] = useState(false)
+  const [blackoutDate, setBlackoutDate] = useState('')
+  const [blackouts, setBlackouts] = useState([])
+
+  const fetchSchedule = useCallback(async () => {
+    setScheduleLoading(true)
+    try {
+      const [hoursRes, blackoutRes] = await Promise.all([
+        fetch(`${API_URL}/schedule/hours`, { headers }),
+        fetch(`${API_URL}/schedule/blackouts`, { headers })
+      ])
+      const [hoursData, blackoutData] = await Promise.all([hoursRes.json(), blackoutRes.json()])
+      if (hoursData.hours) {
+        const filled = DAY_NAMES.map((_, i) => {
+          const existing = hoursData.hours.find(h => h.day_of_week === i)
+          return existing || { day_of_week: i, is_open: false, open_time: '09:00', close_time: '18:00', max_per_slot: 3, slot_duration: 30 }
+        })
+        setScheduleHours(filled)
+      }
+      if (blackoutData.blackouts) setBlackouts(blackoutData.blackouts)
+    } catch (err) { console.error('Schedule fetch error:', err) }
+    finally { setScheduleLoading(false) }
+  }, [token])
+
+  const saveSchedule = async () => {
+    setScheduleSaving(true)
+    try {
+      const res = await fetch(`${API_URL}/admin/hours`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hours: scheduleHours })
+      })
+      const data = await res.json()
+      if (data.success) Alert.alert('✅ Saved', 'Hours updated successfully')
+      else Alert.alert('Error', data.message || 'Could not save hours')
+    } catch (err) { Alert.alert('Error', 'Network error') }
+    finally { setScheduleSaving(false) }
+  }
+
+  const addBlackout = async () => {
+    if (!blackoutDate.match(/^\d{4}-\d{2}-\d{2}$/)) { Alert.alert('Invalid date', 'Use format YYYY-MM-DD'); return }
+    try {
+      await fetch(`${API_URL}/admin/blackout`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: blackoutDate })
+      })
+      setBlackoutDate('')
+      fetchSchedule()
+    } catch (err) { Alert.alert('Error', 'Network error') }
+  }
+
+  const removeBlackout = async (date) => {
+    try {
+      await fetch(`${API_URL}/admin/blackout/${date}`, { method: 'DELETE', headers })
+      fetchSchedule()
+    } catch (err) { Alert.alert('Error', 'Network error') }
+  }
+
   // Settings
   const [requireGFE, setRequireGFE] = useState(false)
   const [companyName, setCompanyName] = useState(company?.name || '')
@@ -1507,6 +1569,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
     if (adminTab === 'announcements') fetchAnnouncements()
     if (adminTab === 'audit') fetchAuditLogs()
     if (adminTab === 'settings') fetchSettings()
+    if (adminTab === 'schedule') fetchSchedule()
   }, [adminTab, auditFilter])
 
   const searchPatients = async (q) => {
@@ -1638,6 +1701,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
             { key: 'patients', label: '🔍 Patients' },
             { key: 'services', label: '💊 Services' },
             { key: 'announcements', label: '📢 Announcement' },
+            { key: 'schedule', label: '🕐 Schedule' },
             { key: 'audit', label: '📋 Audit Log' },
             { key: 'settings', label: '⚙️ Settings' },
           ].map(t => (
@@ -2021,6 +2085,78 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
             <View style={{ height: 40 }} />
           </ScrollView>
         </View>
+      )}
+
+      {/* Schedule */}
+      {adminTab === 'schedule' && (
+        <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={scheduleLoading} onRefresh={fetchSchedule} tintColor={primaryColor} />}>
+          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Business Hours</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 16 }}>Set when patients can schedule appointments.</Text>
+          {scheduleLoading ? (
+            <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
+          ) : scheduleHours.map((day, i) => (
+            <View key={i} style={[sStyles.card, { borderLeftWidth: 3, borderLeftColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.15)' }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: day.is_open ? 14 : 0 }}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{DAY_NAMES[i]}</Text>
+                <TouchableOpacity
+                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                  onPress={() => {
+                    const updated = [...scheduleHours]
+                    updated[i] = { ...updated[i], is_open: !updated[i].is_open }
+                    setScheduleHours(updated)
+                  }}
+                >
+                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: day.is_open ? 'flex-end' : 'flex-start' }} />
+                </TouchableOpacity>
+              </View>
+              {day.is_open && (
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={sStyles.fieldLabel}>Open</Text>
+                    <TextInput style={[sStyles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]} value={day.open_time?.slice(0,5)} onChangeText={(t) => { const u = [...scheduleHours]; u[i] = { ...u[i], open_time: t }; setScheduleHours(u) }} placeholder="09:00" placeholderTextColor="#666" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={sStyles.fieldLabel}>Close</Text>
+                    <TextInput style={[sStyles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]} value={day.close_time?.slice(0,5)} onChangeText={(t) => { const u = [...scheduleHours]; u[i] = { ...u[i], close_time: t }; setScheduleHours(u) }} placeholder="18:00" placeholderTextColor="#666" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={sStyles.fieldLabel}>Max/Slot</Text>
+                    <TextInput style={[sStyles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]} value={String(day.max_per_slot)} onChangeText={(t) => { const u = [...scheduleHours]; u[i] = { ...u[i], max_per_slot: parseInt(t) || 1 }; setScheduleHours(u) }} keyboardType="numeric" placeholder="3" placeholderTextColor="#666" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={sStyles.fieldLabel}>Duration</Text>
+                    <TouchableOpacity style={[sStyles.input, { marginBottom: 0, fontSize: 14, padding: 12, justifyContent: 'center' }]} onPress={() => { const u = [...scheduleHours]; u[i] = { ...u[i], slot_duration: day.slot_duration === 30 ? 60 : 30 }; setScheduleHours(u) }}>
+                      <Text style={{ color: primaryColor, fontWeight: '700', fontSize: 14 }}>{day.slot_duration === 60 ? '60 min' : '30 min'}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+          <TouchableOpacity style={[sStyles.primaryBtn, { backgroundColor: primaryColor, opacity: scheduleSaving ? 0.6 : 1, marginBottom: 32 }]} onPress={saveSchedule} disabled={scheduleSaving}>
+            {scheduleSaving ? <ActivityIndicator color={secondaryColor} /> : <Text style={[sStyles.primaryBtnText, { color: secondaryColor }]}>Save Hours</Text>}
+          </TouchableOpacity>
+
+          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Blackout Dates</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Block specific dates from scheduling.</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+            <TextInput style={[sStyles.input, { flex: 1, marginBottom: 0, fontSize: 14, padding: 12 }]} value={blackoutDate} onChangeText={setBlackoutDate} placeholder="YYYY-MM-DD" placeholderTextColor="#666" />
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, paddingHorizontal: 20, justifyContent: 'center' }} onPress={addBlackout}>
+              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>Add</Text>
+            </TouchableOpacity>
+          </View>
+          {blackouts.length === 0 ? (
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, marginBottom: 16 }}>No blackout dates set</Text>
+          ) : blackouts.map((b, i) => (
+            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 14 }}>🚫 {b.blackout_date} {b.reason ? `— ${b.reason}` : ''}</Text>
+              <TouchableOpacity onPress={() => removeBlackout(b.blackout_date)}>
+                <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <View style={{ height: 40 }} />
+        </ScrollView>
       )}
 
       {/* Settings */}
