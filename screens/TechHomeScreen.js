@@ -133,6 +133,8 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
   const [vitalTime, setVitalTime] = useState('')
   const [ivSite, setIvSite] = useState('')
   const [catheterSize, setCatheterSize] = useState('')
+  const [ivSitePhoto, setIvSitePhoto] = useState(null)
+  const [uploadingIvPhoto, setUploadingIvPhoto] = useState(false)
   const [ivAttempts, setIvAttempts] = useState('1')
   const [ivTimeInitiated, setIvTimeInitiated] = useState('')
   const [ivFluids, setIvFluids] = useState([])
@@ -172,6 +174,7 @@ const [showServicePicker, setShowServicePicker] = useState(false)
             setPainScale(c.pain_scale?.toString() || '')
             setIvSite(c.iv_insertion_site || '')
             setCatheterSize(c.iv_catheter_size || '')
+            setIvSitePhoto(c.iv_site_photo || null)
             setIvAttempts(c.iv_attempts?.toString() || '1')
             setIvTimeInitiated(c.iv_time_initiated || '')
             setIvFluids(c.iv_fluids_used || [])
@@ -232,6 +235,60 @@ const [showServicePicker, setShowServicePicker] = useState(false)
       }
     } catch (err) {
       Alert.alert('Error', 'Network error')
+    }
+  }
+
+  const takeIvSitePhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync()
+      if (!permission.granted) {
+        const libPermission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+        if (!libPermission.granted) { Alert.alert('Permission needed', 'Please allow camera or photo library access'); return }
+      }
+      Alert.alert('IV Site Photo', 'Choose source', [
+        {
+          text: '📷 Camera', onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true })
+            if (!result.canceled && result.assets[0].base64) {
+              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`)
+            }
+          }
+        },
+        {
+          text: '🖼 Library', onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: true, aspect: [4, 3], quality: 0.7, base64: true })
+            if (!result.canceled && result.assets[0].base64) {
+              await uploadIvPhoto(`data:image/jpeg;base64,${result.assets[0].base64}`)
+            }
+          }
+        },
+        { text: 'Cancel', style: 'cancel' }
+      ])
+    } catch (err) {
+      Alert.alert('Error', 'Could not open camera')
+    }
+  }
+
+  const uploadIvPhoto = async (base64Photo) => {
+    if (!chartId) { Alert.alert('Save First', 'Please save the chart before adding a photo'); return }
+    setUploadingIvPhoto(true)
+    try {
+      const res = await fetch(`${API_URL}/charts/${chartId}/photo`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photo: base64Photo })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setIvSitePhoto(data.photoUrl)
+        Alert.alert('✅ Photo Saved', 'IV site photo has been added to the chart')
+      } else {
+        Alert.alert('Error', data.error || 'Could not upload photo')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not upload photo')
+    } finally {
+      setUploadingIvPhoto(false)
     }
   }
 
@@ -345,6 +402,41 @@ const [showServicePicker, setShowServicePicker] = useState(false)
             <Text style={[cStyles.sectionTitle, { color: primaryColor }]}>IV INSERTION</Text>
             <SelectRow label="IV Site" options={IV_SITES} value={ivSite} onSelect={setIvSite} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
             <SelectRow label="Catheter Size" options={CATHETER_SIZES} value={catheterSize} onSelect={setCatheterSize} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
+            {/* IV Site Photo */}
+            <View style={{ marginVertical: 8 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600', marginBottom: 8 }}>IV SITE PHOTO</Text>
+              {ivSitePhoto ? (
+                <View>
+                  <Image source={{ uri: ivSitePhoto }} style={{ width: '100%', height: 200, borderRadius: 10, marginBottom: 8 }} resizeMode="cover" />
+                  {!isLocked && (
+                    <TouchableOpacity
+                      style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center' }}
+                      onPress={takeIvSitePhoto}
+                    >
+                      <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>📷 Retake Photo</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                !isLocked && (
+                  <TouchableOpacity
+                    style={{ borderWidth: 2, borderColor: primaryColor, borderStyle: 'dashed', borderRadius: 10, padding: 20, alignItems: 'center' }}
+                    onPress={takeIvSitePhoto}
+                    disabled={uploadingIvPhoto}
+                  >
+                    {uploadingIvPhoto ? (
+                      <ActivityIndicator color={primaryColor} />
+                    ) : (
+                      <>
+                        <Text style={{ fontSize: 28, marginBottom: 6 }}>📷</Text>
+                        <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>Add IV Site Photo</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 4 }}>Camera or photo library</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )
+              )}
+            </View>
             <SelectRow label="Attempts" options={['1', '2', '3']} value={ivAttempts} onSelect={setIvAttempts} primaryColor={primaryColor} secondaryColor={secondaryColor} locked={isLocked} />
             <Text style={cStyles.fieldLabel}>Time IV Initiated</Text>
             <TextInput style={cStyles.input} placeholder="2:35 PM" placeholderTextColor="#666" value={ivTimeInitiated} onChangeText={setIvTimeInitiated} editable={!isLocked} />
