@@ -559,17 +559,25 @@ export default function SoloHomeScreen({ route, navigation }) {
   useEffect(() => { if (activeSection === 'admin' && adminTab === 'audit') fetchAuditLog() }, [activeSection, adminTab])
 
   useEffect(() => {
-    if (activeSection === 'admin' && adminTab === 'messages') {
+    if ((activeSection === 'dispatch' && dispatchTab === 'messages') || (activeSection === 'admin' && adminTab === 'messages')) {
       setChatsLoading(true)
-      fetch(`${API_URL}/dispatch/log`, { headers })
-        .then(r => r.json())
-        .then(d => {
-          if (d.log) setBookingChats(d.log)
-        })
-        .catch(() => {})
-        .finally(() => setChatsLoading(false))
+      // Fetch all bookings (pending + active + completed) for messaging
+      Promise.all([
+        fetch(`${API_URL}/dispatch/queue`, { headers }).then(r => r.json()),
+        fetch(`${API_URL}/dispatch/log`, { headers }).then(r => r.json())
+      ]).then(([qData, logData]) => {
+        const allBookings = [
+          ...(qData.queue || []),
+          ...(logData.log || [])
+        ]
+        // Deduplicate by id
+        const seen = new Set()
+        const unique = allBookings.filter(b => { if (seen.has(b.id)) return false; seen.add(b.id); return true })
+        setBookingChats(unique)
+      }).catch(() => {})
+      .finally(() => setChatsLoading(false))
     }
-  }, [activeSection, adminTab])
+  }, [activeSection, dispatchTab, adminTab])
 
   useEffect(() => {
     const interval = setInterval(() => { fetchDispatch(); fetchCall() }, 15000)
@@ -748,10 +756,10 @@ export default function SoloHomeScreen({ route, navigation }) {
       {activeSection === 'dispatch' && (
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
-            {['queue', 'scheduled', 'log'].map(tab => (
+            {['queue', 'scheduled', 'log', 'messages'].map(tab => (
               <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: dispatchTab === tab ? primaryColor : 'transparent' }} onPress={() => setDispatchTab(tab)}>
                 <Text style={{ color: dispatchTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600' }}>
-                  {tab === 'queue' ? `📥 Queue${queue.length > 0 ? ` (${queue.length})` : ''}` : tab === 'scheduled' ? '📅 Scheduled' : '📋 Log'}
+                  {tab === 'queue' ? `📥 Queue${queue.length > 0 ? ` (${queue.length})` : ''}` : tab === 'scheduled' ? '📅 Scheduled' : tab === 'log' ? '📋 Log' : '💬 Messages'}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -779,14 +787,9 @@ export default function SoloHomeScreen({ route, navigation }) {
                   <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, marginBottom: 4 }}>{b.service}</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>📍 {b.address}</Text>
                   {b.requested_time && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 12 }}>🕐 {new Date(b.requested_time).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>}
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }} onPress={() => { setConfirmingBooking(b); setConfirmTime(''); setConfirmTimeModal(true) }}>
-                      <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✅ Confirm</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ borderWidth: 1, borderColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', paddingHorizontal: 16 }} onPress={() => navigation.navigate('BookingChat', { token, userId: user?.id || user?.userId, company, bookingId: b.id, patientName: b.patient_name })}>
-                      <Text style={{ color: primaryColor, fontSize: 14 }}>💬</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }} onPress={() => { setConfirmingBooking(b); setConfirmTime(''); setConfirmTimeModal(true) }}>
+                    <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>✅ Confirm & Assign to Me</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
               <View style={{ height: 40 }} />
@@ -814,6 +817,31 @@ export default function SoloHomeScreen({ route, navigation }) {
                   </View>
                 ))}
               </View>
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          )}
+
+          {dispatchTab === 'messages' && (
+            <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setChatsLoading(true); Promise.all([fetch(`${API_URL}/dispatch/queue`, { headers }).then(r => r.json()), fetch(`${API_URL}/dispatch/log`, { headers }).then(r => r.json())]).then(([qData, logData]) => { const all = [...(qData.queue||[]),...(logData.log||[])]; const seen = new Set(); setBookingChats(all.filter(b => { if(seen.has(b.id)) return false; seen.add(b.id); return true })) }).catch(()=>{}).finally(()=>setChatsLoading(false)) }} tintColor={primaryColor} />}>
+              {chatsLoading ? <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} /> : bookingChats.length === 0 ? (
+                <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                  <Text style={{ fontSize: 40, marginBottom: 12 }}>💬</Text>
+                  <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600', marginBottom: 8 }}>No conversations yet</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Patient messages will appear here</Text>
+                </View>
+              ) : bookingChats.map(b => (
+                <TouchableOpacity key={b.id} style={[styles.card, { flexDirection: 'row', alignItems: 'center' }]} onPress={() => navigation.navigate('BookingChat', { token, userId: user?.id || user?.userId, company, bookingId: b.id, patientName: b.patient_name })}>
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: primaryColor + '22', borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>{b.patient_name?.[0]}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{b.patient_name}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{b.service}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 2 }}>{new Date(b.updated_at).toLocaleDateString()}</Text>
+                  </View>
+                  <Text style={{ color: primaryColor, fontSize: 18 }}>›</Text>
+                </TouchableOpacity>
+              ))}
               <View style={{ height: 40 }} />
             </ScrollView>
           )}
@@ -964,10 +992,10 @@ export default function SoloHomeScreen({ route, navigation }) {
         <View style={{ flex: 1 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', flexGrow: 0 }}>
             <View style={{ flexDirection: 'row' }}>
-              {['patients', 'messages', 'services', 'announcements', 'audit', 'settings'].map(tab => (
+              {['patients', 'services', 'announcements', 'audit', 'settings'].map(tab => (
                 <TouchableOpacity key={tab} style={{ paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 2, borderBottomColor: adminTab === tab ? primaryColor : 'transparent' }} onPress={() => setAdminTab(tab)}>
                   <Text style={{ color: adminTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600', textTransform: 'capitalize' }}>
-                    {tab === 'patients' ? '👤 Patients' : tab === 'messages' ? '💬 Messages' : tab === 'services' ? '💉 Services' : tab === 'announcements' ? '📢 Announcements' : tab === 'audit' ? '📋 Audit' : '⚙️ Settings'}
+                    {tab === 'patients' ? '👤 Patients' : tab === 'services' ? '💉 Services' : tab === 'announcements' ? '📢 Announcements' : tab === 'audit' ? '📋 Audit' : '⚙️ Settings'}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -1085,7 +1113,7 @@ export default function SoloHomeScreen({ route, navigation }) {
             </ScrollView>
           )}
 
-          {/* Services */}}
+          {/* Services */}
           {adminTab === 'services' && (
             <ScrollView style={{ flex: 1, padding: 16 }}>
               <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => setNewServiceModal(true)}>
