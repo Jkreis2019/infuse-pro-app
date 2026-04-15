@@ -28,6 +28,7 @@ import BookingChatScreen from './screens/BookingChatScreen'
 import TechHomeScreen from './screens/TechHomeScreen'
 import TechMessagingScreen from './screens/TechMessagingScreen'
 import NPHomeScreen from './screens/NPHomeScreen'
+import SoloHomeScreen from './screens/SoloHomeScreen'
 import ChangePasswordScreen from './screens/ChangePasswordScreen'
 import ResetPasswordScreen from './screens/ResetPasswordScreen'
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
@@ -206,6 +207,7 @@ export default function App() {
   {(props) => <TechHomeScreen {...props} rootNavigation={props.navigation} />}
 </Stack.Screen>
         <Stack.Screen name="NPHome" component={NPHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SoloHome" component={SoloHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ headerShown: false }} />

@@ -118,6 +118,18 @@ export default function LoginScreen({ route, navigation }) {
               routes: [{ name: 'NPHome', params: { token: data.token, user: data.user, company } }]
             })
           }
+        } else if (role === 'solo') {
+          if (!data.user.passwordChanged) {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
+            })
+          } else {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'SoloHome', params: { token: data.token, user: data.user, company } }]
+            })
+          }
         } else {
           navigation.reset({
             index: 0,
