@@ -1334,6 +1334,12 @@ const submitSendIntake = async () => {
           <Text style={styles.cardTimer}>
             Intake: {entry.intake_submitted ? '✅ Complete' : '⏳ Not submitted'}
           </Text>
+          {(entry.status === 'cancelled' || entry.status === 'no_show') && entry.cancellation_disposition && (
+            <View style={{ backgroundColor: 'rgba(240,144,144,0.08)', borderRadius: 8, padding: 8, marginTop: 6, borderLeftWidth: 3, borderLeftColor: '#f09090' }}>
+              <Text style={{ color: '#f09090', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>CANCEL REASON</Text>
+              <Text style={{ color: '#fff', fontSize: 12 }}>{entry.cancellation_disposition}{entry.cancellation_reason ? ` — ${entry.cancellation_reason}` : ''}</Text>
+            </View>
+          )}
         </View>
       ))
     )}
