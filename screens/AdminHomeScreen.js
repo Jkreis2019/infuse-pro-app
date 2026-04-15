@@ -1650,6 +1650,12 @@ const [showImportModal, setShowImportModal] = useState(false)
                       {psSelectedChart.iv_time_discontinued && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Discontinued</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_time_discontinued}</Text></View>}
                       {psSelectedChart.iv_catheter_status && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter Status</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_catheter_status}</Text></View>}
                     </View>
+                    {psSelectedChart.iv_site_photo && (
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>📷 IV SITE PHOTO</Text>
+                        <Image source={{ uri: psSelectedChart.iv_site_photo }} style={{ width: 280, height: 200, borderRadius: 10, alignSelf: 'center' }} resizeMode="cover" />
+                      </View>
+                    )}
                     {psSelectedChart.iv_fluids_used?.length > 0 && (
   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
     <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>FLUIDS USED</Text>

@@ -329,6 +329,8 @@ export default function NPHomeScreen({ route, navigation }) {
   const [patientSearching, setPatientSearching] = useState(false)
   const [selectedPatientProfile, setSelectedPatientProfile] = useState(null)
   const [npPatientActiveTab, setNpPatientActiveTab] = useState('overview')
+  const [npSelectedChart, setNpSelectedChart] = useState(null)
+  const [npChartModal, setNpChartModal] = useState(false)
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -644,23 +646,23 @@ export default function NPHomeScreen({ route, navigation }) {
                     {!selectedPatientProfile.charts?.length ? (
                       <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on file</Text>
                     ) : selectedPatientProfile.charts.map((ch, i) => (
-                      <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8 }}>
+                      <TouchableOpacity key={i} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }} onPress={() => { setNpSelectedChart(ch); setNpChartModal(true) }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{ch.chief_complaint || 'Chart'}</Text>
-                          <Text style={{ color: ch.status === 'submitted' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
+                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>📋 {ch.tech_name || 'Chart'}</Text>
+                          <View style={{ backgroundColor: ch.status === 'submitted' || ch.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                            <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 10, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
+                          </View>
                         </View>
-                        {ch.blood_pressure && <View style={{ flexDirection: 'row', gap: 12, marginBottom: 6 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 6 }}>{new Date(ch.created_at).toLocaleString()}</Text>
+                        {ch.chief_complaint && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>{ch.chief_complaint}</Text>}
+                        {ch.blood_pressure && <View style={{ flexDirection: 'row', gap: 12, marginBottom: 4 }}>
                           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>BP: <Text style={{ color: '#fff' }}>{ch.blood_pressure}</Text></Text>
                           {ch.heart_rate && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>HR: <Text style={{ color: '#fff' }}>{ch.heart_rate}</Text></Text>}
                           {ch.oxygen_sat && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>O2: <Text style={{ color: '#fff' }}>{ch.oxygen_sat}%</Text></Text>}
                         </View>}
-                        {ch.tech_notes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }} numberOfLines={2}>{ch.tech_notes}</Text>}
-                        {ch.complications === 'Yes' && <Text style={{ color: '#e53e3e', fontSize: 12, marginTop: 4 }}>⚠️ {ch.complications_detail}</Text>}
-                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 6 }}>🧑‍⚕️ {ch.tech_name} · {new Date(ch.created_at).toLocaleDateString()}</Text>
-                        {ch.iv_site_photo && (
-                          <Image source={{ uri: ch.iv_site_photo }} style={{ width: '100%', height: 160, borderRadius: 8, marginTop: 8 }} resizeMode="cover" />
-                        )}
-                      </View>
+                        {ch.amendment_notes && <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 4 }}>📝 Has amendment</Text>}
+                        <Text style={{ color: primaryColor, fontSize: 12, marginTop: 8, textAlign: 'right' }}>Tap to view full chart →</Text>
+                      </TouchableOpacity>
                     ))}
                   </>
                 )}
@@ -771,6 +773,63 @@ export default function NPHomeScreen({ route, navigation }) {
           )}
         </View>
       )}
+
+      {/* NP Full Chart Modal */}
+      <Modal visible={npChartModal} animationType="slide" presentationStyle="fullScreen">
+        <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+            <TouchableOpacity onPress={() => setNpChartModal(false)}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Full Chart</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 16 }}>
+            {npSelectedChart && (
+              <>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{npSelectedChart.tech_name}</Text>
+                  <View style={{ backgroundColor: npSelectedChart.status === 'submitted' || npSelectedChart.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+                    <Text style={{ color: npSelectedChart.status === 'submitted' || npSelectedChart.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{npSelectedChart.status?.toUpperCase()}</Text>
+                  </View>
+                </View>
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INITIAL VITALS</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {npSelectedChart.blood_pressure && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.blood_pressure}</Text></View>}
+                    {npSelectedChart.heart_rate && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.heart_rate}</Text></View>}
+                    {npSelectedChart.oxygen_sat && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.oxygen_sat}%</Text></View>}
+                    {npSelectedChart.temperature && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>TEMP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.temperature}°</Text></View>}
+                    {npSelectedChart.pain_scale && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>PAIN</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.pain_scale}/10</Text></View>}
+                  </View>
+                </View>
+                {npSelectedChart.chief_complaint && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{npSelectedChart.chief_complaint}</Text></View>}
+                {(npSelectedChart.medical_history_changes || npSelectedChart.allergies_detail) && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>NURSING ASSESSMENT</Text>{npSelectedChart.medical_history_changes && <View style={{ marginBottom: 10 }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>HISTORY/MED CHANGES</Text><Text style={{ color: '#fff', fontSize: 14 }}>{npSelectedChart.medical_history_changes}</Text></View>}{npSelectedChart.allergies_detail && <View><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>ALLERGIES & REACTIONS</Text><Text style={{ color: '#fff', fontSize: 14 }}>{npSelectedChart.allergies_detail}</Text></View>}</View>}
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV DETAILS</Text>
+                  {npSelectedChart.iv_insertion_site && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Site</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_insertion_site}</Text></View>}
+                  {npSelectedChart.iv_catheter_size && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_catheter_size}</Text></View>}
+                  {npSelectedChart.iv_attempts && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Attempts</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_attempts}</Text></View>}
+                  {npSelectedChart.iv_time_initiated && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Started</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_time_initiated}</Text></View>}
+                  {npSelectedChart.iv_time_discontinued && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Discontinued</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_time_discontinued}</Text></View>}
+                  {npSelectedChart.iv_catheter_status && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter Status</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{npSelectedChart.iv_catheter_status}</Text></View>}
+                </View>
+                {npSelectedChart.iv_site_photo && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>📷 IV SITE PHOTO</Text><Image source={{ uri: npSelectedChart.iv_site_photo }} style={{ width: 280, height: 200, borderRadius: 10, alignSelf: 'center' }} resizeMode="cover" /></View>}
+                {npSelectedChart.iv_fluids_used?.length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>FLUIDS USED</Text>{npSelectedChart.iv_fluids_used.map((fluid, i) => <Text key={i} style={{ color: '#fff', fontSize: 13, paddingVertical: 4 }}>• {fluid}</Text>)}</View>}
+                {npSelectedChart.prn_iv_medications && Object.keys(npSelectedChart.prn_iv_medications).filter(k => npSelectedChart.prn_iv_medications[k]).length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV MEDICATIONS</Text>{Object.entries(npSelectedChart.prn_iv_medications).filter(([k,v]) => v).map(([key, val]) => <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: '#fff', fontSize: 13 }}>{key.replace(/_/g,' ')}</Text><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{val?.time || ''}</Text></View>)}</View>}
+                {npSelectedChart.prn_bag_addons && Object.keys(npSelectedChart.prn_bag_addons).filter(k => npSelectedChart.prn_bag_addons[k]).length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BAG ADD-ONS</Text>{Object.entries(npSelectedChart.prn_bag_addons).filter(([k,v]) => v).map(([key, val]) => <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: '#fff', fontSize: 13 }}>{key.replace(/_/g,' ')}</Text><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{val?.dose || val?.time || ''}</Text></View>)}</View>}
+                {npSelectedChart.prn_im_injections && Object.keys(npSelectedChart.prn_im_injections).filter(k => npSelectedChart.prn_im_injections[k]).length > 0 && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IM INJECTIONS</Text>{Object.entries(npSelectedChart.prn_im_injections).filter(([k,v]) => v).map(([key, val]) => <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: '#fff', fontSize: 13 }}>{key.replace(/_/g,' ')}</Text><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{val?.dose || val?.time || ''}</Text></View>)}</View>}
+                {npSelectedChart.vitals_post && (npSelectedChart.vitals_post.bp || npSelectedChart.vitals_post.hr) && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>POST INFUSION VITALS</Text><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>{npSelectedChart.vitals_post.bp && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.vitals_post.bp}</Text></View>}{npSelectedChart.vitals_post.hr && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.vitals_post.hr}</Text></View>}{npSelectedChart.vitals_post.o2 && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{npSelectedChart.vitals_post.o2}%</Text></View>}</View></View>}
+                {npSelectedChart.complications === 'Yes' && <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderWidth: 1, borderColor: '#e53e3e', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>⚠️ COMPLICATIONS</Text><Text style={{ color: '#fff', fontSize: 14 }}>{npSelectedChart.complications_detail}</Text></View>}
+                {npSelectedChart.tech_notes && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{npSelectedChart.tech_notes}</Text></View>}
+                {npSelectedChart.amendment_notes && <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>📝 AMENDMENT</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{npSelectedChart.amendment_notes}</Text></View>}
+                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center', marginTop: 8 }}>Submitted {new Date(npSelectedChart.created_at).toLocaleString()}</Text>
+              </>
+            )}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
+      </Modal>
 
       {/* Profile Modal */}
       <Modal visible={profileModal} transparent animationType="slide">
