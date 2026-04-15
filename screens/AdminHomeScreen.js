@@ -359,6 +359,77 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [rCities, setRCities] = useState('')
   const [savingRegion, setSavingRegion] = useState(false)
 
+  // Schedule / Hours
+  const [scheduleHours, setScheduleHours] = useState([])
+  const [scheduleLoading, setScheduleLoading] = useState(false)
+  const [scheduleSaving, setScheduleSaving] = useState(false)
+  const [blackoutDate, setBlackoutDate] = useState('')
+  const [blackouts, setBlackouts] = useState([])
+
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+  const fetchSchedule = useCallback(async () => {
+    setScheduleLoading(true)
+    try {
+      const [hoursRes, blackoutRes] = await Promise.all([
+        fetch(`${API_URL}/schedule/hours`, { headers }),
+        fetch(`${API_URL}/schedule/blackouts`, { headers })
+      ])
+      const [hoursData, blackoutData] = await Promise.all([hoursRes.json(), blackoutRes.json()])
+      if (hoursData.hours) {
+        const filled = DAY_NAMES.map((_, i) => {
+          const existing = hoursData.hours.find(h => h.day_of_week === i)
+          return existing || { day_of_week: i, is_open: false, open_time: '09:00', close_time: '18:00', max_per_slot: 3 }
+        })
+        setScheduleHours(filled)
+      }
+      if (blackoutData.blackouts) setBlackouts(blackoutData.blackouts)
+    } catch (err) { console.error('Schedule fetch error:', err) }
+    finally { setScheduleLoading(false) }
+  }, [token])
+
+  useEffect(() => {
+    if (activeTab === 'schedule') fetchSchedule()
+  }, [activeTab])
+
+  const saveSchedule = async () => {
+    setScheduleSaving(true)
+    try {
+      const res = await fetch(`${API_URL}/admin/hours`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hours: scheduleHours })
+      })
+      const data = await res.json()
+      if (data.success) Alert.alert('✅ Saved', 'Hours updated successfully')
+      else Alert.alert('Error', data.message || 'Could not save hours')
+    } catch (err) { Alert.alert('Error', 'Network error') }
+    finally { setScheduleSaving(false) }
+  }
+
+  const addBlackout = async () => {
+    if (!blackoutDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      Alert.alert('Invalid date', 'Use format YYYY-MM-DD')
+      return
+    }
+    try {
+      await fetch(`${API_URL}/admin/blackout`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: blackoutDate })
+      })
+      setBlackoutDate('')
+      fetchSchedule()
+    } catch (err) { Alert.alert('Error', 'Network error') }
+  }
+
+  const removeBlackout = async (date) => {
+    try {
+      await fetch(`${API_URL}/admin/blackout/${date}`, { method: 'DELETE', headers })
+      fetchSchedule()
+    } catch (err) { Alert.alert('Error', 'Network error') }
+  }
+
   // New service modal
   const [newServiceModal, setNewServiceModal] = useState(false)
   const [svcName, setSvcName] = useState('')
@@ -770,7 +841,7 @@ const [showImportModal, setShowImportModal] = useState(false)
     return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
-  const TABS = ['dashboard', 'patients', 'messages', 'reports', 'staff', 'regions', 'services', 'announcements', 'referrals', 'loyalty', 'documents', 'branding', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
+  const TABS = ['dashboard', 'patients', 'messages', 'reports', 'staff', 'regions', 'services', 'announcements', 'referrals', 'loyalty', 'documents', 'branding', 'schedule', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
 
   return (
     <View style={styles.container}>
@@ -1413,33 +1484,20 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* ── ANNOUNCEMENTS ── */}
       {activeTab === 'announcements' && (
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
-          {['patient', 'staff'].map(section => {
-            const sectionAnnouncements = announcements.filter(a => a.target === section)
-            const atLimit = sectionAnnouncements.length >= 5
-            return (
-              <View key={section} style={{ marginBottom: 24 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <View>
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{section === 'patient' ? '👤 Patient Announcements' : '🧑‍⚕️ Staff Announcements'}</Text>
-                    <Text style={{ color: atLimit ? '#f09090' : 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{sectionAnnouncements.length}/5 used</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={{ backgroundColor: atLimit ? 'rgba(255,255,255,0.06)' : primaryColor, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, opacity: atLimit ? 0.5 : 1 }}
-                    disabled={atLimit}
-                    onPress={() => {
-                      setEditingAnnouncement(null); setAnTitle(''); setAnBody(''); setAnEmoji('📢')
-                      setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true); setAnTarget(section)
-                      setAnnouncementModal(true)
-                    }}
-                  >
-                    <Text style={{ color: atLimit ? 'rgba(255,255,255,0.3)' : secondaryColor, fontSize: 13, fontWeight: '700' }}>+ New</Text>
-                  </TouchableOpacity>
-                </View>
-                {sectionAnnouncements.length === 0 ? (
-                  <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', borderStyle: 'dashed' }}>
-                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No {section} announcements yet</Text>
-                  </View>
-                ) : sectionAnnouncements.map(an => (
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]} onPress={() => {
+            setEditingAnnouncement(null); setAnTitle(''); setAnBody(''); setAnEmoji('📢')
+            setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true)
+            setAnnouncementModal(true)
+          }}>
+            <Text style={[styles.addButtonText, { color: secondaryColor }]}>+ New Announcement</Text>
+          </TouchableOpacity>
+          {announcements.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📢</Text>
+              <Text style={styles.emptyText}>No announcements yet</Text>
+              <Text style={styles.emptySub}>Create one to show patients when they log in</Text>
+            </View>
+          ) : announcements.map(an => (
             <View key={an.id} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: an.active ? primaryColor : '#aaa' }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={{ flex: 1 }}>
@@ -1454,7 +1512,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
                 <TouchableOpacity style={[styles.actionBtn, { borderColor: primaryColor }]} onPress={() => {
                   setEditingAnnouncement(an); setAnTitle(an.title); setAnBody(an.body || ''); setAnEmoji(an.emoji || '📢')
-                  setAnCtaLabel(an.cta_label || ''); setAnCtaUrl(an.cta_url || ''); setAnBgStyle(an.bg_style || 'solid'); setAnBgColor(an.bg_color || ''); setAnActive(an.active); setAnTarget(an.target || 'patient')
+                  setAnCtaLabel(an.cta_label || ''); setAnCtaUrl(an.cta_url || ''); setAnBgStyle(an.bg_style || 'solid'); setAnBgColor(an.bg_color || ''); setAnActive(an.active)
                   setAnnouncementModal(true)
                 }}>
                   <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>Edit</Text>
@@ -1473,9 +1531,6 @@ const [showImportModal, setShowImportModal] = useState(false)
               </View>
             </View>
           ))}
-              </View>
-            )
-          })}
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -2106,6 +2161,118 @@ const [showImportModal, setShowImportModal] = useState(false)
         </View>
       </Modal>
 
+      {/* ── SCHEDULE ── */}
+      {activeTab === 'schedule' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={scheduleLoading} onRefresh={fetchSchedule} tintColor={primaryColor} />}>
+          <Text style={styles.sectionTitle}>Business Hours</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 16 }}>Set when patients can schedule appointments. Slots are 30 minutes each.</Text>
+          {scheduleLoading ? (
+            <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
+          ) : scheduleHours.map((day, i) => (
+            <View key={i} style={[styles.card, { borderLeftWidth: 3, borderLeftColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.15)' }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: day.is_open ? 14 : 0 }}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{DAY_NAMES[i]}</Text>
+                <TouchableOpacity
+                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: day.is_open ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                  onPress={() => {
+                    const updated = [...scheduleHours]
+                    updated[i] = { ...updated[i], is_open: !updated[i].is_open }
+                    setScheduleHours(updated)
+                  }}
+                >
+                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: day.is_open ? 'flex-end' : 'flex-start' }} />
+                </TouchableOpacity>
+              </View>
+              {day.is_open && (
+                <View style={{ gap: 10 }}>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.fieldLabel}>Open</Text>
+                      <TextInput
+                        style={[styles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]}
+                        value={day.open_time}
+                        onChangeText={(t) => {
+                          const updated = [...scheduleHours]
+                          updated[i] = { ...updated[i], open_time: t }
+                          setScheduleHours(updated)
+                        }}
+                        placeholder="09:00"
+                        placeholderTextColor="#666"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.fieldLabel}>Close</Text>
+                      <TextInput
+                        style={[styles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]}
+                        value={day.close_time}
+                        onChangeText={(t) => {
+                          const updated = [...scheduleHours]
+                          updated[i] = { ...updated[i], close_time: t }
+                          setScheduleHours(updated)
+                        }}
+                        placeholder="18:00"
+                        placeholderTextColor="#666"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.fieldLabel}>Max/Slot</Text>
+                      <TextInput
+                        style={[styles.input, { marginBottom: 0, fontSize: 14, padding: 12 }]}
+                        value={String(day.max_per_slot)}
+                        onChangeText={(t) => {
+                          const updated = [...scheduleHours]
+                          updated[i] = { ...updated[i], max_per_slot: parseInt(t) || 1 }
+                          setScheduleHours(updated)
+                        }}
+                        keyboardType="numeric"
+                        placeholder="3"
+                        placeholderTextColor="#666"
+                      />
+                    </View>
+                  </View>
+                </View>
+              )}
+            </View>
+          ))}
+          <TouchableOpacity
+            style={[{ borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: primaryColor, marginBottom: 32 }, scheduleSaving && { opacity: 0.6 }]}
+            onPress={saveSchedule}
+            disabled={scheduleSaving}
+          >
+            {scheduleSaving ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Hours</Text>}
+          </TouchableOpacity>
+
+          <Text style={styles.sectionTitle}>Blackout Dates</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Block specific dates from scheduling (holidays, closures, etc).</Text>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0, fontSize: 14, padding: 12 }]}
+              value={blackoutDate}
+              onChangeText={setBlackoutDate}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#666"
+            />
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 12, paddingHorizontal: 20, justifyContent: 'center' }}
+              onPress={addBlackout}
+            >
+              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>Add</Text>
+            </TouchableOpacity>
+          </View>
+          {blackouts.length === 0 ? (
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, marginBottom: 16 }}>No blackout dates set</Text>
+          ) : blackouts.map((b, i) => (
+            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 14 }}>🚫 {b.blackout_date} {b.reason ? `— ${b.reason}` : ''}</Text>
+              <TouchableOpacity onPress={() => removeBlackout(b.blackout_date)}>
+                <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
       {/* ── AUDIT LOG ── */}
       {activeTab === 'audit' && (
         <AuditLogTab token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} />
@@ -2201,12 +2368,13 @@ const [showImportModal, setShowImportModal] = useState(false)
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
             <Text style={styles.fieldLabel}>Show To</Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-              {[{key:'patient',label:'👤 Patients'},{key:'staff',label:'🧑‍⚕️ Staff'}].map(t => (
+              {[{key:'patient',label:'👤 Patients'},{key:'staff',label:'🧑‍⚕️ Staff'},{key:'all',label:'🌐 Everyone'}].map(t => (
                 <TouchableOpacity key={t.key} style={{ flex:1, borderWidth:1, borderRadius:8, padding:10, alignItems:'center', borderColor: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: anTarget === t.key ? primaryColor+'20' : 'transparent' }} onPress={() => setAnTarget(t.key)}>
                   <Text style={{ color: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.5)', fontSize:12, fontWeight:'600' }}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
+            <Text style={styles.fieldLabel}>Title *</Text>
             <Text style={styles.fieldLabel}>Title *</Text>
             <TextInput style={styles.input} value={anTitle} onChangeText={setAnTitle} placeholder="Spring Special!" placeholderTextColor="#666" />
             <Text style={styles.fieldLabel}>Message</Text>
