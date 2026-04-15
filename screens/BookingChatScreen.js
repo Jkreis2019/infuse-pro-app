@@ -20,7 +20,7 @@ export default function BookingChatScreen({ route, navigation }) {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/chat/booking/${bookingId}`, { headers })
+      const res = await fetch(`${API_URL}/dispatch/chat/${bookingId}/messages`, { headers })
       const data = await res.json()
       if (data.success) setMessages(data.messages)
     } catch (err) {
@@ -48,7 +48,7 @@ export default function BookingChatScreen({ route, navigation }) {
     const text = message.trim()
     setMessage('')
     try {
-      const res = await fetch(`${API_URL}/chat/booking/${bookingId}`, {
+      const res = await fetch(`${API_URL}/dispatch/chat/${bookingId}/messages`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text })
