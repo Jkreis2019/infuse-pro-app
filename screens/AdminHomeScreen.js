@@ -2228,6 +2228,19 @@ const [showImportModal, setShowImportModal] = useState(false)
                         placeholderTextColor="#666"
                       />
                     </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.fieldLabel}>Duration</Text>
+                      <TouchableOpacity
+                        style={[styles.input, { marginBottom: 0, fontSize: 14, padding: 12, justifyContent: 'center' }]}
+                        onPress={() => {
+                          const updated = [...scheduleHours]
+                          updated[i] = { ...updated[i], slot_duration: day.slot_duration === 30 ? 60 : 30 }
+                          setScheduleHours(updated)
+                        }}
+                      >
+                        <Text style={{ color: primaryColor, fontWeight: '700', fontSize: 14 }}>{day.slot_duration === 60 ? '60 min' : '30 min'}</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               )}
