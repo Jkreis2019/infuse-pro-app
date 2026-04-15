@@ -343,7 +343,7 @@ const fetchChatSession = async () => {
         </View>
       )}
 
-{(chatSession?.status === 'open' || !chatSession) && (
+{(booking.status === 'confirmed' || booking.status === 'pending' || booking.status === 'assigned') && (
         <TouchableOpacity
           style={[styles.messageButton, { backgroundColor: secondaryColor, borderWidth: 1, borderColor: primaryColor, marginBottom: 8 }]}
           onPress={() => navigation.navigate('PatientDispatchChat', {
@@ -360,7 +360,7 @@ const fetchChatSession = async () => {
       )}
 
       {/* Actions */}
-      {canMessage && (
+      {booking.status === 'en_route' && (
         <TouchableOpacity
           style={[styles.messageButton, { backgroundColor: primaryColor }]}
           onPress={() => navigation.navigate('BookingChat', {
