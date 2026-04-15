@@ -343,7 +343,7 @@ const fetchChatSession = async () => {
         </View>
       )}
 
-{chatSession?.status === 'open' && (
+{(chatSession?.status === 'open' || !chatSession) && (
         <TouchableOpacity
           style={[styles.messageButton, { backgroundColor: secondaryColor, borderWidth: 1, borderColor: primaryColor, marginBottom: 8 }]}
           onPress={() => navigation.navigate('PatientDispatchChat', {

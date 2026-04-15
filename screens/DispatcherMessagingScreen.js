@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
-  ActivityIndicator, Image, Platform
+  ActivityIndicator, Image, Platform, KeyboardAvoidingView
 } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -297,7 +297,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   const isWeb = Platform.OS === 'web'
 
   return (
-    <View style={[styles.container, { flexDirection: isWeb ? 'row' : 'column' }]}>
+    <KeyboardAvoidingView style={[styles.container, { flexDirection: isWeb ? 'row' : 'column' }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
       {/* LEFT PANE */}
       {(!showChat || isWeb) && (
@@ -440,12 +440,12 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
               const isOpen = item.status === 'open'
               return (
                 <TouchableOpacity
-                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }, !isOpen && { opacity: 0.5 }]}
+                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }, !isOpen && !soloMode && { opacity: 0.5 }]}
                   onPress={() => selectPatient(item)}
                 >
                   <View style={styles.contactAvatar}>
-                    <View style={[styles.patientInitial, { borderColor: isOpen ? primaryColor : '#aaa' }]}>
-                      <Text style={[styles.avatarText, { color: isOpen ? primaryColor : '#aaa' }]}>
+                    <View style={[styles.patientInitial, { borderColor: (isOpen || soloMode) ? primaryColor : '#aaa' }]}>
+  <Text style={[styles.avatarText, { color: (isOpen || soloMode) ? primaryColor : '#aaa' }]}>
                         {item.patient_name?.[0]}
                       </Text>
                     </View>
@@ -560,7 +560,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                 </TouchableOpacity>
               </View>
             )}
-            {selectedPatient?.status !== 'open' && selectedPatient && (
+            {selectedPatient?.status !== 'open' && selectedPatient && !soloMode && (
               <View style={[styles.inputBar, { backgroundColor: secondaryColor, justifyContent: 'center' }]}>
                 <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Chat is closed — tap OPEN to start messaging</Text>
               </View>
@@ -569,7 +569,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
         )}
       </View>
       )}
-    </View>
+    </KeyboardAvoidingView>
   )
 }
 
