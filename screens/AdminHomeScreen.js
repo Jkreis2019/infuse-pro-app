@@ -769,7 +769,7 @@ const [showImportModal, setShowImportModal] = useState(false)
     return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
-  const TABS = ['dashboard', 'patients', 'reports', 'staff', 'services', 'regions', 'documents', 'branding', 'announcements', 'referrals', 'loyalty', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
+  const TABS = ['dashboard', 'patients', 'messages', 'reports', 'staff', 'regions', 'services', 'announcements', 'referrals', 'loyalty', 'documents', 'branding', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
 
   return (
     <View style={styles.container}>
@@ -800,7 +800,13 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
-              onPress={() => setActiveTab(tab)}
+              onPress={() => {
+                if (tab === 'messages') {
+                  navigation.navigate('DispatcherMessaging', { token, user, company })
+                } else {
+                  setActiveTab(tab)
+                }
+              }}
             >
               <Text style={{ color: activeTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' }}>{tab}</Text>
             </TouchableOpacity>

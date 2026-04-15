@@ -649,6 +649,7 @@ const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   const [patientPerks, setPatientPerks] = useState(null)
   const [redeemingPerk, setRedeemingPerk] = useState(false)
   const [techProfile, setTechProfile] = useState(null)
+  const [staffAnnouncements, setStaffAnnouncements] = useState([])
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [techChangePasswordModal, setTechChangePasswordModal] = useState(false)
   const [techCurrentPassword, setTechCurrentPassword] = useState('')
@@ -747,6 +748,15 @@ const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   }, [token])
 
   useEffect(() => { if (activeTab === 'docs') fetchTechDocs() }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      fetch(`${API_URL}/staff/announcements`, { headers })
+        .then(r => r.json())
+        .then(d => { if (d.announcements) setStaffAnnouncements(d.announcements) })
+        .catch(() => {})
+    }
+  }, [activeTab])
 
   const fetchCall = useCallback(async () => {
     try {
@@ -1216,6 +1226,29 @@ if (data.call?.call_id) {
               <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: techProfile?.inService ? 'flex-end' : 'flex-start' }} />
             </View>
           </TouchableOpacity>
+
+          {staffAnnouncements.length > 0 && (
+            <View style={{ width: '100%', marginBottom: 24 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 }}>📢 ANNOUNCEMENTS</Text>
+              {staffAnnouncements.map(an => (
+                <View key={an.id} style={{ backgroundColor: an.bg_color ? an.bg_color : 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10, borderLeftWidth: 4, borderLeftColor: primaryColor, borderWidth: 1, borderColor: primaryColor + '30' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <Text style={{ fontSize: 20 }}>{an.emoji || '📢'}</Text>
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 }}>{an.title}</Text>
+                  </View>
+                  {an.body ? <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20 }}>{an.body}</Text> : null}
+                  {an.cta_label && an.cta_url ? (
+                    <TouchableOpacity
+                      style={{ backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 10 }}
+                      onPress={() => { const { Linking } = require('react-native'); Linking.openURL(an.cta_url) }}
+                    >
+                      <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>{an.cta_label} →</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
+              ))}
+            </View>
+          )}
 
           <TouchableOpacity onPress={pickAndUploadPhoto} disabled={uploadingPhoto} style={{ marginBottom: 16 }}>
             {techProfile?.profilePhoto ? (
