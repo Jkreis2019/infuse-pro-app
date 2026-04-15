@@ -1413,20 +1413,33 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* ── ANNOUNCEMENTS ── */}
       {activeTab === 'announcements' && (
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
-          <TouchableOpacity style={[styles.addButton, { backgroundColor: primaryColor }]} onPress={() => {
-            setEditingAnnouncement(null); setAnTitle(''); setAnBody(''); setAnEmoji('📢')
-            setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true); setAnTarget('patient')
-            setAnnouncementModal(true)
-          }}>
-            <Text style={[styles.addButtonText, { color: secondaryColor }]}>+ New Announcement</Text>
-          </TouchableOpacity>
-          {announcements.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📢</Text>
-              <Text style={styles.emptyText}>No announcements yet</Text>
-              <Text style={styles.emptySub}>Create one to show patients when they log in</Text>
-            </View>
-          ) : announcements.map(an => (
+          {['patient', 'staff'].map(section => {
+            const sectionAnnouncements = announcements.filter(a => a.target === section)
+            const atLimit = sectionAnnouncements.length >= 5
+            return (
+              <View key={section} style={{ marginBottom: 24 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <View>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{section === 'patient' ? '👤 Patient Announcements' : '🧑‍⚕️ Staff Announcements'}</Text>
+                    <Text style={{ color: atLimit ? '#f09090' : 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{sectionAnnouncements.length}/5 used</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={{ backgroundColor: atLimit ? 'rgba(255,255,255,0.06)' : primaryColor, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, opacity: atLimit ? 0.5 : 1 }}
+                    disabled={atLimit}
+                    onPress={() => {
+                      setEditingAnnouncement(null); setAnTitle(''); setAnBody(''); setAnEmoji('📢')
+                      setAnCtaLabel(''); setAnCtaUrl(''); setAnBgStyle('solid'); setAnBgColor(''); setAnActive(true); setAnTarget(section)
+                      setAnnouncementModal(true)
+                    }}
+                  >
+                    <Text style={{ color: atLimit ? 'rgba(255,255,255,0.3)' : secondaryColor, fontSize: 13, fontWeight: '700' }}>+ New</Text>
+                  </TouchableOpacity>
+                </View>
+                {sectionAnnouncements.length === 0 ? (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', borderStyle: 'dashed' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No {section} announcements yet</Text>
+                  </View>
+                ) : sectionAnnouncements.map(an => (
             <View key={an.id} style={[styles.card, { borderLeftWidth: 4, borderLeftColor: an.active ? primaryColor : '#aaa' }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View style={{ flex: 1 }}>
@@ -1460,6 +1473,9 @@ const [showImportModal, setShowImportModal] = useState(false)
               </View>
             </View>
           ))}
+              </View>
+            )
+          })}
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -2185,7 +2201,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
             <Text style={styles.fieldLabel}>Show To</Text>
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-              {[{key:'patient',label:'👤 Patients'},{key:'staff',label:'🧑‍⚕️ Staff'},{key:'all',label:'🌐 Everyone'}].map(t => (
+              {[{key:'patient',label:'👤 Patients'},{key:'staff',label:'🧑‍⚕️ Staff'}].map(t => (
                 <TouchableOpacity key={t.key} style={{ flex:1, borderWidth:1, borderRadius:8, padding:10, alignItems:'center', borderColor: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: anTarget === t.key ? primaryColor+'20' : 'transparent' }} onPress={() => setAnTarget(t.key)}>
                   <Text style={{ color: anTarget === t.key ? primaryColor : 'rgba(255,255,255,0.5)', fontSize:12, fontWeight:'600' }}>{t.label}</Text>
                 </TouchableOpacity>
