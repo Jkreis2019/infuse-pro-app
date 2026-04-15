@@ -213,7 +213,18 @@ const fetchChatSession = async () => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-
+{booking.status === 'cancelled' && (
+        <View style={{ backgroundColor: booking.cancellation_reason === 'Booking merged' ? 'rgba(33,150,243,0.1)' : 'rgba(240,144,144,0.1)', borderWidth: 1, borderColor: booking.cancellation_reason === 'Booking merged' ? '#2196F3' : '#f09090', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <Text style={{ color: booking.cancellation_reason === 'Booking merged' ? '#2196F3' : '#f09090', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
+            {booking.cancellation_reason === 'Booking merged' ? '🔀 Booking Merged' : '❌ Appointment Cancelled'}
+          </Text>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
+            {booking.cancellation_reason === 'Booking merged'
+              ? 'Your booking has been merged with another appointment. Your tech is still on the way!'
+              : 'This appointment has been cancelled.'}
+          </Text>
+        </View>
+      )}
       {isPast && (
         <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, marginBottom: 16 }}>
           <Text style={{ color: '#f09090', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>⚠️ Appointment Not Completed</Text>
