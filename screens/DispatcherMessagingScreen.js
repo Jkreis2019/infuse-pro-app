@@ -456,16 +456,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                     <Text style={styles.contactSub}>{item.service}</Text>
                     {item.last_message && <Text style={styles.lastMessage} numberOfLines={1}>{item.last_message}</Text>}
                   </View>
-                  {!soloMode && (
-                    <TouchableOpacity
-                      style={[styles.chatToggle, { borderColor: isOpen ? '#4CAF50' : '#aaa' }]}
-                      onPress={() => togglePatientChat(item)}
-                    >
-                      <Text style={{ color: isOpen ? '#4CAF50' : '#aaa', fontSize: 10, fontWeight: '700' }}>
-                        {isOpen ? 'OPEN' : 'CLOSED'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                 </TouchableOpacity>
               )
             }
@@ -506,16 +496,6 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                   {selectedRegion ? 'Region Channel' : selectedContact ? `${selectedContact.role?.toUpperCase()} · ${selectedContact.region_name || ''}` : selectedPatient?.service}
                 </Text>
               </View>
-              {selectedPatient && !soloMode && (
-                <TouchableOpacity
-                  style={[styles.chatToggle, { borderColor: selectedPatient.status === 'open' ? '#4CAF50' : '#aaa' }]}
-                  onPress={() => togglePatientChat(selectedPatient)}
-                >
-                  <Text style={{ color: selectedPatient.status === 'open' ? '#4CAF50' : '#aaa', fontSize: 11, fontWeight: '700' }}>
-                    {selectedPatient.status === 'open' ? '🟢 CHAT OPEN' : '⚫ CHAT CLOSED'}
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
 
             {/* Messages */}
