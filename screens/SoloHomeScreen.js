@@ -164,13 +164,17 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
   const isLocked = savedStatus === 'submitted' || savedStatus === 'amended'
 
   useEffect(() => {
+  console.log('visible:', visible, 'call_id:', call?.call_id, 'patientName:', patientName)
   if (visible && call?.call_id) {
       fetch(`${API_URL}/charts/call/${call.call_id}?patientName=${encodeURIComponent(patientName)}`, { headers })
   .then(r => r.json())
   .then(data => {
+    console.log('Chart fetch response:', JSON.stringify(data))
     if (data.chart) {
             const c = data.chart
             setChartId(c.id)
+console.log('Set chartId to:', c.id)
+
             setChiefComplaint(c.chief_complaint || '')
             setMedicalHistoryChanges(c.medical_history_changes || '')
             setAllergiesDetail(c.allergies_detail || '')
@@ -198,6 +202,7 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
             setIvTimeDiscontinued(c.iv_time_discontinued || '')
             setTechNotes(c.tech_notes || '')
 setSavedStatus(c.status || '')
+console.log('Chart status from DB:', c.status)
           } else {
             // No chart yet — reset all fields for new chart
             setChartId(null)
@@ -334,6 +339,8 @@ setSavedStatus(c.status || '')
         res = await fetch(`${API_URL}/charts`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
       }
       const responseData = await res.json()
+console.log('Save chart response:', JSON.stringify(responseData))
+console.log('Status sent:', submit ? 'submitted' : 'open')
       if (responseData.success) {
         const savedChartId = chartId || responseData.chart?.id
         if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
@@ -861,7 +868,6 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
           { key: 'queue', label: `Queue${queue.length > 0 ? ` (${queue.length})` : ''}` },
           { key: 'scheduled', label: `Scheduled${scheduled.length > 0 ? ` (${scheduled.length})` : ''}` },
           { key: 'messages', label: 'Messages' },
-          { key: 'log', label: `Log${needsAttention.length > 0 ? ` · ${needsAttention.length}` : ''}` },
         ].map(t => (
           <TouchableOpacity
             key={t.key}
@@ -976,61 +982,6 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
               </View>
             ))
           )}
-          <View style={{ height: 40 }} />
-        </ScrollView>
-      )}
-
-      {/* Log */}
-      {dispatchTab === 'log' && (
-        <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={primaryColor} />}>
-          {needsAttention.length > 0 && (
-            <View style={{ marginBottom: 12 }}>
-              <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }}>Needs Attention ({needsAttention.length})</Text>
-              {needsAttention.map(b => (
-                <View key={b.id} style={[sStyles.card, { borderLeftWidth: 3, borderLeftColor: '#e53e3e' }]}>
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>{b.service}</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 8 }}>{b.patient_name}</Text>
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 8, padding: 10, alignItems: 'center' }} onPress={() => { setNbPatientName(b.patient_name); setNbService(b.service); setNbAddress(b.address || ''); setNewBookingModal(true) }}>
-                      <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 13 }}>Reschedule</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center' }} onPress={() => markNoShow(b.id)}>
-                      <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>No Show</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center' }} onPress={() => { setCancelBookingId(b.id); setCancelReason(''); setCancelModal(true) }}>
-                      <Text style={{ color: '#f09090', fontWeight: '700', fontSize: 13 }}>Cancel</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 12 }} />
-            </View>
-          )}
-          {log.length === 0 && needsAttention.length === 0 ? (
-            <View style={{ alignItems: 'center', paddingTop: 60 }}>
-              <Text style={{ fontSize: 48, marginBottom: 16 }}>📋</Text>
-              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600' }}>No calls logged today</Text>
-            </View>
-          ) : log.map((entry, i) => (
-            <View key={`${entry.id}-${i}`} style={sStyles.card}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 }}>{entry.service}</Text>
-                <View style={{ borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, borderColor: entry.status === 'completed' ? '#4CAF50' : '#f09090' }}>
-                  <Text style={{ color: entry.status === 'completed' ? '#4CAF50' : '#f09090', fontSize: 10, fontWeight: '700' }}>{entry.status.toUpperCase()}</Text>
-                </View>
-              </View>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {entry.patient_name}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>📍 {entry.address}</Text>
-              {entry.seconds_on_scene && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 2 }}>⏱ {formatTimer(entry.seconds_on_scene)} on scene</Text>}
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🕐 {new Date(entry.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-              {entry.cancellation_disposition && (
-                <View style={{ backgroundColor: 'rgba(240,144,144,0.08)', borderRadius: 8, padding: 8, marginTop: 6, borderLeftWidth: 3, borderLeftColor: '#f09090' }}>
-                  <Text style={{ color: '#f09090', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>CANCEL REASON</Text>
-                  <Text style={{ color: '#fff', fontSize: 12 }}>{entry.cancellation_disposition}{entry.cancellation_reason ? ` — ${entry.cancellation_reason}` : ''}</Text>
-                </View>
-              )}
-            </View>
-          ))}
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -1297,7 +1248,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
   return (
     <View style={{ flex: 1 }}>
       {/* Sub-tabs */}
-      <ChartModal key={showChart ? (chartPatient?.name || 'chart') : 'closed'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
+      <ChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
       <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
         {[
           { key: 'call', label: '📞 My Call' },
