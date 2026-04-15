@@ -164,17 +164,13 @@ function ChartModal({ visible, onClose, call, token, company, patientName, patie
   const isLocked = savedStatus === 'submitted' || savedStatus === 'amended'
 
   useEffect(() => {
-  console.log('visible:', visible, 'call_id:', call?.call_id, 'patientName:', patientName)
   if (visible && call?.call_id) {
       fetch(`${API_URL}/charts/call/${call.call_id}?patientName=${encodeURIComponent(patientName)}`, { headers })
   .then(r => r.json())
   .then(data => {
-    console.log('Chart fetch response:', JSON.stringify(data))
     if (data.chart) {
             const c = data.chart
             setChartId(c.id)
-console.log('Set chartId to:', c.id)
-
             setChiefComplaint(c.chief_complaint || '')
             setMedicalHistoryChanges(c.medical_history_changes || '')
             setAllergiesDetail(c.allergies_detail || '')
@@ -202,7 +198,6 @@ console.log('Set chartId to:', c.id)
             setIvTimeDiscontinued(c.iv_time_discontinued || '')
             setTechNotes(c.tech_notes || '')
 setSavedStatus(c.status || '')
-console.log('Chart status from DB:', c.status)
           } else {
             // No chart yet — reset all fields for new chart
             setChartId(null)
@@ -339,8 +334,6 @@ console.log('Chart status from DB:', c.status)
         res = await fetch(`${API_URL}/charts`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
       }
       const responseData = await res.json()
-console.log('Save chart response:', JSON.stringify(responseData))
-console.log('Status sent:', submit ? 'submitted' : 'open')
       if (responseData.success) {
         const savedChartId = chartId || responseData.chart?.id
         if (!chartId && responseData.chart?.id) setChartId(responseData.chart.id)
