@@ -77,6 +77,7 @@ export default function MapScreen({ route, navigation }) {
 
   const handleCitySearch = async (text) => {
     setCitySearch(text)
+    setSelected(null)
     if (text.length < 2) {
       setFilteredCompanies(companies)
       return
