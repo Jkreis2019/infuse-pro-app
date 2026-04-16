@@ -176,7 +176,7 @@ export default function MapScreen({ route, navigation }) {
 
           {selected ? (
             <View style={[styles.companyCard, { borderColor: selected.branding.primaryColor }]}>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setSelected(null)}>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setSelected(null)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
                 <Text style={styles.closeText}>✕</Text>
               </TouchableOpacity>
 
