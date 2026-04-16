@@ -648,6 +648,9 @@ const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
   const [patientPerks, setPatientPerks] = useState(null)
   const [patientMembership, setPatientMembership] = useState(null)
+  const [redeemMembershipModal, setRedeemMembershipModal] = useState(false)
+  const [redeemQty, setRedeemQty] = useState(1)
+  const [redeemingMembership, setRedeemingMembership] = useState(false)
   const [redeemingPerk, setRedeemingPerk] = useState(false)
   const [techProfile, setTechProfile] = useState(null)
   const [staffAnnouncements, setStaffAnnouncements] = useState([])
@@ -1056,11 +1059,75 @@ if (data.call?.call_id) {
                 </View>
               </Modal>
 
+              {/* Redeem Membership Modal */}
+              <Modal visible={redeemMembershipModal} transparent animationType="fade">
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+                  <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
+                    <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
+                      <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REDEEM VISIT</Text>
+                      <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>{patientMembership?.plan_name}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{patientMembership ? patientMembership.max_redemptions_per_cycle - patientMembership.redemptions_this_cycle : 0} visits remaining</Text>
+                    </View>
+                    <View style={{ padding: 20 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>NUMBER OF VISITS TO REDEEM</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+                        {patientMembership && Array.from({ length: Math.min(patientMembership.max_redemptions_per_cycle - patientMembership.redemptions_this_cycle, 4) }, (_, i) => i + 1).map(n => (
+                          <TouchableOpacity key={n} style={{ flex: 1, minWidth: 60, borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center', borderColor: redeemQty === n ? '#C9A84C' : 'rgba(255,255,255,0.15)', backgroundColor: redeemQty === n ? 'rgba(201,168,76,0.2)' : 'transparent' }} onPress={() => setRedeemQty(n)}>
+                            <Text style={{ color: redeemQty === n ? '#C9A84C' : 'rgba(255,255,255,0.4)', fontSize: 18, fontWeight: '700' }}>{n}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setRedeemMembershipModal(false)}>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{ flex: 2, backgroundColor: '#C9A84C', borderRadius: 12, padding: 14, alignItems: 'center', opacity: redeemingMembership ? 0.6 : 1 }}
+                          disabled={redeemingMembership}
+                          onPress={async () => {
+                            setRedeemingMembership(true)
+                            try {
+                              for (let i = 0; i < redeemQty; i++) {
+                                await fetch(`${API_URL}/memberships/${patientMembership.id}/redeem`, {
+                                  method: 'POST',
+                                  headers: { ...headers, 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ bookingId: call?.id })
+                                })
+                              }
+                              setPatientMembership(prev => ({ ...prev, redemptions_this_cycle: prev.redemptions_this_cycle + redeemQty }))
+                              setRedeemMembershipModal(false)
+                              Alert.alert('Redeemed', `${redeemQty} visit${redeemQty > 1 ? 's' : ''} redeemed successfully.`)
+                            } catch (e) { Alert.alert('Error', 'Failed to redeem') } finally { setRedeemingMembership(false) }
+                          }}
+                        >
+                          {redeemingMembership ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Redeem {redeemQty} Visit{redeemQty > 1 ? 's' : ''}</Text>}
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
+
               {call.tech_status === 'on_scene' && patientMembership && (
                 <View style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
                   <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🏅 ACTIVE MEMBER</Text>
                   <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{patientMembership.plan_name}</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{patientMembership.redemptions_this_cycle} of {patientMembership.max_redemptions_per_cycle === 999 ? 'unlimited' : patientMembership.max_redemptions_per_cycle} visits used this month</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4, marginBottom: 12 }}>
+                    {patientMembership.redemptions_this_cycle} of {patientMembership.max_redemptions_per_cycle === 999 ? 'unlimited' : patientMembership.max_redemptions_per_cycle} visits used this month
+                    {patientMembership.max_redemptions_per_cycle !== 999 && ` · ${patientMembership.max_redemptions_per_cycle - patientMembership.redemptions_this_cycle} remaining`}
+                  </Text>
+                  {patientMembership.max_redemptions_per_cycle === 999 || patientMembership.redemptions_this_cycle < patientMembership.max_redemptions_per_cycle ? (
+                    <TouchableOpacity
+                      style={{ backgroundColor: 'rgba(201,168,76,0.2)', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' }}
+                      onPress={() => { setRedeemQty(1); setRedeemMembershipModal(true) }}
+                    >
+                      <Text style={{ color: '#C9A84C', fontWeight: '700', fontSize: 14 }}>Redeem Visit</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 10, padding: 12, alignItems: 'center' }}>
+                      <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>No visits remaining this month</Text>
+                    </View>
+                  )}
                 </View>
               )}
 
