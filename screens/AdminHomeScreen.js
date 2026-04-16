@@ -249,6 +249,9 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [psEditInsuranceGroupNumber, setPsEditInsuranceGroupNumber] = useState('')
   const [psEditInsurancePhone, setPsEditInsurancePhone] = useState('')
   const [psSavingProfile, setPsSavingProfile] = useState(false)
+  const [cancelFeeModal, setCancelFeeModal] = useState(false)
+  const [cancelFeeAmount, setCancelFeeAmount] = useState('')
+  const [chargingFee, setChargingFee] = useState(false)
   const searchPsPatients = async (q) => {
     setPsQuery(q)
     if (q.length < 2) { setPsResults([]); return }
@@ -261,6 +264,31 @@ const [showImportModal, setShowImportModal] = useState(false)
       console.error('Patient search error:', err)
     } finally {
       setPsSearching(false)
+    }
+  }
+
+  const chargeCancelFee = async () => {
+    const amount = parseFloat(cancelFeeAmount)
+    if (!amount || amount <= 0) return Alert.alert('Invalid', 'Please enter a valid amount')
+    setChargingFee(true)
+    try {
+      const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, description: 'Cancel fee' })
+      })
+      const data = await res.json()
+      if (data.success) {
+        Alert.alert('Charged', `$${amount.toFixed(2)} cancel fee charged successfully.`)
+        setCancelFeeModal(false)
+        setCancelFeeAmount('')
+      } else {
+        Alert.alert('Error', data.error || 'Charge failed')
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setChargingFee(false)
     }
   }
 
@@ -1746,6 +1774,33 @@ const [showImportModal, setShowImportModal] = useState(false)
       )}
 
       {/* ── PATIENT PROFILE MODAL ── */}
+      {/* Cancel Fee Modal */}
+      <Modal visible={cancelFeeModal} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#162260', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>Amount to charge ($)</Text>
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginBottom: 20 }}
+              value={cancelFeeAmount}
+              onChangeText={setCancelFeeAmount}
+              keyboardType="decimal-pad"
+              placeholder="0.00"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+            />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, alignItems: 'center' }} onPress={() => setCancelFeeModal(false)}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ flex: 2, backgroundColor: '#f09090', borderRadius: 10, padding: 14, alignItems: 'center', opacity: chargingFee ? 0.6 : 1 }} onPress={chargeCancelFee} disabled={chargingFee}>
+                {chargingFee ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Charge ${cancelFeeAmount || '0.00'}</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
         <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
 
@@ -2066,29 +2121,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                         </View>
                         <TouchableOpacity
                           style={{ backgroundColor: 'rgba(240,144,144,0.15)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f09090' }}
-                          onPress={() => {
-                            Alert.prompt(
-                              'Charge Cancel Fee',
-                              'Enter amount to charge ' + psSelectedPatient?.first_name + ' ' + psSelectedPatient?.last_name + ':',
-                              async (amountStr) => {
-                                const amount = parseFloat(amountStr)
-                                if (!amount || amount <= 0) return Alert.alert('Invalid', 'Please enter a valid amount')
-                                try {
-                                  const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
-                                    method: 'POST',
-                                    headers: { ...headers, 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ amount, description: 'Cancel fee' })
-                                  })
-                                  const data = await res.json()
-                                  if (data.success) Alert.alert('Charged', '$' + amount + ' cancel fee charged successfully.')
-                                  else Alert.alert('Error', data.error || 'Charge failed')
-                                } catch (e) { Alert.alert('Error', 'Network error') }
-                              },
-                              'plain-text',
-                              '',
-                              'numeric'
-                            )
-                          }}
+                          onPress={() => { setCancelFeeAmount(''); setCancelFeeModal(true) }}
                         >
                           <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>Charge Cancel Fee</Text>
                         </TouchableOpacity>
