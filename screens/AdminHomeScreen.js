@@ -753,8 +753,7 @@ const [showImportModal, setShowImportModal] = useState(false)
   }
 
   const saveListingSettings = async () => {
-    setSavingSettings(true)
-    console.log('saveListingSettings called', companyServiceArea, companyPromoText)
+    setSavingListing(true)
     try {
       const res = await fetch(`${API_URL}/admin/company/settings`, {
         method: 'PUT',
@@ -768,7 +767,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       const data = await res.json()
       if (data.success) Alert.alert('Saved', 'Map listing updated.')
       else Alert.alert('Error', data.message || 'Could not save listing')
-    } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingSettings(false) }
+    } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingListing(false) }
   }
 
   const saveSettings = async () => {
