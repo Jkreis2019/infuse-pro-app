@@ -1819,6 +1819,27 @@ const [showImportModal, setShowImportModal] = useState(false)
                   >
                     <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '600' }}>Cancel Membership</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: 'rgba(201,168,76,0.2)' }}
+                    onPress={() => Alert.alert('Adjust Visits', `Current: ${m.redemptions_this_cycle} of ${m.max_redemptions_per_cycle} used. Enter new count:`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      ...Array.from({ length: m.max_redemptions_per_cycle + 1 }, (_, i) => ({
+                        text: String(i),
+                        onPress: async () => {
+                          const res = await fetch(`${API_URL}/memberships/${m.id}/adjust`, {
+                            method: 'PUT',
+                            headers: { ...headers, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ redemptions: i })
+                          })
+                          const data = await res.json()
+                          if (data.success) { Alert.alert('Updated', `Visits set to ${i}`); fetchAll() }
+                          else Alert.alert('Error', data.error)
+                        }
+                      }))
+                    ])}
+                  >
+                    <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>Adjust Visit Count</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </>
