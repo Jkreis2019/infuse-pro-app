@@ -190,7 +190,7 @@ export default function MapScreen({ route, navigation }) {
               </Text>
               <Text style={styles.companyLocation}>{selected.location}</Text>
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
-              {selected.website && selected.platformActive ? (
+              {selected.website && ['growth', 'scale', 'legacy'].includes(selected.listingTier) ? (
                 <TouchableOpacity onPress={() => Linking.openURL(selected.website)}>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>🌐 {selected.website.replace('https://','').replace('http://','')}</Text>
                 </TouchableOpacity>
@@ -209,51 +209,40 @@ export default function MapScreen({ route, navigation }) {
 
 
               <View style={styles.cardFooter}>
-                {/* Left side - call or code */}
-                {selected.platformActive ? (
-                  <View>
-                    <Text style={styles.codeLabel}>Company code</Text>
-                    <Text style={[styles.code, { color: selected.branding.primaryColor }]}>{selected.code}</Text>
-                  </View>
-                ) : (
-                  selected.phone ? (
-                    <TouchableOpacity onPress={() => Linking.openURL(`tel:${selected.phone}`)}>
-                      <Text style={styles.codeLabel}>Call to book</Text>
-                      <Text style={[styles.code, { color: selected.branding.primaryColor, fontSize: 15 }]}>{selected.phone}</Text>
-                    </TouchableOpacity>
-                  ) : <View />
-                )}
+                {/* Left side */}
+                {selected.phone ? (
+                  <TouchableOpacity onPress={() => Linking.openURL(`tel:${selected.phone}`)}>
+                    <Text style={styles.codeLabel}>📞 Call</Text>
+                    <Text style={[styles.code, { color: selected.branding.primaryColor, fontSize: 15 }]}>{selected.phone}</Text>
+                  </TouchableOpacity>
+                ) : <View />}
 
-                {/* Right side - book or join */}
-                {selected.platformActive ? (
-                  bookingMode ? (
-                    <TouchableOpacity
-                      style={[styles.joinButton, { backgroundColor: selected.isOpen === false ? 'rgba(255,255,255,0.15)' : selected.branding.primaryColor }]}
-                      onPress={() => selected.isOpen !== false && handleBook(selected)}
-                      disabled={selected.isOpen === false}
-                    >
-                      <Text style={[styles.joinText, { color: selected.isOpen === false ? 'rgba(255,255,255,0.4)' : selected.branding.secondaryColor }]}>
-                        {selected.isOpen === false ? 'Closed' : 'Book Now →'}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <TouchableOpacity
-                      style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
-                      onPress={() => { setSelected(null); navigation.navigate('Signup') }}
-                    >
-                      <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Join →</Text>
-                    </TouchableOpacity>
-                  )
-                ) : (
-                  selected.phone ? (
-                    <TouchableOpacity
-                      style={[styles.joinButton, { backgroundColor: 'rgba(255,255,255,0.1)' }]}
-                      onPress={() => Linking.openURL(`tel:${selected.phone}`)}
-                    >
-                      <Text style={[styles.joinText, { color: '#fff' }]}>📞 Call</Text>
-                    </TouchableOpacity>
-                  ) : null
-                )}
+                {/* Right side - tiered actions */}
+                {(() => {
+                  const tier = selected.listingTier
+                  const hasBooking = ['starter', 'solo', 'growth', 'scale', 'legacy'].includes(tier) && selected.platformActive
+                  if (hasBooking) {
+                    return bookingMode ? (
+                      <TouchableOpacity
+                        style={[styles.joinButton, { backgroundColor: selected.isOpen === false ? 'rgba(255,255,255,0.15)' : selected.branding.primaryColor }]}
+                        onPress={() => selected.isOpen !== false && handleBook(selected)}
+                        disabled={selected.isOpen === false}
+                      >
+                        <Text style={[styles.joinText, { color: selected.isOpen === false ? 'rgba(255,255,255,0.4)' : selected.branding.secondaryColor }]}>
+                          {selected.isOpen === false ? 'Closed' : 'Book Now →'}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
+                        onPress={() => { setSelected(null); navigation.navigate('Signup') }}
+                      >
+                        <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Join →</Text>
+                      </TouchableOpacity>
+                    )
+                  }
+                  return null
+                })()}
               </View>
             </View>
           ) : (
