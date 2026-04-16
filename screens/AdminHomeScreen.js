@@ -217,6 +217,9 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [enrollSelectedPatient, setEnrollSelectedPatient] = useState(null)
   const [enrollSelectedPlan, setEnrollSelectedPlan] = useState(null)
   const [enrolling, setEnrolling] = useState(false)
+  const [adjustModal, setAdjustModal] = useState(false)
+  const [adjustMembership, setAdjustMembership] = useState(null)
+  const [adjustValue, setAdjustValue] = useState(0)
 
   // Announcements
   const [announcements, setAnnouncements] = useState([])
@@ -1821,22 +1824,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: 'rgba(201,168,76,0.2)' }}
-                    onPress={() => Alert.alert('Adjust Visits', `Current: ${m.redemptions_this_cycle} of ${m.max_redemptions_per_cycle} used. Enter new count:`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      ...Array.from({ length: m.max_redemptions_per_cycle + 1 }, (_, i) => ({
-                        text: String(i),
-                        onPress: async () => {
-                          const res = await fetch(`${API_URL}/memberships/${m.id}/adjust`, {
-                            method: 'PUT',
-                            headers: { ...headers, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ redemptions: i })
-                          })
-                          const data = await res.json()
-                          if (data.success) { Alert.alert('Updated', `Visits set to ${i}`); fetchAll() }
-                          else Alert.alert('Error', data.error)
-                        }
-                      }))
-                    ])}
+                    onPress={() => { setAdjustMembership(m); setAdjustValue(m.redemptions_this_cycle); setAdjustModal(true) }}
                   >
                     <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>Adjust Visit Count</Text>
                   </TouchableOpacity>
@@ -2594,6 +2582,51 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
               </View>
             </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Adjust Visits Modal */}
+      {adjustModal && adjustMembership && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
+              <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>ADJUST VISITS</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{adjustMembership.first_name} {adjustMembership.last_name}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{adjustMembership.plan_name} · Currently {adjustMembership.redemptions_this_cycle} of {adjustMembership.max_redemptions_per_cycle} used</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>SET VISITS USED TO</Text>
+              <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+                {Array.from({ length: adjustMembership.max_redemptions_per_cycle + 1 }, (_, i) => i).map(n => (
+                  <TouchableOpacity key={n} style={{ width: 52, height: 52, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: adjustValue === n ? '#C9A84C' : 'rgba(255,255,255,0.15)', backgroundColor: adjustValue === n ? 'rgba(201,168,76,0.2)' : 'transparent' }} onPress={() => setAdjustValue(n)}>
+                    <Text style={{ color: adjustValue === n ? '#C9A84C' : 'rgba(255,255,255,0.4)', fontSize: 20, fontWeight: '700' }}>{n}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setAdjustModal(false)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 2, backgroundColor: '#C9A84C', borderRadius: 12, padding: 14, alignItems: 'center' }}
+                  onPress={async () => {
+                    try {
+                      const res = await fetch(`${API_URL}/memberships/${adjustMembership.id}/adjust`, {
+                        method: 'PUT',
+                        headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ redemptions: adjustValue })
+                      })
+                      const data = await res.json()
+                      if (data.success) { Alert.alert('Updated', `Visits set to ${adjustValue}`); setAdjustModal(false); fetchAll() }
+                      else Alert.alert('Error', data.error)
+                    } catch (e) { Alert.alert('Error', 'Network error') }
+                  }}
+                >
+                  <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Set to {adjustValue}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       )}
