@@ -566,6 +566,13 @@ const [showImportModal, setShowImportModal] = useState(false)
         setLoyaltyRewardAmount(loyData.program.reward_amount?.toString() || '0')
         setLoyaltyRewardPercent(loyData.program.reward_percent?.toString() || '50')
       }
+    const settingsRes = await fetch(`${API_URL}/admin/company/settings`, { headers })
+      const settingsData = await settingsRes.json()
+      if (settingsData.company) {
+        setCompanyWebsite(settingsData.company.website || '')
+        setCompanyServiceArea(settingsData.company.serviceArea || '')
+        setCompanyPromoText(settingsData.company.promoText || '')
+      }
     } catch (err) {
       console.error('Admin fetch error:', err)
     } finally {
@@ -765,7 +772,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         })
       })
       const data = await res.json()
-      if (data.success) Alert.alert('Saved', 'Map listing updated.')
+      if (data.success) Alert.alert('✅ Saved', 'Service area and promo updated successfully.')
       else Alert.alert('Error', data.message || 'Could not save listing')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingListing(false) }
   }
