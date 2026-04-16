@@ -29,7 +29,7 @@ const [editAddress, setEditAddress] = useState(user.homeAddress || '')
 const [editCity, setEditCity] = useState(user.city || '')
 const [editState, setEditState] = useState(user.state || '')
 const [editZip, setEditZip] = useState(user.zip || '')
-const [editDob, setEditDob] = useState(user.dob ? new Date(user.dob).toLocaleDateString() : '')
+const [editDob, setEditDob] = useState(user.dob ? new Date(user.dob + 'T12:00:00').toLocaleDateString() : '')
 const [savingProfile, setSavingProfile] = useState(false)
 const [changePasswordModal, setChangePasswordModal] = useState(false)
 const [currentPassword, setCurrentPassword] = useState('')
@@ -75,7 +75,7 @@ const [perks, setPerks] = useState({ referralPerks: [], loyaltyRewards: [], loya
         setEditCity(data.user.city || '')
         setEditState(data.user.state || '')
         setEditZip(data.user.zip || '')
-        setEditDob(data.user.dob ? new Date(data.user.dob).toLocaleDateString() : '')
+        setEditDob(data.user.dob ? new Date(data.user.dob + 'T12:00:00').toLocaleDateString() : '')
       }
     } catch (err) {
       console.error('Fetch profile error:', err)
@@ -276,7 +276,7 @@ const saveProfile = async () => {
           <View style={styles.infoCard}>
             <Text style={styles.infoCardLabel}>DATE OF BIRTH</Text>
             <Text style={styles.infoCardValue}>
-              {new Date(profileInfo.dob).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {new Date(profileInfo.dob + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
             </Text>
           </View>
         )}
