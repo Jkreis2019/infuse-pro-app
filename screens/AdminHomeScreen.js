@@ -1698,6 +1698,28 @@ const [showImportModal, setShowImportModal] = useState(false)
               </View>
             ))}
           </View>
+          {/* Stripe Connect */}
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Bank Account</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>Connect your bank account to receive cancel fee payouts and membership payments.</Text>
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }}
+              onPress={async () => {
+                try {
+                  const res = await fetch(`${API_URL}/billing/connect`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' } })
+                  const data = await res.json()
+                  if (data.url) {
+                    if (typeof window !== 'undefined') window.location.href = data.url
+                    else Alert.alert('Connect Bank Account', 'Please open this link:
+' + data.url)
+                  } else Alert.alert('Error', data.error || 'Could not start bank onboarding')
+                } catch (e) { Alert.alert('Error', 'Network error') }
+              }}
+            >
+              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>🏦 Connect Bank Account</Text>
+            </TouchableOpacity>
+          </View>
+
           {billingStatus?.status === 'active' && (
             <TouchableOpacity style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => Alert.alert('Cancel Subscription', 'Your subscription will remain active until the end of the billing period.', [{ text: 'Keep Subscription', style: 'cancel' }, { text: 'Cancel', style: 'destructive', onPress: async () => { try { await fetch(`${API_URL}/billing/cancel`, { method: 'POST', headers }); fetchAll(); Alert.alert('Cancelled', 'Subscription will end at current billing period.') } catch (e) {} } }])}>
               <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '600' }}>Cancel Subscription</Text>
