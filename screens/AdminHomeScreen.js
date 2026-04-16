@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, TextInput,
-  Modal, KeyboardAvoidingView, Platform, Image
+  Modal, KeyboardAvoidingView, Platform, Image, Linking
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 
