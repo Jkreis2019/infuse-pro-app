@@ -2318,7 +2318,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 16, marginBottom: 8 }}>
                     <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 24, fontWeight: '300', marginRight: 8 }}>$</Text>
                     <TextInput
-                      style={{ flex: 1, color: '#fff', fontSize: 32, fontWeight: '700', paddingVertical: 16 }}
+                      style={{ flex: 1, color: '#fff', fontSize: 32, fontWeight: '700', paddingVertical: 16, outlineStyle: 'none' }}
                       value={cancelFeeAmount}
                       onChangeText={setCancelFeeAmount}
                       keyboardType="decimal-pad"
