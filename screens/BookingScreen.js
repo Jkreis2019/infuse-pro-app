@@ -28,6 +28,19 @@ export default function BookingScreen({ route, navigation }) {
   const [slots, setSlots] = useState([])
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [loadingSlots, setLoadingSlots] = useState(false)
+  const [companyIsOpen, setCompanyIsOpen] = useState(null)
+
+  const fetchIsOpen = async () => {
+    try {
+      const res = await fetch(`${API_URL}/map/companies`)
+      const data = await res.json()
+      if (data.success) {
+        const match = data.companies.find(c => c.id === company?.id)
+        if (match) setCompanyIsOpen(match.isOpen)
+            if (match.isOpen === false) setScheduleType('later')
+      }
+    } catch (err) {}
+  }
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -48,6 +61,7 @@ export default function BookingScreen({ route, navigation }) {
       }
     }
     fetchServices()
+    fetchIsOpen()
   }, [token])
 useEffect(() => {
     const fetchProfile = async () => {
@@ -175,10 +189,11 @@ useEffect(() => {
       <Text style={styles.sectionLabel}>When do you need us?</Text>
       <View style={styles.scheduleRow}>
         <TouchableOpacity
-          style={[styles.scheduleBtn, scheduleType === 'now' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
-          onPress={() => setScheduleType('now')}
+          style={[styles.scheduleBtn, scheduleType === 'now' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }, companyIsOpen === false && { opacity: 0.4 }]}
+          onPress={() => companyIsOpen !== false && setScheduleType('now')}
+          disabled={companyIsOpen === false}
         >
-          <Text style={[styles.scheduleBtnText, scheduleType === 'now' && { color: company.secondaryColor }]}>⚡ ASAP</Text>
+          <Text style={[styles.scheduleBtnText, scheduleType === 'now' && { color: company.secondaryColor }]}>⚡ ASAP {companyIsOpen === false ? '(Closed)' : ''}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.scheduleBtn, scheduleType === 'later' && { backgroundColor: company.primaryColor, borderColor: company.primaryColor }]}
