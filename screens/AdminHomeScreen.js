@@ -952,8 +952,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       </View>
 
       {/* Tabs */}
-      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
-        <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
+      <ScrollView horizontal nestedScrollEnabled showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', flexGrow: 0 }} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 4 }}>
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
@@ -969,8 +968,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={{ color: activeTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' }}>{tab}</Text>
             </TouchableOpacity>
           ))}
-        </ScrollView>
-      </View>
+      </ScrollView>
 
       {/* ── DASHBOARD ── */}
       {activeTab === 'dashboard' && (
