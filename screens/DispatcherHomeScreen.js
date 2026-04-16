@@ -247,6 +247,7 @@ const cancelAttentionBooking = async (bookingId) => {
   }
 
  const toggleTechSelection = (techId) => {
+    console.log('toggleTechSelection — isReassign:', isReassign, 'techId:', techId)
     if (isReassign) {
       assignTechs(techId)
       return
@@ -1128,9 +1129,21 @@ const submitSendIntake = async () => {
                     <View style={styles.cardActions}>
                       <TouchableOpacity
                         style={styles.reassignButton}
-                        onPress={() => openAssignModal(booking, false)}
+                        onPress={() => openAssignModal(booking, true)}
                       >
                         <Text style={styles.reassignButtonText}>Reassign</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.reassignButton, { borderColor: '#4CAF50' }]}
+                        onPress={() => {
+                          const bookingForAssign = { ...booking, isActiveCall: true, callId: booking.call_id }
+                          setSelectedBooking(bookingForAssign)
+                          setSelectedTechs([])
+                          setIsReassign(false)
+                          setAssignModal(true)
+                        }}
+                      >
+                        <Text style={[styles.reassignButtonText, { color: '#4CAF50' }]}>+ Tech</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.reassignButton, { borderColor: '#FF9800' }]}
