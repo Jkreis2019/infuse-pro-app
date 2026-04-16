@@ -2449,7 +2449,7 @@ const submitSendIntake = async () => {
                       setApName(p.first_name + ' ' + p.last_name)
                       setApPhone(p.phone || '')
                       setApEmail(p.email || '')
-                      setApDob(p.dob ? new Date(p.dob + 'T12:00:00').toLocaleDateString('en-US') : '')
+                      setApDob(p.dob ? (() => { const d = new Date(p.dob); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString('en-US') })() : '')
                       setApSearchResults([])
                     }}
                   >
@@ -2569,7 +2569,7 @@ const submitSendIntake = async () => {
           <Text style={styles.techStatus}>📞 {detailBooking.patient_phone}</Text>
         )}
         {detailBooking?.patient_dob && (
-          <Text style={styles.techStatus}>🎂 {new Date(detailBooking.patient_dob + 'T12:00:00').toLocaleDateString()}</Text>
+          <Text style={styles.techStatus}>🎂 {(() => { const d = new Date(detailBooking.patient_dob); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString() })()}</Text>
         )}
         {detailBooking?.requested_time && (
           <>

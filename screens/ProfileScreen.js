@@ -276,7 +276,7 @@ const saveProfile = async () => {
           <View style={styles.infoCard}>
             <Text style={styles.infoCardLabel}>DATE OF BIRTH</Text>
             <Text style={styles.infoCardValue}>
-              {new Date(profileInfo.dob + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+              {(() => { const d = new Date(profileInfo.dob); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) })()}
             </Text>
           </View>
         )}

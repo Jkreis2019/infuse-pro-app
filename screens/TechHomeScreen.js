@@ -979,7 +979,7 @@ if (data.call?.call_id) {
                 <Text style={styles.service}>{call.patient_name}</Text>
                 {!call.has_valid_intake && <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginTop: 4 }}>⚠️ No intake on file</Text>}
                 {call.patient_phone && <Text style={styles.value}>📞 {call.patient_phone}</Text>}
-                {call.patient_dob && <Text style={styles.value}>🎂 {new Date(call.patient_dob + 'T12:00:00').toLocaleDateString()}</Text>}
+                {call.patient_dob && <Text style={styles.value}>🎂 {(() => { const d = new Date(call.patient_dob); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString() })()}</Text>}
               </View>
 
               {call.tech_status === 'on_scene' && (

@@ -1991,7 +1991,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 2 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
-                      {psProfileData?.patient?.dob && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>DOB: {new Date(psProfileData.patient.dob + 'T12:00:00').toLocaleDateString()}</Text>}
+                      {psProfileData?.patient?.dob && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>DOB: {(() => { const d = new Date(psProfileData.patient.dob); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()).toLocaleDateString() })()}</Text>}
                     </View>
                   </View>
                   <View style={{ flexDirection: 'row', gap: 10 }}>
