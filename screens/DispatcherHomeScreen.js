@@ -1124,7 +1124,7 @@ const submitSendIntake = async () => {
                     <View style={styles.cardActions}>
                       <TouchableOpacity
                         style={styles.reassignButton}
-                        onPress={() => openAssignModal(booking, true)}
+                        onPress={() => openAssignModal(booking, false)}
                       >
                         <Text style={styles.reassignButtonText}>Reassign</Text>
                       </TouchableOpacity>
