@@ -952,8 +952,8 @@ const [showImportModal, setShowImportModal] = useState(false)
       </View>
 
       {/* Tabs */}
-      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', overflowX: Platform.OS === 'web' ? 'auto' : 'visible' }}>
-        <View style={{ flexDirection: 'row' }}>
+      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row' }}>
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
@@ -969,7 +969,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={{ color: activeTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' }}>{tab}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
 
       {/* ── DASHBOARD ── */}
