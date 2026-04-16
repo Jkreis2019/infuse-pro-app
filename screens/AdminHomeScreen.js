@@ -2409,6 +2409,17 @@ const [showImportModal, setShowImportModal] = useState(false)
               {/* Perks Tab */}
               {psActiveTab === 'perks' && (
                 <>
+                  {/* Membership */}
+                  <PatientMembershipSection
+                    patientId={psSelectedPatient?.id}
+                    companyId={user?.company?.id}
+                    token={token}
+                    primaryColor={primaryColor}
+                    plans={membershipPlans}
+                    onEnroll={() => { setEnrollModal(true); setEnrollSelectedPatient(psSelectedPatient) }}
+                    onRefresh={fetchAll}
+                  />
+
                   {psProfileData?.loyalty?.threshold && (
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                       <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏆 LOYALTY PROGRESS</Text>
@@ -3002,6 +3013,57 @@ const [showImportModal, setShowImportModal] = useState(false)
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
+    </View>
+  )
+}
+
+function PatientMembershipSection({ patientId, companyId, token, primaryColor, plans, onEnroll, onRefresh }) {
+  const [membership, setMembership] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const API_URL = 'https://api.infusepro.app'
+
+  useEffect(() => {
+    if (!patientId || !companyId) return
+    fetch(`${API_URL}/memberships/patient/${patientId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { setMembership(d.membership || null); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [patientId])
+
+  if (loading) return <ActivityIndicator color={primaryColor} style={{ marginBottom: 12 }} />
+
+  return (
+    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏅 MEMBERSHIP</Text>
+      {membership ? (
+        <>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{membership.plan_name}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{membership.redemptions_this_cycle} of {membership.max_redemptions_per_cycle === 999 ? '∞' : membership.max_redemptions_per_cycle} visits used this cycle</Text>
+          {membership.current_cycle_end && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Renews {new Date(membership.current_cycle_end).toLocaleDateString()}</Text>}
+          <TouchableOpacity
+            style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
+            onPress={() => Alert.alert('Cancel Membership', `Cancel this patient's ${membership.plan_name} membership?`, [
+              { text: 'Keep', style: 'cancel' },
+              { text: 'Cancel Membership', style: 'destructive', onPress: async () => {
+                await fetch(`${API_URL}/memberships/${membership.id}/cancel`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+                setMembership(null)
+                onRefresh()
+              }}
+            ])}
+          >
+            <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel Membership</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>No active membership</Text>
+          {plans.length > 0 && (
+            <TouchableOpacity style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: primaryColor + '40' }} onPress={onEnroll}>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>+ Enroll in Membership</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      )}
     </View>
   )
 }
