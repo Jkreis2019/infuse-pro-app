@@ -387,7 +387,7 @@ const saveProfile = async () => {
                 <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{fm.first_name} {fm.last_name}</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{fm.relationship} · Age {age}{isMinor ? ' · Minor' : ''}</Text>
               </View>
-              <TouchableOpacity onPress={async () => { if (window.confirm ? window.confirm(`Remove ${fm.first_name} from family members?`) : true) { await fetch(`${API_URL}/family-members/${fm.id}`, { method: 'DELETE', headers }); fetchLinkedCompanies() } }}>
+              <TouchableOpacity onPress={async () => { try { await fetch(`${API_URL}/family-members/${fm.id}`, { method: 'DELETE', headers }); fetchLinkedCompanies() } catch(e) { console.error(e) } }}>
                 <Text style={{ color: '#f09090', fontSize: 12 }}>Remove</Text>
               </TouchableOpacity>
             </View>
