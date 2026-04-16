@@ -745,6 +745,11 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
       if (stData.stats) setStats(stData.stats)
       if (naData.bookings) setNeedsAttention(naData.bookings)
       if (svcData.services) setCompanyServices(svcData.services)
+      const settingsRes = await fetch(`${API_URL}/admin/company/settings`, { headers })
+      const settingsData = await settingsRes.json()
+      if (settingsData.company) {
+        setCompanyServiceArea(settingsData.company.serviceArea || '')
+      }
     } catch (err) {
       console.error('Solo dispatch fetch error:', err)
     } finally {
@@ -1709,6 +1714,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [requireGFE, setRequireGFE] = useState(false)
   const [companyName, setCompanyName] = useState(company?.name || '')
   const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
+  const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
 
   const fetchServices = useCallback(async () => {
@@ -1859,7 +1865,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       const res = await fetch(`${API_URL}/admin/settings`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone })
+        body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone, serviceArea: companyServiceArea })
       })
       const data = await res.json()
       if (data.success) Alert.alert('✅ Saved', 'Settings updated')
@@ -2350,6 +2356,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           <View style={sStyles.card}>
             <Text style={sStyles.fieldLabel}>Company Name</Text>
             <TextInput style={sStyles.input} value={companyName} onChangeText={setCompanyName} placeholder="Company name" placeholderTextColor="#444" />
+            <Text style={sStyles.fieldLabel}>Service Area</Text>
+            <TextInput style={sStyles.input} value={companyServiceArea} onChangeText={setCompanyServiceArea} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" />
             <Text style={sStyles.fieldLabel}>Timezone</Text>
             {Platform.OS === 'web' ? (
               <select
