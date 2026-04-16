@@ -1152,7 +1152,13 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
             ) : (
               <DateTimePicker value={confirmTime} mode="time" display="spinner" onChange={(e, d) => { if (d) setConfirmTime(d) }} style={{ marginVertical: 16 }} />
             )}
-            <TouchableOpacity style={[sStyles.primaryBtn, { backgroundColor: primaryColor }]} onPress={() => reconfirmTime(reconfirmBookingId, confirmTime)}>
+            <TouchableOpacity style={[sStyles.primaryBtn, { backgroundColor: primaryColor }]} onPress={() => {
+              if (pendingBookingId) {
+                confirmBooking(pendingBookingId, confirmTime)
+              } else {
+                reconfirmTime(reconfirmBookingId, confirmTime)
+              }
+            }}>
               <Text style={[sStyles.primaryBtnText, { color: secondaryColor }]}>Confirm {confirmTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →</Text>
             </TouchableOpacity>
             <TouchableOpacity style={sStyles.cancelBtn} onPress={() => setConfirmTimeModal(false)}>
