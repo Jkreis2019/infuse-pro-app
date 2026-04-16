@@ -2256,9 +2256,31 @@ const submitSendIntake = async () => {
       <Modal visible={confirmTimeModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { maxWidth: 400, alignSelf: 'center', width: '100%' }]}>
-            <Text style={styles.modalTitle}>Confirm Appointment Time</Text>
-            <Text style={styles.modalSub}>Select the confirmed time for this appointment</Text>
-            <View style={{ flexDirection: 'row', gap: 12, marginVertical: 20, justifyContent: 'center' }}>
+            <Text style={styles.modalTitle}>Confirm Appointment Date & Time</Text>
+            <Text style={styles.modalSub}>Select the confirmed date and time for this appointment</Text>
+            <View style={{ marginVertical: 20 }}>
+            {Platform.OS === 'web' ? (
+              <input
+                type="date"
+                value={confirmedTime.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  const d = new Date(confirmedTime)
+                  const [y, mo, day] = e.target.value.split('-')
+                  d.setFullYear(parseInt(y), parseInt(mo) - 1, parseInt(day))
+                  setConfirmedTime(new Date(d))
+                }}
+                style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 16, color: '#fff', width: '100%', marginBottom: 12, cursor: 'pointer' }}
+              />
+            ) : (
+              <DateTimePicker
+                value={confirmedTime}
+                mode="date"
+                display="spinner"
+                onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+                style={{ marginBottom: 8 }}
+              />
+            )}
+            <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
               {Platform.OS === 'web' ? (
                 <select
                   value={`${confirmedTime.getHours()}:${String(confirmedTime.getMinutes()).padStart(2,'0')}`}
@@ -2289,6 +2311,7 @@ const submitSendIntake = async () => {
                 />
               )}
             </View>
+            </View>
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
               onPress={() => {
@@ -2300,7 +2323,7 @@ const submitSendIntake = async () => {
               }}
             >
               <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
-                Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
+                Confirm {confirmedTime.toLocaleDateString([], { month: 'short', day: 'numeric' })} at {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelModal} onPress={() => {
