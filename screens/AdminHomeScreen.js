@@ -2304,26 +2304,46 @@ const [showImportModal, setShowImportModal] = useState(false)
 
           {/* Cancel Fee Overlay */}
           {cancelFeeModal && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-              <View style={{ backgroundColor: '#162260', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
-                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>Amount to charge ($)</Text>
-                <TextInput
-                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 18, fontWeight: '700', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginBottom: 20 }}
-                  value={cancelFeeAmount}
-                  onChangeText={setCancelFeeAmount}
-                  keyboardType="decimal-pad"
-                  placeholder="0.00"
-                  placeholderTextColor="rgba(255,255,255,0.3)"
-                />
-                <View style={{ flexDirection: 'row', gap: 10 }}>
-                  <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, alignItems: 'center' }} onPress={() => setCancelFeeModal(false)}>
-                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ flex: 2, backgroundColor: '#f09090', borderRadius: 10, padding: 14, alignItems: 'center', opacity: chargingFee ? 0.6 : 1 }} onPress={chargeCancelFee} disabled={chargingFee}>
-                    {chargingFee ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Charge ${cancelFeeAmount || '0.00'}</Text>}
-                  </TouchableOpacity>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+              <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 420, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                {/* Header */}
+                <View style={{ backgroundColor: 'rgba(240,144,144,0.12)', borderBottomWidth: 1, borderBottomColor: 'rgba(240,144,144,0.2)', padding: 24 }}>
+                  <Text style={{ color: '#f09090', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 6 }}>CANCEL FEE</Text>
+                  <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800' }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 4 }}>Card on file will be charged immediately</Text>
+                </View>
+                {/* Body */}
+                <View style={{ padding: 24 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>CHARGE AMOUNT</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 16, marginBottom: 8 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 24, fontWeight: '300', marginRight: 8 }}>$</Text>
+                    <TextInput
+                      style={{ flex: 1, color: '#fff', fontSize: 32, fontWeight: '700', paddingVertical: 16 }}
+                      value={cancelFeeAmount}
+                      onChangeText={setCancelFeeAmount}
+                      keyboardType="decimal-pad"
+                      placeholder="0.00"
+                      placeholderTextColor="rgba(255,255,255,0.2)"
+                      autoFocus
+                    />
+                  </View>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 24 }}>$2.00 platform fee applies · Patient will see charge from Infuse Pro</Text>
+                  {/* Quick amounts */}
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 24 }}>
+                    {['25', '50', '75', '100'].map(amt => (
+                      <TouchableOpacity key={amt} onPress={() => setCancelFeeAmount(amt)} style={{ flex: 1, backgroundColor: cancelFeeAmount === amt ? 'rgba(240,144,144,0.2)' : 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: cancelFeeAmount === amt ? '#f09090' : 'rgba(255,255,255,0.1)' }}>
+                        <Text style={{ color: cancelFeeAmount === amt ? '#f09090' : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '700' }}>${amt}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} onPress={() => { setCancelFeeModal(false); setCancelFeeAmount('') }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 15 }}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ flex: 2, backgroundColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', opacity: chargingFee || !cancelFeeAmount ? 0.5 : 1 }} onPress={chargeCancelFee} disabled={chargingFee || !cancelFeeAmount}>
+                      {chargingFee ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Charge ${cancelFeeAmount || '0.00'}</Text>}
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>
