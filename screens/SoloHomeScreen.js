@@ -662,6 +662,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
   const [active, setActive] = useState([])
   const [upcoming, setUpcoming] = useState([])
   const [reconfirmBookingId, setReconfirmBookingId] = useState(null)
+  const [pendingBookingId, setPendingBookingId] = useState(null)
   const [confirmTimeModal, setConfirmTimeModal] = useState(false)
   const [confirmTime, setConfirmTime] = useState(new Date())
 
