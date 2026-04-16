@@ -318,7 +318,15 @@ const cancelAttentionBooking = async (bookingId) => {
         if (techIds.length > 1) {
           const callRes = await fetch(`${API_URL}/dispatch/queue`, { headers })
           const callData = await callRes.json()
-          const call = callData.active?.find(c => c.booking_id === selectedBooking.id)
+          // Check both active and upcoming for the call record
+          const allCalls = [...(callData.active || []), ...(callData.queue || [])]
+          let call = allCalls.find(c => c.booking_id === selectedBooking.id)
+          // Also check by booking id directly
+          if (!call) {
+            const bookingCallRes = await fetch(`${API_URL}/calls/booking/${selectedBooking.id}`, { headers })
+            const bookingCallData = await bookingCallRes.json()
+            call = bookingCallData.call
+          }
           if (call) {
             for (const techId of techIds.slice(1)) {
               await fetch(`${API_URL}/calls/${call.id}/techs`, {
@@ -2284,7 +2292,6 @@ const submitSendIntake = async () => {
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
               onPress={() => {
-                console.log('Confirm pressed — reconfirmBookingId:', reconfirmBookingId, 'pendingTechIds:', pendingTechIds)
                 if (pendingTechIds.length > 0) {
                   executeAssign(pendingTechIds, confirmedTime)
                 } else {
