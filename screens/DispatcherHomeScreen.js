@@ -960,7 +960,7 @@ const submitSendIntake = async () => {
                   <>
                     <Text style={styles.cardTime}>
                       {(booking.confirmed_time || booking.requested_time)
-                        ? `📅 ${booking.confirmed_time ? 'Confirmed' : 'Scheduled'}: ${new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
+                        ? `📅 ${booking.confirmed_time ? 'Confirmed' : 'Scheduled'}: ${new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })} at ${new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}`
                         : `🕐 ${new Date(booking.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                       }
                     </Text>
@@ -1022,7 +1022,7 @@ const submitSendIntake = async () => {
           ) : (
             Object.entries(
               scheduled.reduce((groups, booking) => {
-                const date = new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                const date = new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })
                 if (!groups[date]) groups[date] = []
                 groups[date].push(booking)
                 return groups
@@ -1035,7 +1035,7 @@ const submitSendIntake = async () => {
                     <View style={styles.cardTop}>
                       <Text style={styles.cardService}>{booking.service}</Text>
                       <Text style={styles.cardTime}>
-                        {new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                        {new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                         {booking.confirmed_time && <Text style={{ color: primaryColor, fontSize: 10 }}> ✓</Text>}
                       </Text>
                     </View>
@@ -1082,7 +1082,7 @@ const submitSendIntake = async () => {
           ) : (
             Object.entries(
               upcoming.reduce((groups, booking) => {
-                const date = new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                const date = new Date(booking.confirmed_time || booking.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })
                 if (!groups[date]) groups[date] = []
                 groups[date].push(booking)
                 return groups
@@ -1095,7 +1095,7 @@ const submitSendIntake = async () => {
                     <View style={styles.cardTop}>
                       <Text style={styles.cardService}>{booking.service}</Text>
                       <Text style={styles.cardTime}>
-                        {new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                        {new Date(booking.confirmed_time || booking.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                       </Text>
                     </View>
                     <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
@@ -1183,7 +1183,7 @@ const submitSendIntake = async () => {
                 )}
                 {call.requested_time && (
                   <Text style={[styles.cardTech, { color: primaryColor }]}>
-                    🕐 Confirmed for {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                    🕐 Confirmed for {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                   </Text>
                 )}
                 {call.patient_count > 1 && (

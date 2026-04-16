@@ -847,7 +847,7 @@ if (data.call?.call_id) {
   const markedDates = mySchedule.reduce((acc, booking) => {
     const dateToUse = booking.confirmed_time || booking.requested_time
     if (!dateToUse) return acc
-    const date = new Date(dateToUse).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' })
+    const date = new Date(dateToUse).toLocaleDateString('en-CA', { timeZone: company?.timezone || 'America/Phoenix' })
     acc[date] = { marked: true, dotColor: primaryColor }
     return acc
   }, {})
@@ -855,7 +855,7 @@ if (data.call?.call_id) {
 
   const selectedDayBookings = selectedScheduleDate ? mySchedule.filter(b => {
     const dateToCheck = b.confirmed_time || b.requested_time
-    return dateToCheck && new Date(dateToCheck).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' }) === selectedScheduleDate
+    return dateToCheck && new Date(dateToCheck).toLocaleDateString('en-CA', { timeZone: company?.timezone || 'America/Phoenix' }) === selectedScheduleDate
   }) : []
 
   if (loading) return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
@@ -950,20 +950,20 @@ if (data.call?.call_id) {
                 {call.confirmed_time && (
                   <>
                     <Text style={[styles.label, { marginTop: 8 }]}>✅ Confirmed for</Text>
-                    <Text style={styles.value}>{new Date(call.confirmed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(call.confirmed_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })}</Text>
+                    <Text style={styles.value}>{new Date(call.confirmed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })} · {new Date(call.confirmed_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })}</Text>
                   </>
                 )}
                 {call.requested_time && !call.confirmed_time && (
                   <>
                     <Text style={[styles.label, { marginTop: 8 }]}>📅 Scheduled for</Text>
-                    <Text style={styles.value}>{new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })} · {new Date(call.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })}</Text>
+                    <Text style={styles.value}>{new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })} · {new Date(call.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })}</Text>
                   </>
                 )}
                 {call.requested_time && (
                   <>
                     <Text style={styles.label}>📅 Confirmed For</Text>
                     <Text style={[styles.value, { color: primaryColor, fontWeight: '600' }]}>
-                      {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                      {new Date(call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                     </Text>
                   </>
                 )}
@@ -1304,7 +1304,7 @@ if (data.call?.call_id) {
                     <Text style={styles.patientName}>{b.service}</Text>
                     <Text style={styles.patientDetail}>👤 {b.patient_name}</Text>
                     <Text style={styles.patientDetail}>📍 {b.address}</Text>
-                    <Text style={[styles.patientDetail, { color: primaryColor, fontWeight: '600' }]}>🕐 {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}{b.confirmed_time && b.requested_time && b.confirmed_time !== b.requested_time ? ' (confirmed)' : ''}</Text>
+                    <Text style={[styles.patientDetail, { color: primaryColor, fontWeight: '600' }]}>🕐 {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}{b.confirmed_time && b.requested_time && b.confirmed_time !== b.requested_time ? ' (confirmed)' : ''}</Text>
                     {b.patient_count > 1 && <Text style={styles.patientDetail}>👥 {b.patient_count} patients</Text>}
                   </View>
                 </View>

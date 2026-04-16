@@ -942,7 +942,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
               {b.notes && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4, fontStyle: 'italic' }}>📝 {b.notes}</Text>}
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>
                 {(b.confirmed_time || b.requested_time)
-                  ? `📅 ${b.confirmed_time ? 'Confirmed' : 'Scheduled'}: ${new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Phoenix' })} at ${new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}`
+                  ? `📅 ${b.confirmed_time ? 'Confirmed' : 'Scheduled'}: ${new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })} at ${new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}`
                   : `🕐 Received ${new Date(b.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
                 }
               </Text>
@@ -982,7 +982,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
           ) : (
             Object.entries(
               scheduled.reduce((groups, b) => {
-                const date = new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+                const date = new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })
                 if (!groups[date]) groups[date] = []
                 groups[date].push(b)
                 return groups
@@ -995,7 +995,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                       <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 }}>{b.service}</Text>
                       <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>
-                        {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                        {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                         {b.confirmed_time && <Text style={{ color: '#4CAF50' }}> ✓</Text>}
                       </Text>
                     </View>
@@ -1051,7 +1051,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
               {call.tech_first && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>🧑‍⚕️ {call.tech_first} {call.tech_last}</Text>}
               {(call.confirmed_time || call.requested_time) && (
                 <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
-                  🕐 {new Date(call.confirmed_time || call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                  🕐 {new Date(call.confirmed_time || call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                 </Text>
               )}
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
@@ -1085,7 +1085,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
             </View>
           ) : Object.entries(
             upcoming.reduce((groups, b) => {
-              const date = new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+              const date = new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: company?.timezone || 'America/Phoenix' })
               if (!groups[date]) groups[date] = []
               groups[date].push(b)
               return groups
@@ -1098,7 +1098,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                     <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 }}>{b.service}</Text>
                     <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>
-                      {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                      {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                     </Text>
                   </View>
                   <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {b.patient_name}</Text>
@@ -1494,7 +1494,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
                 
                 {(call.confirmed_time || call.requested_time) && (
                   <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 }}>
-                    🕐 {call.confirmed_time ? 'Confirmed' : 'Scheduled'}: {new Date(call.confirmed_time || call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                    🕐 {call.confirmed_time ? 'Confirmed' : 'Scheduled'}: {new Date(call.confirmed_time || call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                   </Text>
                   
                 )}
@@ -1576,7 +1576,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
                   <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 2 }}>👤 {b.patient_name}</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 2 }}>📍 {b.address}</Text>
                   <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>
-                    🕐 {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                    🕐 {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                     {b.confirmed_time && b.requested_time && b.confirmed_time !== b.requested_time ? ' (confirmed)' : ''}
                   </Text>
                 </View>
