@@ -659,6 +659,36 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
   const [dispatchTab, setDispatchTab] = useState('queue')
   const [queue, setQueue] = useState([])
   const [scheduled, setScheduled] = useState([])
+  const [active, setActive] = useState([])
+  const [reconfirmBookingId, setReconfirmBookingId] = useState(null)
+  const [confirmTimeModal, setConfirmTimeModal] = useState(false)
+  const [confirmTime, setConfirmTime] = useState(new Date())
+
+  const openReconfirmModal = (bookingId, currentTime) => {
+    setReconfirmBookingId(bookingId)
+    setConfirmTime(currentTime ? new Date(currentTime) : new Date())
+    setConfirmTimeModal(true)
+  }
+
+  const reconfirmTime = async (bookingId, time) => {
+    try {
+      const res = await fetch(`${API_URL}/dispatch/bookings/${bookingId}/confirm`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmedTime: time.toISOString() })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setConfirmTimeModal(false)
+        fetchAll()
+        Alert.alert('✅ Time Updated', `Confirmed for ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)
+      } else {
+        Alert.alert('Error', data.message || 'Could not update time')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    }
+  }
   const [log, setLog] = useState([])
   const [needsAttention, setNeedsAttention] = useState([])
   const [stats, setStats] = useState({})
@@ -690,26 +720,23 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
   const [showDispositionDropdown, setShowDispositionDropdown] = useState(false)
   const [cancelling, setCancelling] = useState(false)
 
-  // Confirm time modal
-  const [confirmTimeModal, setConfirmTimeModal] = useState(false)
-  const [confirmTime, setConfirmTime] = useState(new Date())
-  const [pendingBookingId, setPendingBookingId] = useState(null)
-
   const fetchAll = useCallback(async () => {
     try {
-      const [qRes, sRes, lRes, stRes, naRes, svcRes] = await Promise.all([
+      const [qRes, sRes, aRes, lRes, stRes, naRes, svcRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/queue`, { headers }),
         fetch(`${API_URL}/dispatch/scheduled`, { headers }),
+        fetch(`${API_URL}/dispatch/active`, { headers }),
         fetch(`${API_URL}/dispatch/log`, { headers }),
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/dispatch/needs-attention`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers })
       ])
-      const [qData, sData, lData, stData, naData, svcData] = await Promise.all([
-        qRes.json(), sRes.json(), lRes.json(), stRes.json(), naRes.json(), svcRes.json()
+      const [qData, sData, aData, lData, stData, naData, svcData] = await Promise.all([
+        qRes.json(), sRes.json(), aRes.json(), lRes.json(), stRes.json(), naRes.json(), svcRes.json()
       ])
       if (qData.queue) setQueue(qData.queue)
       if (sData.scheduled) setScheduled(sData.scheduled)
+        if (aData.active) setActive(aData.active)
       if (lData.log) setLog(lData.log)
       if (stData.stats) setStats(stData.stats)
       if (naData.bookings) setNeedsAttention(naData.bookings)
@@ -867,6 +894,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
         {[
           { key: 'queue', label: `Queue${queue.length > 0 ? ` (${queue.length})` : ''}` },
           { key: 'scheduled', label: `Scheduled${scheduled.length > 0 ? ` (${scheduled.length})` : ''}` },
+          { key: 'active', label: `Active${active.length > 0 ? ` (${active.length})` : ''}` },
           { key: 'messages', label: 'Messages' },
         ].map(t => (
           <TouchableOpacity
@@ -930,6 +958,12 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                 >
                   <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 1, borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12, alignItems: 'center' }}
+                  onPress={() => openReconfirmModal(b.id, b.confirmed_time || b.requested_time)}
+                >
+                  <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '600' }}>🕐 Time</Text>
+                </TouchableOpacity>
               </View>
             </View>
           ))}
@@ -985,6 +1019,87 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {/* Active Tab */}
+      {dispatchTab === 'active' && (
+        <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={primaryColor} />}>
+          {active.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingTop: 60 }}>
+              <Text style={{ fontSize: 48, marginBottom: 16 }}>📋</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600' }}>No active calls</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 6 }}>Assigned calls will appear here</Text>
+            </View>
+          ) : active.map(call => (
+            <View key={call.id} style={sStyles.card}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', flex: 1 }}>{call.service}</Text>
+                <View style={{ backgroundColor: call.status === 'en_route' ? 'rgba(33,150,243,0.2)' : call.status === 'on_scene' ? 'rgba(76,175,80,0.2)' : 'rgba(201,168,76,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                  <Text style={{ color: call.status === 'en_route' ? '#2196F3' : call.status === 'on_scene' ? '#4CAF50' : primaryColor, fontSize: 10, fontWeight: '700' }}>{call.status?.replace('_', ' ').toUpperCase()}</Text>
+                </View>
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {call.patient_name}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>📍 {call.address}</Text>
+              {call.tech_first && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>🧑‍⚕️ {call.tech_first} {call.tech_last}</Text>}
+              {(call.confirmed_time || call.requested_time) && (
+                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600', marginBottom: 8 }}>
+                  🕐 {new Date(call.confirmed_time || call.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                </Text>
+              )}
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                <TouchableOpacity
+                  style={{ flex: 1, borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12, alignItems: 'center' }}
+                  onPress={() => openReconfirmModal(call.id, call.confirmed_time || call.requested_time)}
+                >
+                  <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '600' }}>🕐 Change Time</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 10, padding: 12, alignItems: 'center' }}
+                  onPress={() => { setCancelBookingId(call.id); setCancelReason(''); setCancelDisposition(''); setCancelModal(true) }}
+                >
+                  <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Reconfirm Time Modal */}
+      <Modal visible={confirmTimeModal} transparent animationType="slide">
+        <View style={sStyles.modalOverlay}>
+          <View style={sStyles.modalCard}>
+            <Text style={sStyles.modalTitle}>Change Appointment Time</Text>
+            <Text style={sStyles.modalSub}>Select the new confirmed time</Text>
+            {Platform.OS === 'web' ? (
+              <select
+                value={`${confirmTime.getHours()}:${String(confirmTime.getMinutes()).padStart(2, '0')}`}
+                onChange={(e) => {
+                  const [h, m] = e.target.value.split(':')
+                  const t = new Date(confirmTime)
+                  t.setHours(parseInt(h)); t.setMinutes(parseInt(m))
+                  setConfirmTime(new Date(t))
+                }}
+                style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 18, color: '#fff', width: '100%', cursor: 'pointer', marginBottom: 16 }}
+              >
+                {Array.from({ length: 24 }, (_, h) => [0, 15, 30, 45].map(m => {
+                  const label = `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
+                  const value = `${h}:${String(m).padStart(2, '0')}`
+                  return <option key={value} value={value}>{label}</option>
+                })).flat()}
+              </select>
+            ) : (
+              <DateTimePicker value={confirmTime} mode="time" display="spinner" onChange={(e, d) => { if (d) setConfirmTime(d) }} style={{ marginVertical: 16 }} />
+            )}
+            <TouchableOpacity style={[sStyles.primaryBtn, { backgroundColor: primaryColor }]} onPress={() => reconfirmTime(reconfirmBookingId, confirmTime)}>
+              <Text style={[sStyles.primaryBtnText, { color: secondaryColor }]}>Confirm {confirmTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={sStyles.cancelBtn} onPress={() => setConfirmTimeModal(false)}>
+              <Text style={sStyles.cancelBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* New Booking Modal */}
       <Modal visible={newBookingModal} transparent animationType="slide">

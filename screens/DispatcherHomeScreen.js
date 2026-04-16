@@ -427,6 +427,35 @@ const openDetailModal = (booking) => {
   setDetailModal(true)
 }
 
+const reconfirmTime = async (bookingId, time) => {
+    try {
+      const res = await fetch(`${API_URL}/dispatch/bookings/${bookingId}/confirm`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmedTime: time.toISOString() })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setConfirmTimeModal(false)
+        fetchAll()
+        Alert.alert('✅ Time Updated', `Appointment confirmed for ${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`)
+      } else {
+        Alert.alert('Error', data.message || 'Could not update time')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    }
+  }
+
+  const [reconfirmBookingId, setReconfirmBookingId] = useState(null)
+
+  const openReconfirmModal = (bookingId, currentTime) => {
+    setReconfirmBookingId(bookingId)
+    setConfirmedTime(currentTime ? new Date(currentTime) : new Date())
+    setConfirmTimeModal(true)
+    setPendingTechIds([])
+  }
+
   const openMergeModal = (bookingId) => {
   setMergeSourceId(bookingId)
   setMergeModal(true)
@@ -971,6 +1000,18 @@ const submitSendIntake = async () => {
 >
   <Text style={[styles.reassignButtonText, { color: primaryColor }]}>⊕ Merge</Text>
 </TouchableOpacity>
+<TouchableOpacity
+    style={[styles.reassignButton, { borderColor: '#FF9800' }]}
+    onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
+  >
+    <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
+  </TouchableOpacity>
+<TouchableOpacity
+    style={[styles.reassignButton, { borderColor: '#FF9800' }]}
+    onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
+  >
+    <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
+  </TouchableOpacity>
   <TouchableOpacity
     style={styles.cancelCardButton}
     onPress={() => openCancelModal(booking.id, 'pending')}
@@ -1028,6 +1069,12 @@ const submitSendIntake = async () => {
                         onPress={() => openAssignModal(booking, false)}
                       >
                         <Text style={[styles.assignButtonText, { color: secondaryColor }]}>Assign →</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.reassignButton, { borderColor: '#FF9800' }]}
+                        onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
+                      >
+                        <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.cancelCardButton}
@@ -2242,7 +2289,13 @@ const submitSendIntake = async () => {
             </View>
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
-              onPress={() => executeAssign(pendingTechIds, confirmedTime)}
+              onPress={() => {
+                if (pendingTechIds.length > 0) {
+                  executeAssign(pendingTechIds, confirmedTime)
+                } else {
+                  reconfirmTime(reconfirmBookingId, confirmedTime)
+                }
+              }}
             >
               <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
                 Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
