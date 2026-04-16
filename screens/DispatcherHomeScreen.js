@@ -64,6 +64,7 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [companyServices, setCompanyServices] = useState([])
   const [refreshing, setRefreshing] = useState(false)
 
   // Assign modal
@@ -171,7 +172,7 @@ const [needsAttention, setNeedsAttention] = useState([])
 
   const fetchAll = useCallback(async () => {
     try {
-    const [qRes, aRes, tRes, sRes, lRes, schRes, upRes, naRes] = await Promise.all([
+    const [qRes, aRes, tRes, sRes, lRes, schRes, upRes, naRes, svcRes] = await Promise.all([
       fetch(`${API_URL}/dispatch/queue`, { headers }),
       fetch(`${API_URL}/dispatch/active`, { headers }),
       fetch(`${API_URL}/dispatch/techs`, { headers }),
@@ -179,11 +180,13 @@ const [needsAttention, setNeedsAttention] = useState([])
       fetch(`${API_URL}/dispatch/log`, { headers }),
       fetch(`${API_URL}/dispatch/scheduled`, { headers }),
       fetch(`${API_URL}/dispatch/upcoming`, { headers }),
-      fetch(`${API_URL}/dispatch/needs-attention`, { headers })
+      fetch(`${API_URL}/dispatch/needs-attention`, { headers }),
+      fetch(`${API_URL}/admin/services`, { headers })
     ])
-    const [qData, aData, tData, sData, lData, schData, upData, naData] = await Promise.all([
-      qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json(), schRes.json(), upRes.json(), naRes.json()
+    const [qData, aData, tData, sData, lData, schData, upData, naData, svcData] = await Promise.all([
+      qRes.json(), aRes.json(), tRes.json(), sRes.json(), lRes.json(), schRes.json(), upRes.json(), naRes.json(), svcRes.json()
     ])
+    if (svcData.services) setCompanyServices(svcData.services)
     if (qData.queue) setQueue(qData.queue)
     if (aData.active) setActive(aData.active)
     if (tData.techs) setTechs(tData.techs)
@@ -2108,7 +2111,7 @@ const submitSendIntake = async () => {
               </TouchableOpacity>
               {showServiceList && (
                 <View style={styles.serviceList}>
-                  {SERVICES.map(service => (
+                  {(companyServices.length > 0 ? companyServices.map(s => s.name) : SERVICES).map(service => (
                     <TouchableOpacity
                       key={service}
                       style={[styles.serviceItem, nbService === service && { backgroundColor: 'rgba(201,168,76,0.1)' }]}
