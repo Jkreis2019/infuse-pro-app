@@ -578,7 +578,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes, plansRaw, membersRaw] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
@@ -591,7 +591,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         fetch(`${API_URL}/memberships`, { headers })
       ])
       const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData, plansRes, membersRes] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json(), plansData.json(), membersData.json()
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json(), plansRaw.json(), membersRaw.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
