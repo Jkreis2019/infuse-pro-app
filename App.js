@@ -1,8 +1,9 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Text } from 'react-native'
+import { Text, View, TouchableOpacity } from 'react-native'
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { AppState } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 
@@ -151,10 +152,52 @@ async function registerForPushNotificationsAsync() {
   return token
 }
 
+const TIMEOUTS = {
+  admin: 15 * 60 * 1000,
+  owner: 15 * 60 * 1000,
+  dispatcher: 15 * 60 * 1000,
+  np: 15 * 60 * 1000,
+  solo: 60 * 60 * 1000,
+  tech: 60 * 60 * 1000,
+  guest: null,
+  super_admin: 15 * 60 * 1000
+}
+
 export default function App() {
   const [expoPushToken, setExpoPushToken] = useState('')
   const notificationListener = useRef()
   const responseListener = useRef()
+  const inactivityTimer = useRef(null)
+  const warningTimer = useRef(null)
+  const navigationRef = useRef(null)
+  const [showInactivityWarning, setShowInactivityWarning] = useState(false)
+  const [userRole, setUserRole] = useState(null)
+
+  const startInactivityTimer = useCallback((role) => {
+    const timeout = TIMEOUTS[role]
+    if (!timeout) return // guests never timeout
+    setShowInactivityWarning(false)
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
+    if (warningTimer.current) clearTimeout(warningTimer.current)
+    warningTimer.current = setTimeout(() => setShowInactivityWarning(true), timeout - 60 * 1000)
+    inactivityTimer.current = setTimeout(() => {
+      setShowInactivityWarning(false)
+      if (navigationRef.current) navigationRef.current.reset({ index: 0, routes: [{ name: 'Login' }] })
+    }, timeout)
+  }, [])
+
+  const resetInactivityTimer = useCallback(() => {
+    if (userRole) startInactivityTimer(userRole)
+  }, [userRole, startInactivityTimer])
+
+  useEffect(() => {
+    const { sessionManager } = require('./utils/sessionManager')
+    sessionManager.setOnLogin((role) => setUserRole(role))
+    sessionManager.setOnActivity(() => resetInactivityTimer())
+    if (userRole) startInactivityTimer(userRole)
+    const sub = AppState.addEventListener('change', state => { if (state === 'active') resetInactivityTimer() })
+    return () => { sub.remove(); clearTimeout(inactivityTimer.current); clearTimeout(warningTimer.current) }
+  }, [userRole, resetInactivityTimer])
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(token => {
@@ -176,7 +219,8 @@ export default function App() {
   }, [])
 
   return (
-    <NavigationContainer>
+    <>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
         initialRouteName="Welcome"
         screenOptions={{
@@ -216,5 +260,18 @@ export default function App() {
         <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
+    {showInactivityWarning && (
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+        <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, padding: 28, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)' }}>
+          <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>SESSION TIMEOUT</Text>
+          <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800', marginBottom: 8 }}>Still there?</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginBottom: 24, lineHeight: 20 }}>You'll be automatically logged out in 1 minute due to inactivity.</Text>
+          <TouchableOpacity style={{ backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={resetInactivityTimer}>
+            <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Keep me logged in</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )}
+    </>
   )
 }

@@ -62,6 +62,8 @@ export default function LoginScreen({ route, navigation }) {
         console.log('Login role:', role, 'passwordChanged:', data.user.passwordChanged)
         // Register push token
         registerPushToken(data.token)
+        // Notify session manager
+        try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.notifyLogin(role) } catch(e) {}
 
         if (role === 'guest') {
           navigation.reset({
