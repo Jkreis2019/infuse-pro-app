@@ -648,7 +648,21 @@ const saveProfile = async () => {
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>LAST NAME</Text>
               <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmLastName} onChangeText={setFmLastName} placeholder="Last name" placeholderTextColor="#666" />
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>DATE OF BIRTH</Text>
-              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmDob} onChangeText={setFmDob} placeholder="MM/DD/YYYY" placeholderTextColor="#666" keyboardType="numeric" />
+              <TextInput
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+                value={fmDob}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/\D/g, '')
+                  let formatted = cleaned
+                  if (cleaned.length >= 3 && cleaned.length <= 4) formatted = cleaned.slice(0,2) + '/' + cleaned.slice(2)
+                  else if (cleaned.length > 4) formatted = cleaned.slice(0,2) + '/' + cleaned.slice(2,4) + '/' + cleaned.slice(4,8)
+                  setFmDob(formatted)
+                }}
+                placeholder="MM/DD/YYYY"
+                placeholderTextColor="#666"
+                keyboardType="numeric"
+                maxLength={10}
+              />
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>RELATIONSHIP</Text>
               <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmRelationship} onChangeText={setFmRelationship} placeholder="e.g. Son, Daughter, Spouse" placeholderTextColor="#666" />
               <View style={{ flexDirection: 'row', gap: 10 }}>
