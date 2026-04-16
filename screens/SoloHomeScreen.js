@@ -2424,7 +2424,15 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
               </Text>
             </View>
           </View>
-
+<TouchableOpacity
+            style={[sStyles.primaryBtn, { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginTop: 16 }]}
+            onPress={() => {
+              const { Linking } = require('react-native')
+              Linking.openURL('https://api.infusepro.app/list-your-company')
+            }}
+          >
+            <Text style={[sStyles.primaryBtnText, { color: primaryColor }]}>📍 Request Map Listing</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={[sStyles.primaryBtn, { backgroundColor: primaryColor, marginTop: 24, opacity: savingSettings ? 0.6 : 1 }]}
             onPress={saveSettings}
