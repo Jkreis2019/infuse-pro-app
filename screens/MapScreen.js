@@ -228,10 +228,13 @@ export default function MapScreen({ route, navigation }) {
                 {selected.platformActive ? (
                   bookingMode ? (
                     <TouchableOpacity
-                      style={[styles.joinButton, { backgroundColor: selected.branding.primaryColor }]}
-                      onPress={() => handleBook(selected)}
+                      style={[styles.joinButton, { backgroundColor: selected.isOpen === false ? 'rgba(255,255,255,0.15)' : selected.branding.primaryColor }]}
+                      onPress={() => selected.isOpen !== false && handleBook(selected)}
+                      disabled={selected.isOpen === false}
                     >
-                      <Text style={[styles.joinText, { color: selected.branding.secondaryColor }]}>Book Now →</Text>
+                      <Text style={[styles.joinText, { color: selected.isOpen === false ? 'rgba(255,255,255,0.4)' : selected.branding.secondaryColor }]}>
+                        {selected.isOpen === false ? 'Closed' : 'Book Now →'}
+                      </Text>
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
