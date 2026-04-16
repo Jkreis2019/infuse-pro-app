@@ -847,7 +847,7 @@ if (data.call?.call_id) {
   const markedDates = mySchedule.reduce((acc, booking) => {
     const dateToUse = booking.confirmed_time || booking.requested_time
     if (!dateToUse) return acc
-    const date = new Date(dateToUse).toISOString().split('T')[0]
+    const date = new Date(dateToUse).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' })
     acc[date] = { marked: true, dotColor: primaryColor }
     return acc
   }, {})
@@ -855,7 +855,7 @@ if (data.call?.call_id) {
 
   const selectedDayBookings = selectedScheduleDate ? mySchedule.filter(b => {
     const dateToCheck = b.confirmed_time || b.requested_time
-    return dateToCheck && new Date(dateToCheck).toISOString().split('T')[0] === selectedScheduleDate
+    return dateToCheck && new Date(dateToCheck).toLocaleDateString('en-CA', { timeZone: 'America/Phoenix' }) === selectedScheduleDate
   }) : []
 
   if (loading) return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
