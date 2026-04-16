@@ -325,8 +325,10 @@ const cancelAttentionBooking = async (bookingId) => {
           if (!call) {
             const bookingCallRes = await fetch(`${API_URL}/calls/booking/${selectedBooking.id}`, { headers })
             const bookingCallData = await bookingCallRes.json()
+            console.log('calls/booking lookup:', JSON.stringify(bookingCallData))
             call = bookingCallData.call
           }
+          console.log('call found for secondary techs:', call?.id)
           if (call) {
             for (const techId of techIds.slice(1)) {
               await fetch(`${API_URL}/calls/${call.id}/techs`, {
