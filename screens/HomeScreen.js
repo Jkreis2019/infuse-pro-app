@@ -126,6 +126,7 @@ export default function HomeScreen({ route, navigation }) {
   }
 
   return (
+    <>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={[styles.header, { backgroundColor: company.secondaryColor }]}>
         {company.logoUrl ? (
@@ -394,6 +395,7 @@ export default function HomeScreen({ route, navigation }) {
         </View>
       </View>
     )}
+    </>
   )
 }
 
