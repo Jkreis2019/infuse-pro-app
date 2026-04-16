@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, TextInput,
-  Modal, KeyboardAvoidingView, Platform, Image, Linking
-} from 'react-native'
+  Modal, KeyboardAvoidingView, Platform, Image, Linking, FlatList} from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 
 const API_URL = 'https://api.infusepro.app'
@@ -952,9 +951,13 @@ const [showImportModal, setShowImportModal] = useState(false)
       </View>
 
       {/* Tabs */}
-      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', overflowX: Platform.OS === 'web' ? 'auto' : 'visible' }}>
-        <View style={{ flexDirection: 'row' }}>
-          {TABS.map(tab => (
+      <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={TABS}
+          keyExtractor={item => item}
+          renderItem={({ item: tab }) => (
             <TouchableOpacity
               key={tab}
               style={{ paddingVertical: 14, paddingHorizontal: 20, borderBottomWidth: 2, borderBottomColor: activeTab === tab ? primaryColor : 'transparent' }}
@@ -968,8 +971,8 @@ const [showImportModal, setShowImportModal] = useState(false)
             >
               <Text style={{ color: activeTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600', textTransform: 'capitalize' }}>{tab}</Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          )}
+        />
       </View>
 
       {/* ── DASHBOARD ── */}
