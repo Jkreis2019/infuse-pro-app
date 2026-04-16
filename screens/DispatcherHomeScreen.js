@@ -2262,7 +2262,7 @@ const submitSendIntake = async () => {
               {Platform.OS === 'web' ? (
                 <input
                   type="datetime-local"
-                  value={confirmedTime.toISOString().slice(0, 16)}
+                  value={new Date(confirmedTime.getTime() - confirmedTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                   onChange={(e) => { if (e.target.value) setConfirmedTime(new Date(e.target.value)) }}
                   style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 16, color: '#fff', width: '100%', cursor: 'pointer' }}
                 />
@@ -2294,7 +2294,7 @@ const submitSendIntake = async () => {
               }}
             >
               <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
-                Confirm {confirmedTime.toLocaleDateString([], { month: 'short', day: 'numeric' })} at {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
+                Confirm {confirmedTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} →
               </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelModal} onPress={() => {
