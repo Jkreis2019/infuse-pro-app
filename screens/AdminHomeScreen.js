@@ -2454,79 +2454,6 @@ const [showImportModal, setShowImportModal] = useState(false)
             </ScrollView>
           )}
 
-          {/* Enroll Patient Modal */}
-          {enrollModal && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-              <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 480, maxHeight: '90%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', padding: 20 }}>
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MANUAL ENROLLMENT</Text>
-                  <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>Enroll Patient</Text>
-                </View>
-                <ScrollView style={{ padding: 20 }}>
-                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SEARCH PATIENT</Text>
-                  <TextInput
-                    style={{ ...styles.input, outlineStyle: 'none', marginBottom: 8 }}
-                    value={enrollPatientQuery}
-                    onChangeText={async (q) => {
-                      setEnrollPatientQuery(q)
-                      if (q.length < 2) { setEnrollPatientResults([]); return }
-                      try {
-                        const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
-                        const data = await res.json()
-                        if (data.patients) setEnrollPatientResults(data.patients)
-                      } catch (e) {}
-                    }}
-                    placeholder="Search by name, email or phone..."
-                    placeholderTextColor="#666"
-                  />
-                  {enrollPatientResults.map(p => (
-                    <TouchableOpacity key={p.id} style={{ backgroundColor: enrollSelectedPatient?.id === p.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPatient?.id === p.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPatient(p)}>
-                      <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
-                    </TouchableOpacity>
-                  ))}
-                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 16, marginBottom: 8 }}>SELECT PLAN</Text>
-                  {membershipPlans.map(plan => (
-                    <TouchableOpacity key={plan.id} style={{ backgroundColor: enrollSelectedPlan?.id === plan.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPlan?.id === plan.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPlan(plan)}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text style={{ color: '#fff', fontWeight: '600' }}>{plan.name}</Text>
-                        <Text style={{ color: primaryColor, fontWeight: '700' }}>${plan.price}/mo</Text>
-                      </View>
-                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
-                    </TouchableOpacity>
-                  ))}
-                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 8 }}>
-                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={() => setEnrollModal(false)}>
-                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={{ flex: 2, backgroundColor: enrollSelectedPatient && enrollSelectedPlan ? primaryColor : 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, alignItems: 'center', opacity: enrolling ? 0.6 : 1 }}
-                      disabled={!enrollSelectedPatient || !enrollSelectedPlan || enrolling}
-                      onPress={async () => {
-                        setEnrolling(true)
-                        try {
-                          const res = await fetch(`${API_URL}/memberships/enroll`, {
-                            method: 'POST',
-                            headers: { ...headers, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId: enrollSelectedPatient.id, planId: enrollSelectedPlan.id })
-                          })
-                          const data = await res.json()
-                          if (data.success) {
-                            Alert.alert('Enrolled', `${enrollSelectedPatient.first_name} enrolled in ${enrollSelectedPlan.name}!`)
-                            setEnrollModal(false)
-                            fetchAll()
-                          } else Alert.alert('Error', data.error || 'Enrollment failed')
-                        } catch (e) { Alert.alert('Error', 'Network error') } finally { setEnrolling(false) }
-                      }}
-                    >
-                      {enrolling ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: enrollSelectedPatient && enrollSelectedPlan ? secondaryColor : 'rgba(255,255,255,0.3)', fontWeight: '700', fontSize: 15 }}>Enroll Patient</Text>}
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
-              </View>
-            </View>
-          )}
-
           {/* Cancel Fee Overlay */}
           {cancelFeeModal && (
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
@@ -2575,6 +2502,80 @@ const [showImportModal, setShowImportModal] = useState(false)
           )}
         </View>
       </Modal>
+
+      {/* Enroll Patient Modal */}
+      {/* Enroll Patient Modal */}
+      {enrollModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 480, maxHeight: '90%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', padding: 20 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MANUAL ENROLLMENT</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>Enroll Patient</Text>
+            </View>
+            <ScrollView style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SEARCH PATIENT</Text>
+              <TextInput
+            style={{ ...styles.input, outlineStyle: 'none', marginBottom: 8 }}
+            value={enrollPatientQuery}
+            onChangeText={async (q) => {
+              setEnrollPatientQuery(q)
+              if (q.length < 2) { setEnrollPatientResults([]); return }
+              try {
+                const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
+                const data = await res.json()
+                if (data.patients) setEnrollPatientResults(data.patients)
+              } catch (e) {}
+            }}
+            placeholder="Search by name, email or phone..."
+            placeholderTextColor="#666"
+              />
+              {enrollPatientResults.map(p => (
+            <TouchableOpacity key={p.id} style={{ backgroundColor: enrollSelectedPatient?.id === p.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPatient?.id === p.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPatient(p)}>
+              <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
+            </TouchableOpacity>
+              ))}
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 16, marginBottom: 8 }}>SELECT PLAN</Text>
+              {membershipPlans.map(plan => (
+            <TouchableOpacity key={plan.id} style={{ backgroundColor: enrollSelectedPlan?.id === plan.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPlan?.id === plan.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPlan(plan)}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: '#fff', fontWeight: '600' }}>{plan.name}</Text>
+                <Text style={{ color: primaryColor, fontWeight: '700' }}>${plan.price}/mo</Text>
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
+            </TouchableOpacity>
+              ))}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 8 }}>
+            <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={() => setEnrollModal(false)}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ flex: 2, backgroundColor: enrollSelectedPatient && enrollSelectedPlan ? primaryColor : 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, alignItems: 'center', opacity: enrolling ? 0.6 : 1 }}
+              disabled={!enrollSelectedPatient || !enrollSelectedPlan || enrolling}
+              onPress={async () => {
+                setEnrolling(true)
+                try {
+                  const res = await fetch(`${API_URL}/memberships/enroll`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: enrollSelectedPatient.id, planId: enrollSelectedPlan.id })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    Alert.alert('Enrolled', `${enrollSelectedPatient.first_name} enrolled in ${enrollSelectedPlan.name}!`)
+                    setEnrollModal(false)
+                    fetchAll()
+                  } else Alert.alert('Error', data.error || 'Enrollment failed')
+                } catch (e) { Alert.alert('Error', 'Network error') } finally { setEnrolling(false) }
+              }}
+            >
+              {enrolling ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: enrollSelectedPatient && enrollSelectedPlan ? secondaryColor : 'rgba(255,255,255,0.3)', fontWeight: '700', fontSize: 15 }}>Enroll Patient</Text>}
+            </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
 
       {/* ── SCHEDULE ── */}
       {activeTab === 'schedule' && (
