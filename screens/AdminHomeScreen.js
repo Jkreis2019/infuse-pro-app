@@ -1783,7 +1783,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>${plan.price}/mo</Text>
                   </View>
                   {plan.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 8 }}>{plan.description}</Text>}
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/{plan.billing_cycle === 'yearly' ? 'year' : 'month'} · {plan.billing_cycle === 'yearly' ? 'Annual' : 'Monthly'} billing</Text>
                   <Text style={{ color: plan.stripe_price_id ? '#4CAF50' : '#FF9800', fontSize: 11, marginTop: 6 }}>{plan.stripe_price_id ? '✓ Stripe Connected' : '⚠ No Stripe — manual enrollment only'}</Text>
                   <TouchableOpacity
                     style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12, borderWidth: 1, borderColor: 'rgba(240,144,144,0.3)' }}
