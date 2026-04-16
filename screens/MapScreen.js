@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, TextInput } from 'react-native'
 import { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
+import * as Location from 'expo-location'
 const MapView = Platform.select({
   web: () => null,
   default: require('react-native-maps').default,
@@ -12,7 +13,7 @@ const Marker = Platform.select({
 
 const API_URL = 'https://api.infusepro.app'
 
-const PHOENIX_REGION = {
+const DEFAULT_REGION = {
   latitude: 33.4484,
   longitude: -112.0740,
   latitudeDelta: 0.8,
@@ -22,22 +23,71 @@ const PHOENIX_REGION = {
 export default function MapScreen({ route, navigation }) {
   const { token, user, company, bookingMode } = route.params || {}
   const [companies, setCompanies] = useState([])
+  const [filteredCompanies, setFilteredCompanies] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [region, setRegion] = useState(DEFAULT_REGION)
+  const [citySearch, setCitySearch] = useState('')
+  const [searching, setSearching] = useState(false)
 
   useEffect(() => {
-    fetchCompanies()
+    getLocationAndLoad()
   }, [])
 
-  const fetchCompanies = async () => {
+  const getLocationAndLoad = async () => {
     try {
-      const response = await fetch(`${API_URL}/map/companies`)
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+        setRegion({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          latitudeDelta: 0.8,
+          longitudeDelta: 0.8,
+        })
+        // Reverse geocode to get city
+        const geocode = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude })
+        if (geocode[0]?.city) {
+          const city = `${geocode[0].city}, ${geocode[0].region}`
+          setCitySearch(city)
+          await fetchCompanies(geocode[0].city)
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Location error:', err)
+    }
+    await fetchCompanies()
+  }
+
+  const fetchCompanies = async (city = '') => {
+    try {
+      const url = city ? `${API_URL}/map/companies?city=${encodeURIComponent(city)}` : `${API_URL}/map/companies`
+      const response = await fetch(url)
       const data = await response.json()
-      if (data.success) setCompanies(data.companies)
+      if (data.success) {
+        setCompanies(data.companies)
+        setFilteredCompanies(data.companies)
+      }
     } catch (err) {
       console.error('Error fetching companies:', err)
     }
     setLoading(false)
+  }
+
+  const handleCitySearch = async (text) => {
+    setCitySearch(text)
+    if (text.length < 2) {
+      setFilteredCompanies(companies)
+      return
+    }
+    setSearching(true)
+    try {
+      const res = await fetch(`${API_URL}/map/companies?city=${encodeURIComponent(text)}`)
+      const data = await res.json()
+      if (data.success) setFilteredCompanies(data.companies)
+    } catch (err) {}
+    setSearching(false)
   }
 
   const handleBook = (company) => {
@@ -68,6 +118,28 @@ export default function MapScreen({ route, navigation }) {
         </View>
       )}
 
+      <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#0D1B4B', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, paddingHorizontal: 12 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, marginRight: 8 }}>🔍</Text>
+          <TextInput
+            style={{ flex: 1, color: '#fff', fontSize: 15, paddingVertical: 10 }}
+            placeholder="Search by city (e.g. Phoenix, AZ)"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+            value={citySearch}
+            onChangeText={handleCitySearch}
+          />
+          {searching && <ActivityIndicator color="#C9A84C" size="small" />}
+          {citySearch.length > 0 && !searching && (
+            <TouchableOpacity onPress={() => { setCitySearch(''); setFilteredCompanies(companies) }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18, paddingLeft: 8 }}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        {filteredCompanies.length === 0 && !loading && citySearch.length > 0 && (
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginTop: 8 }}>No companies found in "{citySearch}"</Text>
+        )}
+      </View>
+
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator color="#C9A84C" size="large" />
@@ -77,10 +149,10 @@ export default function MapScreen({ route, navigation }) {
         <>
           <MapView
             style={styles.map}
-            initialRegion={PHOENIX_REGION}
+            initialRegion={region}
             userInterfaceStyle="dark"
           >
-            {companies.map((company) => (
+            {filteredCompanies.map((company) => (
               <Marker
                 key={company.id}
                 coordinate={company.latitude && company.longitude 
