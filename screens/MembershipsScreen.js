@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking, Alert, Platform, StatusBar } from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -16,7 +16,7 @@ export default function MembershipsScreen({ route, navigation }) {
 
   return (
     <>
-    <ScrollView style={{ flex: 1, backgroundColor: '#0D1B4B' }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: '#0D1B4B' }} contentContainerStyle={{ padding: 16, paddingBottom: 40, paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 16 || 32 }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
