@@ -1865,10 +1865,13 @@ const [showImportModal, setShowImportModal] = useState(false)
                 {billingStatus?.tier !== plan.tier && (
                   <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }} onPress={async () => {
                     try {
-                      const res = await fetch(`${API_URL}/billing/create-checkout`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: plan.tier }) })
+                      const isExisting = billingStatus && billingStatus.status !== 'none'
+                      const endpoint = isExisting ? `${API_URL}/billing/update-tier` : `${API_URL}/billing/create-checkout`
+                      const res = await fetch(endpoint, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: plan.tier }) })
                       const data = await res.json()
-                      if (data.url) { if (typeof window !== 'undefined') window.location.href = data.url; else Alert.alert('Checkout', 'Please open:\n' + data.url) }
-                      else Alert.alert('Error', data.error || 'Could not start checkout')
+                      if (isExisting && data.success) { Alert.alert('Updated!', `Your plan has been changed to ${plan.tier}.`); fetchAll() }
+                      else if (data.url) { if (typeof window !== 'undefined') window.location.href = data.url; else Alert.alert('Checkout', 'Please open: ' + data.url) }
+                      else Alert.alert('Error', data.error || 'Could not update plan')
                     } catch (e) { Alert.alert('Error', 'Network error') }
                   }}>
                     <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{!billingStatus || billingStatus?.status === 'none' ? 'Subscribe' : 'Switch to'} {plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1)}</Text>
