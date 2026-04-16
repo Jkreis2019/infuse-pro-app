@@ -13,6 +13,7 @@ export default function ProfileScreen({ route, navigation, onCompanyChange }) {
   const [linking, setLinking] = useState(false)
   const [showCodeInput, setShowCodeInput] = useState(false)
   const [loadingCompanies, setLoadingCompanies] = useState(true)
+  const [memberships, setMemberships] = useState([])
   const [editModal, setEditModal] = useState(false)
 const [editFirstName, setEditFirstName] = useState(user.firstName || '')
 const [editLastName, setEditLastName] = useState(user.lastName || '')
@@ -80,9 +81,16 @@ const [perks, setPerks] = useState({ referralPerks: [], loyaltyRewards: [], loya
 
   const fetchLinkedCompanies = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/auth/my-companies`, { headers })
-      const data = await res.json()
-      setLinkedCompanies(data.companies || [])
+      const [companiesRes, membershipsRes] = await Promise.all([
+        fetch(`${API_URL}/auth/my-companies`, { headers }),
+        fetch(`${API_URL}/auth/my-memberships`, { headers })
+      ])
+      const companiesData = await companiesRes.json()
+      setLinkedCompanies(companiesData.companies || [])
+      try {
+        const membershipsData = await membershipsRes.json()
+        setMemberships(membershipsData.memberships || [])
+      } catch (e) {}
     } catch (err) {
       console.error('Fetch companies error:', err)
     } finally {
@@ -287,19 +295,38 @@ const saveProfile = async () => {
         ) : linkedCompanies.length === 0 ? (
           <Text style={styles.noCompanies}>No linked companies yet</Text>
         ) : (
-          linkedCompanies.map(c => (
+          linkedCompanies.map(c => {
+            const membership = memberships.find(m => m.company_id === c.id)
+            return (
             <View key={c.id} style={[styles.companyCard, { borderColor: c.primary_color || primaryColor }]}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.companyName, { color: c.primary_color || primaryColor }]}>{c.name}</Text>
                 {c.phone && <Text style={styles.companyDetail}>📞 {c.phone}</Text>}
                 {c.bio && <Text style={styles.companyDetail}>{c.bio}</Text>}
+                {membership && (
+                  <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 8, padding: 8, marginTop: 8, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
+                    <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', marginBottom: 2 }}>🏅 {membership.plan_name}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{membership.redemptions_this_cycle} of {membership.max_redemptions_per_cycle === 999 ? '∞' : membership.max_redemptions_per_cycle} visits used · Renews {new Date(membership.current_cycle_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
+                  </View>
+                )}
               </View>
               <TouchableOpacity onPress={() => unlinkCompany(c.id, c.name)}>
                 <Text style={styles.unlinkText}>Unlink</Text>
               </TouchableOpacity>
             </View>
-          ))
+            )
+          })
         )}
+        {/* Memberships with unlinked companies */}
+        {memberships.filter(m => !linkedCompanies.find(c => c.id === m.company_id)).map(m => (
+          <View key={m.id} style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(201,168,76,0.25)' }}>
+            <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>🏅 ACTIVE MEMBERSHIP</Text>
+            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{m.plan_name} — {m.company_name}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · Renews {new Date(m.current_cycle_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
+            <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 6 }}>⚠️ You are no longer linked to {m.company_name} but still have an active subscription</Text>
+          </View>
+        ))}
+
         {showCodeInput && linkedCompanies.length === 0 ? (
           <View style={styles.codeInputContainer}>
             <TextInput
