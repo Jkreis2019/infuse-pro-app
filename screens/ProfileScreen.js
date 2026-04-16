@@ -14,6 +14,13 @@ export default function ProfileScreen({ route, navigation, onCompanyChange }) {
   const [showCodeInput, setShowCodeInput] = useState(false)
   const [loadingCompanies, setLoadingCompanies] = useState(true)
   const [memberships, setMemberships] = useState([])
+  const [familyMembers, setFamilyMembers] = useState([])
+  const [addFamilyModal, setAddFamilyModal] = useState(false)
+  const [fmFirstName, setFmFirstName] = useState('')
+  const [fmLastName, setFmLastName] = useState('')
+  const [fmDob, setFmDob] = useState('')
+  const [fmRelationship, setFmRelationship] = useState('')
+  const [savingFm, setSavingFm] = useState(false)
   const [editModal, setEditModal] = useState(false)
 const [editFirstName, setEditFirstName] = useState(user.firstName || '')
 const [editLastName, setEditLastName] = useState(user.lastName || '')
@@ -81,15 +88,20 @@ const [perks, setPerks] = useState({ referralPerks: [], loyaltyRewards: [], loya
 
   const fetchLinkedCompanies = useCallback(async () => {
     try {
-      const [companiesRes, membershipsRes] = await Promise.all([
+      const [companiesRes, membershipsRes, familyRes] = await Promise.all([
         fetch(`${API_URL}/auth/my-companies`, { headers }),
-        fetch(`${API_URL}/auth/my-memberships`, { headers })
+        fetch(`${API_URL}/auth/my-memberships`, { headers }),
+        fetch(`${API_URL}/family-members`, { headers })
       ])
       const companiesData = await companiesRes.json()
       setLinkedCompanies(companiesData.companies || [])
       try {
         const membershipsData = await membershipsRes.json()
         setMemberships(membershipsData.memberships || [])
+      } catch (e) {}
+      try {
+        const familyData = await familyRes.json()
+        setFamilyMembers(familyData.members || [])
       } catch (e) {}
     } catch (err) {
       console.error('Fetch companies error:', err)
@@ -356,6 +368,33 @@ const saveProfile = async () => {
         )}
       </View>
 
+      {/* Family Members Section */}
+      <View style={styles.section}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={styles.sectionTitle}>👨‍👩‍👦 Family Members</Text>
+          <TouchableOpacity onPress={() => { setFmFirstName(''); setFmLastName(''); setFmDob(''); setFmRelationship(''); setAddFamilyModal(true) }}>
+            <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>+ Add</Text>
+          </TouchableOpacity>
+        </View>
+        {familyMembers.length === 0 ? (
+          <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>No family members added yet</Text>
+        ) : familyMembers.map(fm => {
+          const age = Math.floor((new Date() - new Date(fm.dob)) / (365.25 * 24 * 60 * 60 * 1000))
+          const isMinor = age < 18
+          return (
+            <View key={fm.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View>
+                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{fm.first_name} {fm.last_name}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{fm.relationship} · Age {age}{isMinor ? ' · Minor' : ''}</Text>
+              </View>
+              <TouchableOpacity onPress={() => Alert.alert('Remove', `Remove ${fm.first_name} from family members?`, [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/family-members/${fm.id}`, { method: 'DELETE', headers }); fetchLinkedCompanies() } }])}>
+                <Text style={{ color: '#f09090', fontSize: 12 }}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          )
+        })}
+      </View>
+
       {/* Perks & Rewards Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🎁 Perks & Rewards</Text>
@@ -593,6 +632,55 @@ const saveProfile = async () => {
             <View style={{ height: 40 }} />
           </ScrollView>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Add Family Member Modal */}
+      <Modal visible={addFamilyModal} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>FAMILY MEMBER</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>Add Family Member</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>FIRST NAME</Text>
+              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmFirstName} onChangeText={setFmFirstName} placeholder="First name" placeholderTextColor="#666" />
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>LAST NAME</Text>
+              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmLastName} onChangeText={setFmLastName} placeholder="Last name" placeholderTextColor="#666" />
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>DATE OF BIRTH</Text>
+              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmDob} onChangeText={setFmDob} placeholder="MM/DD/YYYY" placeholderTextColor="#666" keyboardType="numeric" />
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>RELATIONSHIP</Text>
+              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={fmRelationship} onChangeText={setFmRelationship} placeholder="e.g. Son, Daughter, Spouse" placeholderTextColor="#666" />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setAddFamilyModal(false)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 2, backgroundColor: primaryColor, borderRadius: 12, padding: 14, alignItems: 'center', opacity: savingFm ? 0.6 : 1 }}
+                  disabled={savingFm}
+                  onPress={async () => {
+                    if (!fmFirstName || !fmLastName || !fmDob) return Alert.alert('Required', 'Please fill in name and date of birth')
+                    setSavingFm(true)
+                    try {
+                      const dobParts = fmDob.split('/')
+                      const dobFormatted = dobParts.length === 3 ? `${dobParts[2]}-${dobParts[0].padStart(2,'0')}-${dobParts[1].padStart(2,'0')}` : fmDob
+                      const res = await fetch(`${API_URL}/family-members`, {
+                        method: 'POST',
+                        headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ firstName: fmFirstName, lastName: fmLastName, dob: dobFormatted, relationship: fmRelationship })
+                      })
+                      const data = await res.json()
+                      if (data.success) { setAddFamilyModal(false); fetchLinkedCompanies() }
+                      else Alert.alert('Error', data.error || 'Could not add family member')
+                    } catch (e) { Alert.alert('Error', 'Network error') } finally { setSavingFm(false) }
+                  }}
+                >
+                  {savingFm ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Add Family Member</Text>}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
       </Modal>
     </ScrollView>
   )

@@ -1108,6 +1108,14 @@ if (data.call?.call_id) {
                 </View>
               </Modal>
 
+              {call.tech_status === 'on_scene' && call.is_minor && (
+                <View style={{ backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: 'rgba(229,62,62,0.4)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>⚠️ MINOR PATIENT</Text>
+                  <Text style={{ color: '#fff', fontSize: 14 }}>Guardian must be present before treatment</Text>
+                  {call.guardian_name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>Guardian: {call.guardian_name}</Text>}
+                </View>
+              )}
+
               {call.tech_status === 'on_scene' && patientMembership && (
                 <View style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
                   <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🏅 ACTIVE MEMBER</Text>
