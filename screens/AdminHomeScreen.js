@@ -953,7 +953,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* Tabs */}
       <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row' }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center' }} style={{ flexGrow: 0 }}>
           {TABS.map(tab => (
             <TouchableOpacity
               key={tab}
