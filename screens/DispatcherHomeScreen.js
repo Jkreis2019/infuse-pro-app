@@ -951,6 +951,12 @@ const submitSendIntake = async () => {
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
+                {booking.membership && (
+                  <View style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700' }}>🏅 {booking.membership.plan_name}</Text>
+                    <Text style={{ color: 'rgba(201,168,76,0.6)', fontSize: 11 }}>{booking.membership.redemptions_this_cycle}/{booking.membership.max_redemptions === 999 ? '∞' : booking.membership.max_redemptions} visits</Text>
+                  </View>
+                )}
                 <Text style={styles.cardAddress}>📍 {booking.address}</Text>
                 {!booking.has_valid_intake && (
                   <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
@@ -1194,6 +1200,12 @@ const submitSendIntake = async () => {
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {call.patient_name}</Text>
+                {call.membership && (
+                  <View style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700' }}>🏅 {call.membership.plan_name}</Text>
+                    <Text style={{ color: 'rgba(201,168,76,0.6)', fontSize: 11 }}>{call.membership.redemptions_this_cycle}/{call.membership.max_redemptions === 999 ? '∞' : call.membership.max_redemptions} visits</Text>
+                  </View>
+                )}
                 <Text style={styles.cardAddress}>📍 {call.address}</Text>
                 {!call.has_valid_intake && (
                   <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>
