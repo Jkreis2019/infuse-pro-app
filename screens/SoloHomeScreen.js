@@ -1708,6 +1708,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   // Settings
   const [requireGFE, setRequireGFE] = useState(false)
   const [companyName, setCompanyName] = useState(company?.name || '')
+  const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
   const [savingSettings, setSavingSettings] = useState(false)
 
   const fetchServices = useCallback(async () => {
@@ -1858,7 +1859,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       const res = await fetch(`${API_URL}/admin/settings`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyName, requireGFE })
+        body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone })
       })
       const data = await res.json()
       if (data.success) Alert.alert('✅ Saved', 'Settings updated')
@@ -2349,6 +2350,37 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           <View style={sStyles.card}>
             <Text style={sStyles.fieldLabel}>Company Name</Text>
             <TextInput style={sStyles.input} value={companyName} onChangeText={setCompanyName} placeholder="Company name" placeholderTextColor="#444" />
+            <Text style={sStyles.fieldLabel}>Timezone</Text>
+            {Platform.OS === 'web' ? (
+              <select
+                value={companyTimezone}
+                onChange={(e) => setCompanyTimezone(e.target.value)}
+                style={{ background: '#0a1540', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff', width: '100%', marginBottom: 12, height: 52, cursor: 'pointer' }}
+              >
+                <option value="America/New_York">Eastern (ET)</option>
+                <option value="America/Chicago">Central (CT)</option>
+                <option value="America/Denver">Mountain (MT)</option>
+                <option value="America/Phoenix">Arizona (AZ — no DST)</option>
+                <option value="America/Los_Angeles">Pacific (PT)</option>
+                <option value="America/Anchorage">Alaska (AKT)</option>
+                <option value="America/Honolulu">Hawaii (HT)</option>
+              </select>
+            ) : (
+              <View style={{ marginBottom: 12 }}>
+                {['America/New_York','America/Chicago','America/Denver','America/Phoenix','America/Los_Angeles','America/Anchorage','America/Honolulu'].map(tz => (
+                  <TouchableOpacity
+                    key={tz}
+                    onPress={() => setCompanyTimezone(tz)}
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' }}
+                  >
+                    <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: primaryColor, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                      {companyTimezone === tz && <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: primaryColor }} />}
+                    </View>
+                    <Text style={{ color: '#fff', fontSize: 14 }}>{tz.replace('America/', '').replace('_', ' ')}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
 
           <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginTop: 20 }}>Clinical Settings</Text>
