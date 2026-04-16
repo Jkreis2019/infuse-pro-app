@@ -184,6 +184,7 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   // Billing
   const [billingStatus, setBillingStatus] = useState(null)
+  const [connectStatus, setConnectStatus] = useState(null)
 
   // Referral settings
   const [referralActive, setReferralActive] = useState(false)
@@ -552,6 +553,11 @@ const [showImportModal, setShowImportModal] = useState(false)
       if (regData.regions) setRegions(regData.regions)
       if (anData.announcements) setAnnouncements(anData.announcements)
       if (bilData.subscription) setBillingStatus(bilData.subscription)
+      try {
+        const connRes = await fetch(`${API_URL}/billing/connect/status`, { headers })
+        const connData = await connRes.json()
+        if (connData.success) setConnectStatus(connData)
+      } catch (e) {}
       if (refData.settings) {
         setReferralActive(refData.settings.referral_active || false)
         setReferralPerkType(refData.settings.referral_perk_type || 'fixed')
@@ -1701,7 +1707,18 @@ const [showImportModal, setShowImportModal] = useState(false)
           {/* Stripe Connect */}
           <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Bank Account</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>Connect your bank account to receive cancel fee payouts and membership payments.</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12 }}>Connect your bank account to receive cancel fee payouts and membership payments.</Text>
+            {connectStatus?.connected ? (
+              <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(76,175,80,0.3)' }}>
+                <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Bank Account Connected</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Payouts and cancel fee charges are enabled.</Text>
+              </View>
+            ) : (
+              <View style={{ backgroundColor: 'rgba(240,144,144,0.08)', borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}>
+                <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '700' }}>Not Connected</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Connect your bank to enable cancel fee charging and membership payouts.</Text>
+              </View>
+            )}
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }}
               onPress={async () => {
@@ -1710,13 +1727,12 @@ const [showImportModal, setShowImportModal] = useState(false)
                   const data = await res.json()
                   if (data.url) {
                     if (typeof window !== 'undefined') window.location.href = data.url
-                    else Alert.alert('Connect Bank Account', 'Please open this link:
-' + data.url)
+                    else Alert.alert('Connect Bank Account', 'Please open this link: ' + data.url)
                   } else Alert.alert('Error', data.error || 'Could not start bank onboarding')
                 } catch (e) { Alert.alert('Error', 'Network error') }
               }}
             >
-              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>🏦 Connect Bank Account</Text>
+              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{connectStatus?.connected ? 'Update Bank Account' : 'Connect Bank Account'}</Text>
             </TouchableOpacity>
           </View>
 
