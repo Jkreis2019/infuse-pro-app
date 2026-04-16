@@ -344,6 +344,7 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [companyPromoText, setCompanyPromoText] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
+  const [savingListing, setSavingListing] = useState(false)
 
   // New staff modal
   const [newStaffModal, setNewStaffModal] = useState(false)
@@ -753,6 +754,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
   const saveListingSettings = async () => {
     setSavingSettings(true)
+    console.log('saveListingSettings called', companyServiceArea, companyPromoText)
     try {
       const res = await fetch(`${API_URL}/admin/company/settings`, {
         method: 'PUT',
@@ -2371,11 +2373,11 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TextInput style={styles.input} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" maxLength={80} />
             <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>{companyPromoText.length}/80</Text>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: primaryColor }, savingSettings && { opacity: 0.6 }]}
+              style={[styles.actionBtn, { backgroundColor: primaryColor }, savingListing && { opacity: 0.6 }]}
               onPress={saveListingSettings}
-              disabled={savingSettings}
+              disabled={savingListing}
             >
-              {savingSettings ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Listing</Text>}
+              {savingListing ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Listing</Text>}
             </TouchableOpacity>
           </View>
           <Text style={styles.sectionTitle}>Account</Text>
