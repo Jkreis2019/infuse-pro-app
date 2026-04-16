@@ -233,36 +233,33 @@ export default function HomeScreen({ route, navigation }) {
       )}
 
       {/* Membership Plans */}
-      {membershipPlans.length > 0 && (
-        <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
-          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>MEMBERSHIP PLANS</Text>
-          {membershipPlans.map(plan => (
-            <View key={plan.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>🏅 {plan.name}</Text>
-                <Text style={{ color: company.primaryColor, fontSize: 16, fontWeight: '700' }}>${plan.price}/mo</Text>
-              </View>
-              {plan.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 8 }}>{plan.description}</Text>}
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
-              {activeMembership?.plan_id === plan.id ? (
-                <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
-                  <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13 }}>✓ Active Member — {activeMembership.redemptions_this_cycle}/{plan.max_redemptions_per_cycle === 999 ? '∞' : plan.max_redemptions_per_cycle} visits used</Text>
-                </View>
-              ) : plan.stripe_price_id ? (
-                <TouchableOpacity
-                  style={{ backgroundColor: company.primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}
-                  onPress={() => { setSelectedPlan(plan); setPolicyAgreed(false); setPolicyModal(true) }}
-                >
-                  <Text style={{ color: company.secondaryColor, fontWeight: '700', fontSize: 14 }}>Subscribe</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Contact us to enroll</Text>
-                </View>
-              )}
-            </View>
-          ))}
-        </View>
+      {/* Active Membership Badge */}
+      {activeMembership && (
+        <TouchableOpacity
+          style={{ marginHorizontal: 16, marginBottom: 12, backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}
+          onPress={() => navigation.navigate('Memberships', { token, user, company, membershipPlans, activeMembership })}
+        >
+          <View>
+            <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>🏅 ACTIVE MEMBER</Text>
+            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{activeMembership.plan_name}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{activeMembership.redemptions_this_cycle} of {activeMembership.max_redemptions_per_cycle === 999 ? '∞' : activeMembership.max_redemptions_per_cycle} visits used this month</Text>
+          </View>
+          <Text style={{ color: '#C9A84C', fontSize: 20 }}>›</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* View Membership Options */}
+      {membershipPlans.length > 0 && !activeMembership && (
+        <TouchableOpacity
+          style={{ marginHorizontal: 16, marginBottom: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+          onPress={() => navigation.navigate('Memberships', { token, user, company, membershipPlans, activeMembership })}
+        >
+          <View>
+            <Text style={{ color: company.primaryColor, fontSize: 13, fontWeight: '700' }}>🏅 Membership Plans</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>View plans from {company.name}</Text>
+          </View>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 20 }}>›</Text>
+        </TouchableOpacity>
       )}
 
       {/* Intake Banner */}
