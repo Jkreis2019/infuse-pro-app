@@ -1775,7 +1775,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── PATIENT PROFILE MODAL ── */}
       {/* Cancel Fee Modal */}
-      <Modal visible={cancelFeeModal} transparent animationType="fade">
+      <Modal visible={cancelFeeModal} transparent={false} animationType="fade">
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <View style={{ backgroundColor: '#162260', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
