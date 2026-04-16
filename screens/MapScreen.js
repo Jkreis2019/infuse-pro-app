@@ -179,12 +179,21 @@ export default function MapScreen({ route, navigation }) {
                 <Text style={styles.closeText}>✕</Text>
               </TouchableOpacity>
 
+              {selected.promoText && (
+                <View style={{ backgroundColor: selected.branding.primaryColor + '25', borderWidth: 1, borderColor: selected.branding.primaryColor, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 10 }}>
+                  <Text style={{ color: selected.branding.primaryColor, fontSize: 12, fontWeight: '700' }}>🏷️ {selected.promoText}</Text>
+                </View>
+              )}
               <Text style={[styles.companyName, { color: selected.branding.primaryColor }]}>
                 {selected.name}
               </Text>
               <Text style={styles.companyLocation}>{selected.location}</Text>
-              {selected.platformActive && selected.bio ? <Text style={styles.companyBio}>{selected.bio}</Text> : null}
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
+              {selected.website && selected.platformActive ? (
+                <TouchableOpacity onPress={() => Linking.openURL(selected.website)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>🌐 {selected.website.replace('https://','').replace('http://','')}</Text>
+                </TouchableOpacity>
+              ) : null}
               {selected.googleRating && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <Text style={{ color: '#FFD700', fontSize: 16 }}>
