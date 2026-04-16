@@ -2259,58 +2259,29 @@ const submitSendIntake = async () => {
             <Text style={styles.modalTitle}>Confirm Appointment Date & Time</Text>
             <Text style={styles.modalSub}>Select the confirmed date and time for this appointment</Text>
             <View style={{ marginVertical: 20 }}>
-            {Platform.OS === 'web' ? (
-              <input
-                type="date"
-                value={confirmedTime.toISOString().split('T')[0]}
-                onChange={(e) => {
-                  const d = new Date(confirmedTime)
-                  const [y, mo, day] = e.target.value.split('-')
-                  d.setFullYear(parseInt(y), parseInt(mo) - 1, parseInt(day))
-                  setConfirmedTime(new Date(d))
-                }}
-                style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 16, color: '#fff', width: '100%', marginBottom: 12, cursor: 'pointer' }}
-              />
-            ) : (
-              <DateTimePicker
-                value={confirmedTime}
-                mode="date"
-                display="spinner"
-                onChange={(event, date) => { if (date) setConfirmedTime(date) }}
-                style={{ marginBottom: 8 }}
-              />
-            )}
-            <View style={{ flexDirection: 'row', gap: 12, justifyContent: 'center' }}>
               {Platform.OS === 'web' ? (
-                <select
-                  value={`${confirmedTime.getHours()}:${String(confirmedTime.getMinutes()).padStart(2,'0')}`}
-                  onChange={(e) => {
-                    const [h, m] = e.target.value.split(':')
-                    const t = new Date(confirmedTime)
-                    t.setHours(parseInt(h))
-                    t.setMinutes(parseInt(m))
-                    setConfirmedTime(new Date(t))
-                  }}
-                  style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 18, color: '#fff', width: '100%', cursor: 'pointer' }}
-                >
-                  {Array.from({ length: 24 }, (_, h) =>
-                    [0, 15, 30, 45].map(m => {
-                      const label = `${h % 12 || 12}:${String(m).padStart(2,'0')} ${h < 12 ? 'AM' : 'PM'}`
-                      const value = `${h}:${String(m).padStart(2,'0')}`
-                      return <option key={value} value={value}>{label}</option>
-                    })
-                  ).flat()}
-                </select>
-              ) : (
-                <DateTimePicker
-                  value={confirmedTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={(event, date) => { if (date) setConfirmedTime(date) }}
-                  style={{ marginVertical: 16 }}
+                <input
+                  type="datetime-local"
+                  value={confirmedTime.toISOString().slice(0, 16)}
+                  onChange={(e) => { if (e.target.value) setConfirmedTime(new Date(e.target.value)) }}
+                  style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 16, color: '#fff', width: '100%', cursor: 'pointer' }}
                 />
+              ) : (
+                <>
+                  <DateTimePicker
+                    value={confirmedTime}
+                    mode="date"
+                    display="spinner"
+                    onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+                  />
+                  <DateTimePicker
+                    value={confirmedTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={(event, date) => { if (date) setConfirmedTime(date) }}
+                  />
+                </>
               )}
-            </View>
             </View>
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
