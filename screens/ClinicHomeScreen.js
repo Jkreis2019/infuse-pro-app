@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image , StatusBar} from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -593,7 +593,7 @@ const createWalkinPatient = async () => {
     {/* Profile Modal */}
     <Modal visible={cpsProfileModal} animationType="slide" presentationStyle="fullScreen">
       <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
-        <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+        <View style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
           <TouchableOpacity onPress={() => { setCpsProfileModal(false); setCpsProfileData(null) }}>
             <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
           </TouchableOpacity>
@@ -712,7 +712,7 @@ const createWalkinPatient = async () => {
     </Modal>
 
     {/* Search Header */}
-    <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+    <View style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
       <TouchableOpacity onPress={() => { setClinicPatientSearchModal(false); setCpsQuery(''); setCpsResults([]) }}>
         <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
       </TouchableOpacity>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard, Image } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard, Image , StatusBar} from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 
 const API_URL = 'https://api.infusepro.app'
@@ -1493,7 +1493,7 @@ const submitSendIntake = async () => {
     <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
       <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
         {/* Header */}
-        <View style={{ paddingTop: 56, paddingBottom: 0, backgroundColor: secondaryColor }}>
+        <View style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 0, backgroundColor: secondaryColor }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 }}>
             <TouchableOpacity onPress={() => { setPsProfileModal(false); setPsProfileData(null) }}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
@@ -1985,7 +1985,7 @@ const submitSendIntake = async () => {
     </Modal>
 
     {/* Patient Search Header */}
-    <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+    <View style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
       <TouchableOpacity onPress={() => { setPatientSearchModal(false); setPsQuery(''); setPsResults([]) }}>
         <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
       </TouchableOpacity>

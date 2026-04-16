@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
   ActivityIndicator, Image, Platform, KeyboardAvoidingView
-} from 'react-native'
+, StatusBar} from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   leftPane: { width: Platform.OS === 'web' ? 320 : '100%', flex: Platform.OS === 'web' ? undefined : 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0a1540' },
   rightPane: { flex: 1, backgroundColor: '#0D1B4B' },
-  leftHeader: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
+  leftHeader: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
   contactRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
   contactAvatar: { position: 'relative', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   avatarImg: { width: 44, height: 44, borderRadius: 22 },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   lastMessage: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
   badge: { borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   badgeText: { fontSize: 11, fontWeight: '700' },
-  chatHeader: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
+  chatHeader: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
   emptyChat: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   messageList: { padding: 16, paddingBottom: 8 },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12 },

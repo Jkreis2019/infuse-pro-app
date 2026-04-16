@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator, Image
-} from 'react-native'
+, StatusBar} from 'react-native'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -147,7 +147,7 @@ export default function BookingChatScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
+  header: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
   messageList: { padding: 16, paddingBottom: 8 },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12 },
   messageRowMe: { flexDirection: 'row-reverse' },

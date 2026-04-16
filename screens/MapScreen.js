@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, TextInput, Alert } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, TextInput, Alert , StatusBar} from 'react-native'
 import { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
 import * as Location from 'expo-location'
@@ -278,7 +278,7 @@ export default function MapScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   map: { flex: 1 },
-  bookingBanner: { backgroundColor: '#0D1B4B', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
+  bookingBanner: { backgroundColor: '#0D1B4B', paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
   bookingBannerText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   loadingText: { color: 'rgba(255,255,255,0.5)', fontSize: 14 },
