@@ -1775,8 +1775,8 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── PATIENT PROFILE MODAL ── */}
       {/* Cancel Fee Modal */}
-      <Modal visible={cancelFeeModal} transparent={false} animationType="fade">
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      {cancelFeeModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
           <View style={{ backgroundColor: '#162260', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
@@ -1799,7 +1799,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             </View>
           </View>
         </View>
-      </Modal>
+      )}
 
       <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
         <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
