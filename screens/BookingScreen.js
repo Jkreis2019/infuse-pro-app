@@ -17,6 +17,8 @@ export default function BookingScreen({ route, navigation }) {
   const [ivCount, setIvCount] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [familyMembers, setFamilyMembers] = useState([])
+  const [selectedFamilyMember, setSelectedFamilyMember] = useState(null)
 
   // Scheduling
  const [scheduleType, setScheduleType] = useState('now')
@@ -62,6 +64,11 @@ export default function BookingScreen({ route, navigation }) {
     }
     fetchServices()
     fetchIsOpen()
+    // Fetch family members
+    fetch(`${API_URL}/family-members`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (d.members) setFamilyMembers(d.members) })
+      .catch(() => {})
   }, [token])
 useEffect(() => {
     const fetchProfile = async () => {
@@ -129,7 +136,8 @@ useEffect(() => {
           notes,
           patientCount: ivCount,
           requestedTime: scheduleType === 'later' && selectedSlot ? selectedSlot.datetime : null,
-          guestCompanyId: company?.id || null
+          guestCompanyId: company?.id || null,
+          familyMemberId: selectedFamilyMember?.id || null
         })
       })
       const data = await response.json()
@@ -158,6 +166,34 @@ useEffect(() => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Text style={styles.title}>Book an appointment</Text>
       <Text style={styles.subtitle}>{company.name} · {company.location}</Text>
+
+      {familyMembers.length > 0 && (
+        <View style={{ marginBottom: 20 }}>
+          <Text style={styles.sectionLabel}>Who is this IV for?</Text>
+          <TouchableOpacity
+            style={{ backgroundColor: !selectedFamilyMember ? company.primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: !selectedFamilyMember ? company.primaryColor : 'rgba(255,255,255,0.15)' }}
+            onPress={() => setSelectedFamilyMember(null)}
+          >
+            <Text style={{ color: !selectedFamilyMember ? company.secondaryColor : 'rgba(255,255,255,0.7)', fontWeight: '700', fontSize: 15 }}>👤 Myself — {user.firstName} {user.lastName}</Text>
+          </TouchableOpacity>
+          {familyMembers.map(fm => {
+            const age = Math.floor((new Date() - new Date(fm.dob)) / (365.25 * 24 * 60 * 60 * 1000))
+            const isMinor = age < 18
+            return (
+              <TouchableOpacity
+                key={fm.id}
+                style={{ backgroundColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : 'rgba(255,255,255,0.15)' }}
+                onPress={() => setSelectedFamilyMember(fm)}
+              >
+                <Text style={{ color: selectedFamilyMember?.id === fm.id ? company.secondaryColor : 'rgba(255,255,255,0.7)', fontWeight: '700', fontSize: 15 }}>👤 {fm.first_name} {fm.last_name} {isMinor ? '· Minor' : ''}</Text>
+                {isMinor && selectedFamilyMember?.id === fm.id && (
+                  <Text style={{ color: selectedFamilyMember?.id === fm.id ? company.secondaryColor : '#FF9800', fontSize: 12, marginTop: 4 }}>⚠️ A guardian must be present during treatment</Text>
+                )}
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+      )}
 
       <Text style={styles.sectionLabel}>Select a service</Text>
       {loadingServices ? (
