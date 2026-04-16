@@ -1194,7 +1194,28 @@ const submitSendIntake = async () => {
                   >
                     <Text style={[styles.viewPatientsText, { color: primaryColor }]}>👥 Patients</Text>
                   </TouchableOpacity>
-                  √
+                  {call.status !== 'on_scene' && (
+                    <TouchableOpacity
+                      style={styles.reassignButton}
+                      onPress={() => openAssignModal(call, true)}
+                    >
+                      <Text style={styles.reassignButtonText}>Reassign</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    style={[styles.reassignButton, { borderColor: '#FF9800' }]}
+                    onPress={() => openReconfirmModal(call.id, call.confirmed_time || call.requested_time)}
+                  >
+                    <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
+                  </TouchableOpacity>
+                  {call.status !== 'on_scene' && (
+                    <TouchableOpacity
+                      style={styles.cancelCardButton}
+                      onPress={() => openCancelModal(call.id, call.status)}
+                    >
+                      <Text style={styles.cancelCardText}>Cancel</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               </TouchableOpacity>
             ))
@@ -2263,6 +2284,7 @@ const submitSendIntake = async () => {
             <TouchableOpacity
               style={{ backgroundColor: primaryColor, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 10 }}
               onPress={() => {
+                console.log('Confirm pressed — reconfirmBookingId:', reconfirmBookingId, 'pendingTechIds:', pendingTechIds)
                 if (pendingTechIds.length > 0) {
                   executeAssign(pendingTechIds, confirmedTime)
                 } else {
@@ -2274,7 +2296,10 @@ const submitSendIntake = async () => {
                 Confirm {confirmedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} →
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelModal} onPress={() => { setConfirmTimeModal(false); setAssignModal(true) }}>
+            <TouchableOpacity style={styles.cancelModal} onPress={() => {
+              setConfirmTimeModal(false)
+              if (pendingTechIds.length > 0) setAssignModal(true)
+            }}>
               <Text style={styles.cancelModalText}>← Back</Text>
             </TouchableOpacity>
           </View>

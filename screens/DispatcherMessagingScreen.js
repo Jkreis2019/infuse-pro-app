@@ -440,7 +440,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
               const isOpen = item.status === 'open'
               return (
                 <TouchableOpacity
-                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }, !isOpen && !soloMode && { opacity: 0.5 }]}
+                  style={[styles.contactRow, isSelected && { backgroundColor: 'rgba(255,255,255,0.08)' }, activeTab === 'team' && !isOpen && !soloMode && { opacity: 0.5 }]}
                   onPress={() => selectPatient(item)}
                 >
                   <View style={styles.contactAvatar}>
