@@ -340,7 +340,6 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [companyEmail, setCompanyEmail] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
   const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
-  const [companyBio, setCompanyBio] = useState('')
   const [companyWebsite, setCompanyWebsite] = useState('')
   const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [companyPromoText, setCompanyPromoText] = useState('')
@@ -759,7 +758,6 @@ const [showImportModal, setShowImportModal] = useState(false)
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          bio: companyBio,
           website: companyWebsite,
           serviceArea: companyServiceArea,
           promoText: companyPromoText
@@ -2365,8 +2363,6 @@ const [showImportModal, setShowImportModal] = useState(false)
           <Text style={styles.sectionTitle}>Map Listing</Text>
           <View style={styles.card}>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>This information appears on your public map listing.</Text>
-            <Text style={styles.fieldLabel}>Bio / Description</Text>
-            <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} value={companyBio} onChangeText={setCompanyBio} placeholder="Tell patients about your company..." placeholderTextColor="#444" multiline />
             <Text style={styles.fieldLabel}>Website</Text>
             <TextInput style={styles.input} value={companyWebsite} onChangeText={setCompanyWebsite} placeholder="https://yourcompany.com" placeholderTextColor="#444" autoCapitalize="none" />
             <Text style={styles.fieldLabel}>Service Area</Text>
