@@ -2055,6 +2055,49 @@ const [showImportModal, setShowImportModal] = useState(false)
                     </View>
                   </View>
 
+                  {/* Card on File + Charge Cancel Fee */}
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>PAYMENT</Text>
+                    {psProfileData?.hasCardOnFile ? (
+                      <>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Card on File</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Stripe saved payment method</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={{ backgroundColor: 'rgba(240,144,144,0.15)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f09090' }}
+                          onPress={() => {
+                            Alert.prompt(
+                              'Charge Cancel Fee',
+                              'Enter amount to charge ' + psSelectedPatient?.first_name + ' ' + psSelectedPatient?.last_name + ':',
+                              async (amountStr) => {
+                                const amount = parseFloat(amountStr)
+                                if (!amount || amount <= 0) return Alert.alert('Invalid', 'Please enter a valid amount')
+                                try {
+                                  const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
+                                    method: 'POST',
+                                    headers: { ...headers, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ amount, description: 'Cancel fee' })
+                                  })
+                                  const data = await res.json()
+                                  if (data.success) Alert.alert('Charged', '$' + amount + ' cancel fee charged successfully.')
+                                  else Alert.alert('Error', data.error || 'Charge failed')
+                                } catch (e) { Alert.alert('Error', 'Network error') }
+                              },
+                              'plain-text',
+                              '',
+                              'numeric'
+                            )
+                          }}
+                        >
+                          <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>Charge Cancel Fee</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No card on file</Text>
+                    )}
+                  </View>
+
                   {psEditing && (
                     <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }} onPress={savePsProfile} disabled={psSavingProfile}>
                       {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
