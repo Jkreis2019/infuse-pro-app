@@ -954,6 +954,11 @@ const submitSendIntake = async () => {
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {booking.patient_name}</Text>
+                {booking.is_minor && (
+                  <View style={{ backgroundColor: 'rgba(229,62,62,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, borderWidth: 1, borderColor: 'rgba(229,62,62,0.4)' }}>
+                    <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700' }}>⚠️ MINOR — Guardian: {booking.guardian_name || 'Required'}</Text>
+                  </View>
+                )}
                 {booking.membership && (
                   <View style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700' }}>🏅 {booking.membership.plan_name}</Text>
@@ -1203,6 +1208,11 @@ const submitSendIntake = async () => {
                   </View>
                 </View>
                 <Text style={styles.cardPatient}>👤 {call.patient_name}</Text>
+                {call.is_minor && (
+                  <View style={{ backgroundColor: 'rgba(229,62,62,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, borderWidth: 1, borderColor: 'rgba(229,62,62,0.4)' }}>
+                    <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700' }}>⚠️ MINOR — Guardian: {call.guardian_name || 'Required'}</Text>
+                  </View>
+                )}
                 {call.membership && (
                   <View style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3, alignSelf: 'flex-start', marginBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                     <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700' }}>🏅 {call.membership.plan_name}</Text>
