@@ -209,6 +209,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [newPlanDesc, setNewPlanDesc] = useState('')
   const [newPlanVisits, setNewPlanVisits] = useState('4')
   const [savingPlan, setSavingPlan] = useState(false)
+  const [newPlanCancellationPolicy, setNewPlanCancellationPolicy] = useState('')
   const [membershipTab, setMembershipTab] = useState('plans')
   const [enrollModal, setEnrollModal] = useState(false)
   const [enrollPatientQuery, setEnrollPatientQuery] = useState('')
@@ -1736,6 +1737,15 @@ const [showImportModal, setShowImportModal] = useState(false)
                     </TouchableOpacity>
                   ))}
                 </View>
+                <Text style={styles.fieldLabel}>Cancellation Policy</Text>
+                <TextInput
+                  style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+                  value={newPlanCancellationPolicy}
+                  onChangeText={setNewPlanCancellationPolicy}
+                  placeholder="e.g. Cancel anytime. No refunds for partial months..."
+                  placeholderTextColor="#666"
+                  multiline
+                />
                 <TouchableOpacity
                   style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', opacity: savingPlan ? 0.6 : 1 }}
                   disabled={savingPlan}
@@ -1746,7 +1756,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                       const res = await fetch(`${API_URL}/memberships/plans`, {
                         method: 'POST',
                         headers: { ...headers, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: newPlanName, description: newPlanDesc, price: parseFloat(newPlanPrice), billingCycle: 'monthly', maxRedemptionsPerCycle: newPlanVisits === 'unlimited' ? 999 : parseInt(newPlanVisits) })
+                        body: JSON.stringify({ name: newPlanName, description: newPlanDesc, price: parseFloat(newPlanPrice), billingCycle: 'monthly', maxRedemptionsPerCycle: newPlanVisits === 'unlimited' ? 999 : parseInt(newPlanVisits), cancellationPolicy: newPlanCancellationPolicy })
                       })
                       const data = await res.json()
                       if (data.success) {
