@@ -258,6 +258,7 @@ const cancelAttentionBooking = async (bookingId) => {
 
   const assignTechs = async (singleTechId = null) => {
     const techIds = singleTechId ? [singleTechId] : selectedTechs
+    console.log('assignTechs called — techIds:', techIds, 'singleTechId:', singleTechId, 'selectedTechs:', selectedTechs)
     if (techIds.length === 0) return Alert.alert('Select at least one tech')
 
     // If reassign or active call, skip time picker
@@ -315,6 +316,7 @@ const cancelAttentionBooking = async (bookingId) => {
         const data = await res.json()
         if (!data.success) return Alert.alert('Error', data.message || 'Could not assign tech')
 
+        console.log('techIds after assign:', techIds, 'length:', techIds.length)
         if (techIds.length > 1) {
           const callRes = await fetch(`${API_URL}/dispatch/queue`, { headers })
           const callData = await callRes.json()
