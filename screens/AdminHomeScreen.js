@@ -2368,8 +2368,8 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.fieldLabel}>Service Area</Text>
             <TextInput style={styles.input} value={companyServiceArea} onChangeText={setCompanyServiceArea} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" />
             <Text style={styles.fieldLabel}>🏷️ Current Promo <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>(Scale plan only — shows as banner on map)</Text></Text>
-            <TextInput style={[styles.input, { height: 70, textAlignVertical: 'top' }]} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" multiline maxLength={280} />
-            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>{companyPromoText.length}/280</Text>
+            <TextInput style={styles.input} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" maxLength={80} />
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>{companyPromoText.length}/80</Text>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: primaryColor }, savingSettings && { opacity: 0.6 }]}
               onPress={saveListingSettings}
@@ -2535,7 +2535,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TextInput style={[styles.input, { borderColor: rColor }]} value={rColor} onChangeText={setRColor} placeholder="#C9A84C" placeholderTextColor="#444" autoCapitalize="characters" />
             <View style={{ height: 40, borderRadius: 8, backgroundColor: rColor, marginBottom: 16 }} />
             <Text style={styles.fieldLabel}>Cities (comma separated)</Text>
-            <TextInput style={[styles.input, { height: 120, textAlignVertical: 'top' }]} value={rCities} onChangeText={setRCities} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" multiline />
+            <TextInput style={[styles.input, { height: 120, textAlignVertical: 'top' }]} value={rCities} onChangeText={setRCities} placeholder="e.g. Phoenix, Scottsdale, Tempe, Mesa, Chandler" placeholderTextColor="#444" multiline />
             <TouchableOpacity style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor, marginTop: 8 }, savingRegion && { opacity: 0.6 }]} onPress={saveRegion} disabled={savingRegion}>
               {savingRegion ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{selectedRegion ? 'Save Changes' : 'Create Region'}</Text>}
             </TouchableOpacity>
