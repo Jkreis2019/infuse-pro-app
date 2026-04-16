@@ -315,35 +315,18 @@ const cancelAttentionBooking = async (bookingId) => {
           })
         })
         const data = await res.json()
-        if (!data.success) return Alert.alert('Error', data.message || 'Could not assign tech')
+if (!data.success) return Alert.alert('Error', data.message || 'Could not assign tech')
 
-        console.log('techIds after assign:', techIds, 'length:', techIds.length)
-        if (techIds.length > 1) {
-          const callRes = await fetch(`${API_URL}/dispatch/queue`, { headers })
-          const callData = await callRes.json()
-          // Check both active and upcoming for the call record
-          const allCalls = [...(callData.active || []), ...(callData.queue || [])]
-          let call = allCalls.find(c => c.booking_id === selectedBooking.id)
-          // Also check by booking id directly
-          if (!call) {
-            const bookingCallRes = await fetch(`${API_URL}/calls/booking/${selectedBooking.id}`, { headers })
-            const bookingCallData = await bookingCallRes.json()
-            console.log('calls/booking lookup:', JSON.stringify(bookingCallData))
-            call = bookingCallData.call
-          }
-          console.log('call found for secondary techs:', call?.id)
-          if (call) {
-            for (const techId of techIds.slice(1)) {
-              await fetch(`${API_URL}/calls/${call.id}/techs`, {
-                method: 'POST',
-                headers: { ...headers, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tech_id: techId })
-              })
-            }
-          }
-        }
+if (techIds.length > 1 && data.call?.id) {
+  for (const techId of techIds.slice(1)) {
+    await fetch(`${API_URL}/calls/${data.call.id}/techs`, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tech_id: techId })
+    })
+  }
+}
       }
-
       setConfirmTimeModal(false)
       setAssignModal(false)
       setSelectedBooking(null)
