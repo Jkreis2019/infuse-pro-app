@@ -300,6 +300,9 @@ const [showImportModal, setShowImportModal] = useState(false)
         Alert.alert('Charged', `$${amount.toFixed(2)} cancel fee charged successfully.`)
         setCancelFeeModal(false)
         setCancelFeeAmount('')
+      } else if (data.error === 'Stripe not connected') {
+        Alert.alert('Stripe Not Connected', 'Go to Billing → Connect Stripe to enable cancel fee charging.')
+        setCancelFeeModal(false)
       } else {
         Alert.alert('Error', data.error || 'Charge failed')
       }
