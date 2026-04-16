@@ -340,6 +340,10 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [companyEmail, setCompanyEmail] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
   const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
+  const [companyBio, setCompanyBio] = useState('')
+  const [companyWebsite, setCompanyWebsite] = useState('')
+  const [companyServiceArea, setCompanyServiceArea] = useState('')
+  const [companyPromoText, setCompanyPromoText] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
 
   // New staff modal
@@ -746,6 +750,25 @@ const [showImportModal, setShowImportModal] = useState(false)
       if (data.success) Alert.alert('Saved', 'Branding colors updated.')
       else Alert.alert('Error', data.message || 'Could not save branding')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingBranding(false) }
+  }
+
+  const saveListingSettings = async () => {
+    setSavingSettings(true)
+    try {
+      const res = await fetch(`${API_URL}/admin/company/settings`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bio: companyBio,
+          website: companyWebsite,
+          serviceArea: companyServiceArea,
+          promoText: companyPromoText
+        })
+      })
+      const data = await res.json()
+      if (data.success) Alert.alert('Saved', 'Map listing updated.')
+      else Alert.alert('Error', data.message || 'Could not save listing')
+    } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingSettings(false) }
   }
 
   const saveSettings = async () => {
@@ -2337,6 +2360,26 @@ const [showImportModal, setShowImportModal] = useState(false)
             )}
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor }, savingSettings && { opacity: 0.6 }]} onPress={saveSettings} disabled={savingSettings}>
               {savingSettings ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Settings</Text>}
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.sectionTitle}>Map Listing</Text>
+          <View style={styles.card}>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>This information appears on your public map listing.</Text>
+            <Text style={styles.fieldLabel}>Bio / Description</Text>
+            <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} value={companyBio} onChangeText={setCompanyBio} placeholder="Tell patients about your company..." placeholderTextColor="#444" multiline />
+            <Text style={styles.fieldLabel}>Website</Text>
+            <TextInput style={styles.input} value={companyWebsite} onChangeText={setCompanyWebsite} placeholder="https://yourcompany.com" placeholderTextColor="#444" autoCapitalize="none" />
+            <Text style={styles.fieldLabel}>Service Area</Text>
+            <TextInput style={styles.input} value={companyServiceArea} onChangeText={setCompanyServiceArea} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" />
+            <Text style={styles.fieldLabel}>🏷️ Current Promo <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>(Scale plan only — shows as banner on map)</Text></Text>
+            <TextInput style={[styles.input, { height: 70, textAlignVertical: 'top' }]} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" multiline maxLength={280} />
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>{companyPromoText.length}/280</Text>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: primaryColor }, savingSettings && { opacity: 0.6 }]}
+              onPress={saveListingSettings}
+              disabled={savingSettings}
+            >
+              {savingSettings ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Listing</Text>}
             </TouchableOpacity>
           </View>
           <Text style={styles.sectionTitle}>Account</Text>
