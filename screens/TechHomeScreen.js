@@ -647,6 +647,7 @@ const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   const [showNpOrders, setShowNpOrders] = useState(false)
   const [npOrders, setNpOrders] = useState(null)
   const [patientPerks, setPatientPerks] = useState(null)
+  const [patientMembership, setPatientMembership] = useState(null)
   const [redeemingPerk, setRedeemingPerk] = useState(false)
   const [techProfile, setTechProfile] = useState(null)
   const [staffAnnouncements, setStaffAnnouncements] = useState([])
@@ -767,6 +768,7 @@ const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
         if (data.call?.user_id) {
           fetch(`${API_URL}/gfe/patient-orders/${data.call.user_id}`, { headers }).then(r => r.json()).then(d => { if (d.hasActiveGFE) setNpOrders(d.orders); else setNpOrders(null) }).catch(() => setNpOrders(null))
           fetch(`${API_URL}/perks/patient/${data.call.user_id}`, { headers }).then(r => r.json()).then(d => { if (d.hasPerks) setPatientPerks(d); else setPatientPerks(null) }).catch(() => setPatientPerks(null))
+          fetch(`${API_URL}/memberships/patient/${data.call.user_id}`, { headers }).then(r => r.json()).then(d => { if (d.membership) setPatientMembership(d.membership); else setPatientMembership(null) }).catch(() => setPatientMembership(null))
         }
         setPatients(data.patients || [])
         // Check if primary patient has a submitted chart
@@ -1053,6 +1055,14 @@ if (data.call?.call_id) {
                   </View>
                 </View>
               </Modal>
+
+              {call.tech_status === 'on_scene' && patientMembership && (
+                <View style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🏅 ACTIVE MEMBER</Text>
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{patientMembership.plan_name}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{patientMembership.redemptions_this_cycle} of {patientMembership.max_redemptions_per_cycle === 999 ? 'unlimited' : patientMembership.max_redemptions_per_cycle} visits used this month</Text>
+                </View>
+              )}
 
               {call.tech_status === 'on_scene' && patientPerks && (
                 <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#C9A84C', borderRadius: 14, padding: 16, marginBottom: 12 }}>
