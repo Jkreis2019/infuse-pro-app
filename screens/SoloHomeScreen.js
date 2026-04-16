@@ -1003,6 +1003,16 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                     {!b.has_valid_intake && <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 8 }}>⚠️ No intake on file</Text>}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                       <TouchableOpacity
+                        style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 10, padding: 10, alignItems: 'center' }}
+                        onPress={() => {
+                          setPendingBookingId(b.id)
+                          setConfirmTime(b.requested_time ? new Date(b.requested_time) : new Date())
+                          setConfirmTimeModal(true)
+                        }}
+                      >
+                        <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>✓ Confirm</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
                         style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 10, padding: 10, alignItems: 'center' }}
                         onPress={() => { setCancelBookingId(b.id); setCancelReason(''); setCancelDisposition(''); setCancelModal(true) }}
                       >
