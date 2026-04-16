@@ -10,6 +10,7 @@ import WelcomeScreen from './screens/WelcomeScreen'
 import LoginScreen from './screens/LoginScreen'
 import SignupScreen from './screens/SignupScreen'
 import HomeScreen from './screens/HomeScreen'
+import MembershipsScreen from './screens/MembershipsScreen'
 import BookingScreen from './screens/BookingScreen'
 import ProfileScreen from './screens/ProfileScreen'
 import { Platform } from 'react-native'
@@ -192,6 +193,7 @@ export default function App() {
         <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} options={{ title: 'Appointment', headerShown: true }} />
         <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
         <Stack.Screen name="Booking" component={BookingScreen} options={{ title: 'Book Appointment', headerShown: true }} />
+        <Stack.Screen name="Memberships" component={MembershipsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
