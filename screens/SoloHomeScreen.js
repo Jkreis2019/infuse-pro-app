@@ -1901,6 +1901,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
             { key: 'services', label: '💊 Services' },
             { key: 'announcements', label: '📢 Announcement' },
             { key: 'schedule', label: '🕐 Schedule' },
+            { key: 'memberships', label: '🏅 Memberships' },
+            { key: 'billing', label: '💳 Billing' },
             { key: 'audit', label: '📋 Audit Log' },
             { key: 'settings', label: '⚙️ Settings' },
           ].map(t => (
@@ -2443,7 +2445,194 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      {adminTab === 'billing' && (
+        <SoloBillingSection token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} headers={{ Authorization: `Bearer ${token}` }} />
+      )}
+
+      {adminTab === 'memberships' && (
+        <SoloMembershipsSection token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} headers={{ Authorization: `Bearer ${token}` }} />
+      )}
     </View>
+  )
+}
+
+// ─── SOLO BILLING SECTION ─────────────────────────────────────────────────────
+function SoloBillingSection({ token, primaryColor, secondaryColor, headers }) {
+  const API_URL = 'https://api.infusepro.app'
+  const [billingStatus, setBillingStatus] = useState(null)
+  const [connectStatus, setConnectStatus] = useState(null)
+
+  useEffect(() => {
+    fetch(`${API_URL}/billing/status`, { headers }).then(r => r.json()).then(d => { if (d.subscription) setBillingStatus(d.subscription) }).catch(() => {})
+    fetch(`${API_URL}/billing/connect/status`, { headers }).then(r => r.json()).then(d => { if (d.success) setConnectStatus(d) }).catch(() => {})
+  }, [])
+
+  const plans = [
+    { tier: 'solo', price: '$49.99/mo', features: ['Solo operator mode', 'Dispatch + tech in one', 'Patient app', 'Up to 2 staff'] },
+    { tier: 'starter', price: '$99/mo', features: ['Full platform access', 'Up to 5 staff accounts', 'Dispatch console', 'Tech & patient app'] },
+    { tier: 'growth', price: '$199/mo', features: ['Everything in Starter', 'Unlimited staff', 'Announcements & banners', 'Referral & loyalty programs'] },
+    { tier: 'scale', price: '$349/mo', features: ['Everything in Growth', 'Analytics dashboard', 'White label branding', 'Multi-region support'] }
+  ]
+
+  return (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Current Plan</Text>
+        {!billingStatus || billingStatus?.status === 'none' ? (
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
+        ) : (
+          <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>ACTIVE</Text>
+            <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
+            {billingStatus.currentPeriodEnd && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Renews {new Date(billingStatus.currentPeriodEnd).toLocaleDateString()}</Text>}
+          </View>
+        )}
+        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
+        {plans.map(plan => (
+          <View key={plan.tier} style={{ borderWidth: 1, borderColor: billingStatus?.tier === plan.tier ? primaryColor : 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 16, marginBottom: 12, backgroundColor: billingStatus?.tier === plan.tier ? primaryColor + '10' : 'transparent' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', textTransform: 'capitalize' }}>{plan.tier}</Text>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>{plan.price}</Text>
+            </View>
+            {plan.features.map((f, i) => <Text key={i} style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 3 }}>✓ {f}</Text>)}
+            {billingStatus?.tier !== plan.tier && (
+              <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 12 }} onPress={async () => {
+                try {
+                  const isExisting = billingStatus && billingStatus.status !== 'none'
+                  const endpoint = isExisting ? `${API_URL}/billing/update-tier` : `${API_URL}/billing/create-checkout`
+                  const res = await fetch(endpoint, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: plan.tier }) })
+                  const data = await res.json()
+                  if (isExisting && data.success) Alert.alert('Updated!', `Plan changed to ${plan.tier}`)
+                  else if (data.url) Linking.openURL(data.url)
+                  else Alert.alert('Error', data.error || 'Could not update plan')
+                } catch (e) { Alert.alert('Error', 'Network error') }
+              }}>
+                <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{!billingStatus || billingStatus?.status === 'none' ? 'Subscribe' : 'Switch to'} {plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1)}</Text>
+              </TouchableOpacity>
+            )}
+            {billingStatus?.tier === plan.tier && (
+              <View style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8 }}>
+                <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>✓ Current Plan</Text>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+      <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Stripe Payouts</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12 }}>Connect your bank account to receive cancel fee payouts and membership payments.</Text>
+        {connectStatus?.connected ? (
+          <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(76,175,80,0.3)' }}>
+            <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Stripe Connected</Text>
+          </View>
+        ) : (
+          <View style={{ backgroundColor: 'rgba(240,144,144,0.08)', borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}>
+            <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '700' }}>Not Connected</Text>
+          </View>
+        )}
+        <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }} onPress={async () => {
+          try {
+            const res = await fetch(`${API_URL}/billing/connect`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' } })
+            const data = await res.json()
+            if (data.url) Linking.openURL(data.url)
+            else Alert.alert('Error', data.error || 'Could not start bank onboarding')
+          } catch (e) { Alert.alert('Error', 'Network error') }
+        }}>
+          <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{connectStatus?.connected ? 'Update Stripe Account' : 'Connect Stripe'}</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  )
+}
+
+// ─── SOLO MEMBERSHIPS SECTION ─────────────────────────────────────────────────
+function SoloMembershipsSection({ token, primaryColor, secondaryColor, headers }) {
+  const API_URL = 'https://api.infusepro.app'
+  const [membershipTab, setMembershipTab] = useState('plans')
+  const [plans, setPlans] = useState([])
+  const [memberships, setMemberships] = useState([])
+  const [newPlanName, setNewPlanName] = useState('')
+  const [newPlanPrice, setNewPlanPrice] = useState('')
+  const [newPlanDesc, setNewPlanDesc] = useState('')
+  const [newPlanVisits, setNewPlanVisits] = useState('4')
+  const [newPlanPolicy, setNewPlanPolicy] = useState('')
+  const [savingPlan, setSavingPlan] = useState(false)
+
+  useEffect(() => {
+    fetch(`${API_URL}/memberships/plans`, { headers }).then(r => r.json()).then(d => { if (d.plans) setPlans(d.plans) }).catch(() => {})
+    fetch(`${API_URL}/memberships`, { headers }).then(r => r.json()).then(d => { if (d.memberships) setMemberships(d.memberships) }).catch(() => {})
+  }, [])
+
+  const reload = () => {
+    fetch(`${API_URL}/memberships/plans`, { headers }).then(r => r.json()).then(d => { if (d.plans) setPlans(d.plans) }).catch(() => {})
+    fetch(`${API_URL}/memberships`, { headers }).then(r => r.json()).then(d => { if (d.memberships) setMemberships(d.memberships) }).catch(() => {})
+  }
+
+  return (
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+        {['plans', 'members'].map(t => (
+          <TouchableOpacity key={t} style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: membershipTab === t ? primaryColor : 'transparent' }} onPress={() => setMembershipTab(t)}>
+            <Text style={{ color: membershipTab === t ? secondaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '700', textTransform: 'capitalize' }}>{t === 'plans' ? 'Membership Plans' : 'Active Members'}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {membershipTab === 'plans' && (
+        <>
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 16 }}>Create Plan</Text>
+            <TextInput style={sStyles.input} value={newPlanName} onChangeText={setNewPlanName} placeholder="Plan Name" placeholderTextColor="#666" />
+            <TextInput style={sStyles.input} value={newPlanDesc} onChangeText={setNewPlanDesc} placeholder="Description" placeholderTextColor="#666" />
+            <TextInput style={sStyles.input} value={newPlanPrice} onChangeText={setNewPlanPrice} placeholder="Monthly Price ($)" placeholderTextColor="#666" keyboardType="decimal-pad" />
+            <TextInput style={[sStyles.input, { height: 80, textAlignVertical: 'top' }]} value={newPlanPolicy} onChangeText={setNewPlanPolicy} placeholder="Cancellation Policy" placeholderTextColor="#666" multiline />
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+              {['1','2','3','4','6','8','unlimited'].map(n => (
+                <TouchableOpacity key={n} style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, borderColor: newPlanVisits === n ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: newPlanVisits === n ? primaryColor + '20' : 'transparent' }} onPress={() => setNewPlanVisits(n)}>
+                  <Text style={{ color: newPlanVisits === n ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600' }}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', opacity: savingPlan ? 0.6 : 1 }} disabled={savingPlan} onPress={async () => {
+              if (!newPlanName || !newPlanPrice) return Alert.alert('Required', 'Name and price required')
+              setSavingPlan(true)
+              try {
+                const res = await fetch(`${API_URL}/memberships/plans`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newPlanName, description: newPlanDesc, price: parseFloat(newPlanPrice), billingCycle: 'monthly', maxRedemptionsPerCycle: newPlanVisits === 'unlimited' ? 999 : parseInt(newPlanVisits), cancellationPolicy: newPlanPolicy }) })
+                const data = await res.json()
+                if (data.success) { Alert.alert('Created!', 'Membership plan created'); setNewPlanName(''); setNewPlanPrice(''); setNewPlanDesc(''); setNewPlanPolicy(''); reload() }
+                else Alert.alert('Error', data.error || 'Failed')
+              } catch (e) { Alert.alert('Error', 'Network error') } finally { setSavingPlan(false) }
+            }}>
+              {savingPlan ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontWeight: '700' }}>Create Plan</Text>}
+            </TouchableOpacity>
+          </View>
+          {plans.map(plan => (
+            <View key={plan.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: primaryColor }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{plan.name}</Text>
+                <Text style={{ color: primaryColor, fontWeight: '700' }}>${plan.price}/mo</Text>
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month · Monthly billing</Text>
+            </View>
+          ))}
+        </>
+      )}
+
+      {membershipTab === 'members' && (
+        memberships.length === 0 ? (
+          <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No active members yet</Text>
+        ) : memberships.map(m => (
+          <View key={m.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ color: '#fff', fontWeight: '700' }}>{m.first_name} {m.last_name}</Text>
+              <Text style={{ color: primaryColor, fontWeight: '700' }}>{m.plan_name}</Text>
+            </View>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · Monthly billing</Text>
+          </View>
+        ))
+      )}
+    </ScrollView>
   )
 }
 
