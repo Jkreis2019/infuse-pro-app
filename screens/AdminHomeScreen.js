@@ -2309,7 +2309,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <select
                 value={companyTimezone}
                 onChange={(e) => setCompanyTimezone(e.target.value)}
-                style={{ background: '#0a1540', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, fontSize: 14, color: '#fff', width: '100%', marginBottom: 12 }}
+                style={{ background: '#0a1540', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff', width: '100%', marginBottom: 12, height: 52, cursor: 'pointer' }}
               >
                 <option value="America/New_York">Eastern (ET)</option>
                 <option value="America/Chicago">Central (CT)</option>
