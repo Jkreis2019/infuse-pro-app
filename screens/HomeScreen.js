@@ -13,6 +13,8 @@ export default function HomeScreen({ route, navigation }) {
   const [announcements, setAnnouncements] = useState([])
   const [currentAnnouncement, setCurrentAnnouncement] = useState(0)
   const [linkedCompanyId, setLinkedCompanyId] = useState(null)
+  const [membershipPlans, setMembershipPlans] = useState([])
+  const [activeMembership, setActiveMembership] = useState(null)
 
   const fetchLinkedCompany = async () => {
     try {
@@ -35,6 +37,16 @@ export default function HomeScreen({ route, navigation }) {
     fetchBookings()
     fetchIntakeStatus()
     fetchAnnouncements()
+    if (company?.id) {
+      fetch(`${API_URL}/memberships/plans/public/${company.id}`)
+        .then(r => r.json())
+        .then(d => { if (d.plans) setMembershipPlans(d.plans) })
+        .catch(() => {})
+      fetch(`${API_URL}/memberships/patient/${user?.id}`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(d => { if (d.membership) setActiveMembership(d.membership) })
+        .catch(() => {})
+    }
     fetchLinkedCompany()
     
     const interval = setInterval(() => {
@@ -212,6 +224,50 @@ export default function HomeScreen({ route, navigation }) {
               ))}
             </View>
           )}
+        </View>
+      )}
+
+      {/* Membership Plans */}
+      {membershipPlans.length > 0 && (
+        <View style={{ marginHorizontal: 16, marginBottom: 16 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>MEMBERSHIP PLANS</Text>
+          {membershipPlans.map(plan => (
+            <View key={plan.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>🏅 {plan.name}</Text>
+                <Text style={{ color: company.primaryColor, fontSize: 16, fontWeight: '700' }}>${plan.price}/mo</Text>
+              </View>
+              {plan.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 8 }}>{plan.description}</Text>}
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
+              {activeMembership?.plan_id === plan.id ? (
+                <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 13 }}>✓ Active Member — {activeMembership.redemptions_this_cycle}/{plan.max_redemptions_per_cycle === 999 ? '∞' : plan.max_redemptions_per_cycle} visits used</Text>
+                </View>
+              ) : plan.stripe_price_id ? (
+                <TouchableOpacity
+                  style={{ backgroundColor: company.primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}
+                  onPress={async () => {
+                    try {
+                      const res = await fetch(`${API_URL}/memberships/subscribe`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ planId: plan.id })
+                      })
+                      const data = await res.json()
+                      if (data.url) Linking.openURL(data.url)
+                      else Alert.alert('Error', data.error || 'Could not start subscription')
+                    } catch (e) { Alert.alert('Error', 'Network error') }
+                  }}
+                >
+                  <Text style={{ color: company.secondaryColor, fontWeight: '700', fontSize: 14 }}>Subscribe</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Contact us to enroll</Text>
+                </View>
+              )}
+            </View>
+          ))}
         </View>
       )}
 
