@@ -1623,6 +1623,13 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [psEditState, setPsEditState] = useState('')
   const [psEditZip, setPsEditZip] = useState('')
   const [psSavingProfile, setPsSavingProfile] = useState(false)
+  const [psEditEmergencyContact, setPsEditEmergencyContact] = useState('')
+  const [psEditEmergencyPhone, setPsEditEmergencyPhone] = useState('')
+  const [psEditEmergencyRelationship, setPsEditEmergencyRelationship] = useState('')
+  const [psEditInsuranceProvider, setPsEditInsuranceProvider] = useState('')
+  const [psEditInsuranceMemberId, setPsEditInsuranceMemberId] = useState('')
+  const [psEditInsuranceGroupNumber, setPsEditInsuranceGroupNumber] = useState('')
+  const [psEditInsurancePhone, setPsEditInsurancePhone] = useState('')
 
   // Services
   const [services, setServices] = useState([])
@@ -1793,6 +1800,13 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
         setPsEditCity(data.patient?.city || '')
         setPsEditState(data.patient?.state || '')
         setPsEditZip(data.patient?.zip || '')
+        setPsEditEmergencyContact(data.patient?.emergency_contact_name || '')
+        setPsEditEmergencyPhone(data.patient?.emergency_contact_phone || '')
+        setPsEditEmergencyRelationship(data.patient?.emergency_contact_relationship || '')
+        setPsEditInsuranceProvider(data.patient?.insurance_provider || '')
+        setPsEditInsuranceMemberId(data.patient?.insurance_member_id || '')
+        setPsEditInsuranceGroupNumber(data.patient?.insurance_group_number || '')
+        setPsEditInsurancePhone(data.patient?.insurance_phone || '')
       }
     } catch (err) { Alert.alert('Error', 'Network error') }
     finally { setPsLoadingProfile(false) }
@@ -1804,7 +1818,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/update`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: psEditPhone, homeAddress: psEditAddress, city: psEditCity, state: psEditState, zip: psEditZip })
+        body: JSON.stringify({ phone: psEditPhone, homeAddress: psEditAddress, city: psEditCity, state: psEditState, zip: psEditZip, emergencyContactName: psEditEmergencyContact, emergencyContactPhone: psEditEmergencyPhone, emergencyContactRelationship: psEditEmergencyRelationship, insuranceProvider: psEditInsuranceProvider, insuranceMemberId: psEditInsuranceMemberId, insuranceGroupNumber: psEditInsuranceGroupNumber, insurancePhone: psEditInsurancePhone })
       })
       const data = await res.json()
       if (data.success) { setPsEditing(false); openProfile(psSelectedPatient); Alert.alert('✅ Saved', 'Patient profile updated') }
@@ -2007,6 +2021,12 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                 <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
                   {psActiveTab === 'overview' && (
                     <>
+                      {psProfileData?.intake?.allergies_detail?.length > 0 && (
+                        <View style={{ backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: '#e53e3e', borderRadius: 10, padding: 10, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Text style={{ fontSize: 16 }}>⚠️</Text>
+                          <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '700', flex: 1 }}>ALLERGIES: {Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail.join(', ') : psProfileData.intake.allergies_detail}</Text>
+                        </View>
+                      )}
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                           <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
@@ -2014,14 +2034,10 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                             <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>{psEditing ? 'Cancel' : '✏️ Edit'}</Text>
                           </TouchableOpacity>
                         </View>
-                        {[
-                          { label: 'PHONE', val: psEditPhone, setter: setPsEditPhone, placeholder: 'Phone number', keyboard: 'phone-pad' },
-                        ].map(f => (
-                          <View key={f.label} style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
-                            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>{f.label}</Text>
-                            {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={f.val} onChangeText={f.setter} placeholder={f.placeholder} placeholderTextColor="#666" keyboardType={f.keyboard || 'default'} /> : <Text style={{ color: f.val ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{f.val || 'Not on file'}</Text>}
-                          </View>
-                        ))}
+                        <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PHONE</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditPhone} onChangeText={setPsEditPhone} placeholder="Phone number" placeholderTextColor="#666" keyboardType="phone-pad" /> : <Text style={{ color: psEditPhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditPhone || 'Not on file'}</Text>}
+                        </View>
                         {psSelectedPatient?.email && (
                           <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>EMAIL</Text>
@@ -2039,11 +2055,64 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                                 <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4, flex: 1 }} value={psEditZip} onChangeText={setPsEditZip} placeholder="ZIP" placeholderTextColor="#666" keyboardType="numeric" maxLength={5} />
                               </View>
                             </>
-                          ) : (
-                            <Text style={{ color: psEditAddress ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditAddress ? `${psEditAddress}${psEditCity ? `, ${psEditCity}` : ''}${psEditState ? `, ${psEditState}` : ''}${psEditZip ? ` ${psEditZip}` : ''}` : 'Not on file'}</Text>
-                          )}
+                          ) : <Text style={{ color: psEditAddress ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditAddress ? `${psEditAddress}${psEditCity ? `, ${psEditCity}` : ''}${psEditState ? `, ${psEditState}` : ''}${psEditZip ? ` ${psEditZip}` : ''}` : 'Not on file'}</Text>}
                         </View>
                       </View>
+
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                        <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>NAME</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyContact} onChangeText={setPsEditEmergencyContact} placeholder="Emergency contact name" placeholderTextColor="#666" /> : <Text style={{ color: psEditEmergencyContact ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyContact || 'Not on file'}</Text>}
+                        </View>
+                        <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PHONE</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyPhone} onChangeText={setPsEditEmergencyPhone} placeholder="Emergency contact phone" placeholderTextColor="#666" keyboardType="phone-pad" /> : <Text style={{ color: psEditEmergencyPhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyPhone || 'Not on file'}</Text>}
+                        </View>
+                        <View style={{ paddingVertical: 6 }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>RELATIONSHIP</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyRelationship} onChangeText={setPsEditEmergencyRelationship} placeholder="e.g. Spouse, Parent" placeholderTextColor="#666" /> : <Text style={{ color: psEditEmergencyRelationship ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyRelationship || 'Not on file'}</Text>}
+                        </View>
+                      </View>
+
+                      {psProfileData?.intake && (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
+                          {psProfileData.intake.allergies_detail?.length > 0 && (
+                            <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
+                              <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ ALLERGIES</Text>
+                              {(Array.isArray(psProfileData.intake.allergies_detail) ? psProfileData.intake.allergies_detail : []).map((a, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {a}</Text>)}
+                            </View>
+                          )}
+                          {psProfileData.intake.important_history?.length > 0 && (
+                            <View style={{ backgroundColor: 'rgba(255,152,0,0.1)', borderRadius: 8, padding: 10 }}>
+                              <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚡ IMPORTANT HISTORY</Text>
+                              {(Array.isArray(psProfileData.intake.important_history) ? psProfileData.intake.important_history : []).map((h, i) => <Text key={i} style={{ color: '#fff', fontSize: 13 }}>• {h}</Text>)}
+                            </View>
+                          )}
+                        </View>
+                      )}
+
+                      <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
+                        <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceProvider} onChangeText={setPsEditInsuranceProvider} placeholder="e.g. Blue Cross" placeholderTextColor="#666" /> : <Text style={{ color: psEditInsuranceProvider ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceProvider || 'Not on file'}</Text>}
+                        </View>
+                        <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>MEMBER ID</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceMemberId} onChangeText={setPsEditInsuranceMemberId} placeholder="Member ID" placeholderTextColor="#666" /> : <Text style={{ color: psEditInsuranceMemberId ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceMemberId || 'Not on file'}</Text>}
+                        </View>
+                        <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>GROUP NUMBER</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceGroupNumber} onChangeText={setPsEditInsuranceGroupNumber} placeholder="Group number" placeholderTextColor="#666" /> : <Text style={{ color: psEditInsuranceGroupNumber ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceGroupNumber || 'Not on file'}</Text>}
+                        </View>
+                        <View style={{ paddingVertical: 6 }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>INSURANCE PHONE</Text>
+                          {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsurancePhone} onChangeText={setPsEditInsurancePhone} placeholder="Insurance phone" placeholderTextColor="#666" keyboardType="phone-pad" /> : <Text style={{ color: psEditInsurancePhone ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsurancePhone || 'Not on file'}</Text>}
+                        </View>
+                      </View>
+
                       {psEditing && (
                         <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }} onPress={saveProfile} disabled={psSavingProfile}>
                           {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
