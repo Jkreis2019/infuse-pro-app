@@ -1706,11 +1706,11 @@ const [showImportModal, setShowImportModal] = useState(false)
           </View>
           {/* Stripe Connect */}
           <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Bank Account</Text>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Stripe Payouts</Text>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12 }}>Connect your bank account to receive cancel fee payouts and membership payments.</Text>
             {connectStatus?.connected ? (
               <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(76,175,80,0.3)' }}>
-                <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Bank Account Connected</Text>
+                <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Stripe Connected</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Payouts and cancel fee charges are enabled.</Text>
               </View>
             ) : (
@@ -1727,12 +1727,12 @@ const [showImportModal, setShowImportModal] = useState(false)
                   const data = await res.json()
                   if (data.url) {
                     if (typeof window !== 'undefined') window.location.href = data.url
-                    else Alert.alert('Connect Bank Account', 'Please open this link: ' + data.url)
+                    else Alert.alert('Connect Stripe', 'Please open this link: ' + data.url)
                   } else Alert.alert('Error', data.error || 'Could not start bank onboarding')
                 } catch (e) { Alert.alert('Error', 'Network error') }
               }}
             >
-              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{connectStatus?.connected ? 'Update Bank Account' : 'Connect Bank Account'}</Text>
+              <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 14 }}>{connectStatus?.connected ? 'Update Stripe Account' : 'Connect Stripe'}</Text>
             </TouchableOpacity>
           </View>
 
