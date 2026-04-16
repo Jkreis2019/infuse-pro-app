@@ -201,6 +201,21 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [loyaltyRewardAmount, setLoyaltyRewardAmount] = useState('0')
   const [loyaltyRewardPercent, setLoyaltyRewardPercent] = useState('50')
   const [savingLoyalty, setSavingLoyalty] = useState(false)
+  // Memberships
+  const [membershipPlans, setMembershipPlans] = useState([])
+  const [memberships, setMemberships] = useState([])
+  const [newPlanName, setNewPlanName] = useState('')
+  const [newPlanPrice, setNewPlanPrice] = useState('')
+  const [newPlanDesc, setNewPlanDesc] = useState('')
+  const [newPlanVisits, setNewPlanVisits] = useState('4')
+  const [savingPlan, setSavingPlan] = useState(false)
+  const [membershipTab, setMembershipTab] = useState('plans')
+  const [enrollModal, setEnrollModal] = useState(false)
+  const [enrollPatientQuery, setEnrollPatientQuery] = useState('')
+  const [enrollPatientResults, setEnrollPatientResults] = useState([])
+  const [enrollSelectedPatient, setEnrollSelectedPatient] = useState(null)
+  const [enrollSelectedPlan, setEnrollSelectedPlan] = useState(null)
+  const [enrolling, setEnrolling] = useState(false)
 
   // Announcements
   const [announcements, setAnnouncements] = useState([])
@@ -570,10 +585,12 @@ const [showImportModal, setShowImportModal] = useState(false)
         fetch(`${API_URL}/admin/announcements`, { headers }),
         fetch(`${API_URL}/admin/referral-settings`, { headers }),
         fetch(`${API_URL}/admin/loyalty`, { headers }),
-        fetch(`${API_URL}/billing/status`, { headers })
+        fetch(`${API_URL}/billing/status`, { headers }),
+        fetch(`${API_URL}/memberships/plans`, { headers }),
+        fetch(`${API_URL}/memberships`, { headers })
       ])
-      const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json()
+      const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData, plansRes, membersRes] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json(), plansData.json(), membersData.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
@@ -581,6 +598,8 @@ const [showImportModal, setShowImportModal] = useState(false)
       if (regData.regions) setRegions(regData.regions)
       if (anData.announcements) setAnnouncements(anData.announcements)
       if (bilData.subscription) setBillingStatus(bilData.subscription)
+      if (plansRes.plans) setMembershipPlans(plansRes.plans)
+      if (membersRes.memberships) setMemberships(membersRes.memberships)
       try {
         const connRes = await fetch(`${API_URL}/billing/connect/status`, { headers })
         const connData = await connRes.json()
@@ -904,7 +923,7 @@ const [showImportModal, setShowImportModal] = useState(false)
     return <View style={styles.centered}><ActivityIndicator color={primaryColor} size="large" /></View>
   }
 
-  const TABS = ['dashboard', 'patients', 'messages', 'reports', 'staff', 'regions', 'services', 'announcements', 'referrals', 'loyalty', 'documents', 'branding', 'schedule', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
+  const TABS = ['dashboard', 'patients', 'messages', 'reports', 'staff', 'regions', 'services', 'announcements', 'referrals', 'loyalty', 'memberships', 'documents', 'branding', 'schedule', ...(user?.role === 'owner' ? ['billing'] : []), 'audit', 'settings']
 
   return (
     <View style={styles.container}>
@@ -1686,6 +1705,118 @@ const [showImportModal, setShowImportModal] = useState(false)
         </ScrollView>
       )}
 
+      {/* ── MEMBERSHIPS ── */}
+      {activeTab === 'memberships' && (
+        <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
+          {/* Sub tabs */}
+          <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4, marginBottom: 16 }}>
+            {['plans', 'members'].map(t => (
+              <TouchableOpacity key={t} style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10, backgroundColor: membershipTab === t ? primaryColor : 'transparent' }} onPress={() => setMembershipTab(t)}>
+                <Text style={{ color: membershipTab === t ? secondaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '700', textTransform: 'capitalize' }}>{t === 'plans' ? 'Membership Plans' : 'Active Members'}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {membershipTab === 'plans' && (
+            <>
+              {/* Create new plan */}
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 16 }}>Create Membership Plan</Text>
+                <Text style={styles.fieldLabel}>Plan Name</Text>
+                <TextInput style={styles.input} value={newPlanName} onChangeText={setNewPlanName} placeholder="e.g. Gold, Monthly, VIP" placeholderTextColor="#666" />
+                <Text style={styles.fieldLabel}>Description</Text>
+                <TextInput style={styles.input} value={newPlanDesc} onChangeText={setNewPlanDesc} placeholder="What's included..." placeholderTextColor="#666" />
+                <Text style={styles.fieldLabel}>Monthly Price ($)</Text>
+                <TextInput style={styles.input} value={newPlanPrice} onChangeText={setNewPlanPrice} keyboardType="decimal-pad" placeholder="99.00" placeholderTextColor="#666" />
+                <Text style={styles.fieldLabel}>Visits per Month</Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                  {['1', '2', '3', '4', '6', '8', 'unlimited'].map(n => (
+                    <TouchableOpacity key={n} style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 10, borderColor: newPlanVisits === n ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: newPlanVisits === n ? primaryColor + '20' : 'transparent' }} onPress={() => setNewPlanVisits(n)}>
+                      <Text style={{ color: newPlanVisits === n ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 13 }}>{n}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity
+                  style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', opacity: savingPlan ? 0.6 : 1 }}
+                  disabled={savingPlan}
+                  onPress={async () => {
+                    if (!newPlanName || !newPlanPrice) return Alert.alert('Required', 'Name and price are required')
+                    setSavingPlan(true)
+                    try {
+                      const res = await fetch(`${API_URL}/memberships/plans`, {
+                        method: 'POST',
+                        headers: { ...headers, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: newPlanName, description: newPlanDesc, price: parseFloat(newPlanPrice), billingCycle: 'monthly', maxRedemptionsPerCycle: newPlanVisits === 'unlimited' ? 999 : parseInt(newPlanVisits) })
+                      })
+                      const data = await res.json()
+                      if (data.success) {
+                        Alert.alert('Created', 'Membership plan created!')
+                        setNewPlanName(''); setNewPlanPrice(''); setNewPlanDesc(''); setNewPlanVisits('4')
+                        fetchAll()
+                      } else Alert.alert('Error', data.error || 'Failed to create plan')
+                    } catch (e) { Alert.alert('Error', 'Network error') } finally { setSavingPlan(false) }
+                  }}
+                >
+                  {savingPlan ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Create Plan</Text>}
+                </TouchableOpacity>
+              </View>
+
+              {/* Existing plans */}
+              {membershipPlans.length === 0 ? (
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 24, alignItems: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No membership plans yet</Text>
+                </View>
+              ) : membershipPlans.map(plan => (
+                <View key={plan.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: primaryColor }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{plan.name}</Text>
+                    <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>${plan.price}/mo</Text>
+                  </View>
+                  {plan.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 8 }}>{plan.description}</Text>}
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
+                  <Text style={{ color: plan.stripe_price_id ? '#4CAF50' : '#FF9800', fontSize: 11, marginTop: 6 }}>{plan.stripe_price_id ? '✓ Stripe Connected' : '⚠ No Stripe — manual enrollment only'}</Text>
+                  <TouchableOpacity
+                    style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12, borderWidth: 1, borderColor: 'rgba(240,144,144,0.3)' }}
+                    onPress={() => Alert.alert('Deactivate Plan', 'This will hide the plan from new signups. Existing members keep their membership.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Deactivate', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/memberships/plans/${plan.id}`, { method: 'DELETE', headers }); fetchAll() } }])}
+                  >
+                    <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Deactivate Plan</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
+
+          {membershipTab === 'members' && (
+            <>
+              <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => { setEnrollModal(true); setEnrollPatientQuery(''); setEnrollPatientResults([]); setEnrollSelectedPatient(null); setEnrollSelectedPlan(null) }}>
+                <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Manually Enroll Patient</Text>
+              </TouchableOpacity>
+              {memberships.length === 0 ? (
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 24, alignItems: 'center' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No active members yet</Text>
+                </View>
+              ) : memberships.map(m => (
+                <View key={m.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{m.first_name} {m.last_name}</Text>
+                    <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>{m.plan_name}</Text>
+                  </View>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{m.email}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used this cycle</Text>
+                  <TouchableOpacity
+                    style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 10, borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
+                    onPress={() => Alert.alert('Cancel Membership', `Cancel ${m.first_name}'s membership?`, [{ text: 'Keep', style: 'cancel' }, { text: 'Cancel Membership', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/memberships/${m.id}/cancel`, { method: 'POST', headers }); fetchAll() } }])}
+                  >
+                    <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '600' }}>Cancel Membership</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
       {/* ── BILLING ── */}
       {activeTab === 'billing' && (
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
@@ -2300,6 +2431,79 @@ const [showImportModal, setShowImportModal] = useState(false)
 
               <View style={{ height: 40 }} />
             </ScrollView>
+          )}
+
+          {/* Enroll Patient Modal */}
+          {enrollModal && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+              <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 480, maxHeight: '90%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', padding: 20 }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MANUAL ENROLLMENT</Text>
+                  <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>Enroll Patient</Text>
+                </View>
+                <ScrollView style={{ padding: 20 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>SEARCH PATIENT</Text>
+                  <TextInput
+                    style={{ ...styles.input, outlineStyle: 'none', marginBottom: 8 }}
+                    value={enrollPatientQuery}
+                    onChangeText={async (q) => {
+                      setEnrollPatientQuery(q)
+                      if (q.length < 2) { setEnrollPatientResults([]); return }
+                      try {
+                        const res = await fetch(`${API_URL}/patients/search?q=${encodeURIComponent(q)}`, { headers })
+                        const data = await res.json()
+                        if (data.patients) setEnrollPatientResults(data.patients)
+                      } catch (e) {}
+                    }}
+                    placeholder="Search by name, email or phone..."
+                    placeholderTextColor="#666"
+                  />
+                  {enrollPatientResults.map(p => (
+                    <TouchableOpacity key={p.id} style={{ backgroundColor: enrollSelectedPatient?.id === p.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPatient?.id === p.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPatient(p)}>
+                      <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 16, marginBottom: 8 }}>SELECT PLAN</Text>
+                  {membershipPlans.map(plan => (
+                    <TouchableOpacity key={plan.id} style={{ backgroundColor: enrollSelectedPlan?.id === plan.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPlan?.id === plan.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPlan(plan)}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ color: '#fff', fontWeight: '600' }}>{plan.name}</Text>
+                        <Text style={{ color: primaryColor, fontWeight: '700' }}>${plan.price}/mo</Text>
+                      </View>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{plan.max_redemptions_per_cycle === 999 ? 'Unlimited' : plan.max_redemptions_per_cycle} visits/month</Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 20, marginBottom: 8 }}>
+                    <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={() => setEnrollModal(false)}>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ flex: 2, backgroundColor: enrollSelectedPatient && enrollSelectedPlan ? primaryColor : 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 16, alignItems: 'center', opacity: enrolling ? 0.6 : 1 }}
+                      disabled={!enrollSelectedPatient || !enrollSelectedPlan || enrolling}
+                      onPress={async () => {
+                        setEnrolling(true)
+                        try {
+                          const res = await fetch(`${API_URL}/memberships/enroll`, {
+                            method: 'POST',
+                            headers: { ...headers, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId: enrollSelectedPatient.id, planId: enrollSelectedPlan.id })
+                          })
+                          const data = await res.json()
+                          if (data.success) {
+                            Alert.alert('Enrolled', `${enrollSelectedPatient.first_name} enrolled in ${enrollSelectedPlan.name}!`)
+                            setEnrollModal(false)
+                            fetchAll()
+                          } else Alert.alert('Error', data.error || 'Enrollment failed')
+                        } catch (e) { Alert.alert('Error', 'Network error') } finally { setEnrolling(false) }
+                      }}
+                    >
+                      {enrolling ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: enrollSelectedPatient && enrollSelectedPlan ? secondaryColor : 'rgba(255,255,255,0.3)', fontWeight: '700', fontSize: 15 }}>Enroll Patient</Text>}
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              </View>
+            </View>
           )}
 
           {/* Cancel Fee Overlay */}
