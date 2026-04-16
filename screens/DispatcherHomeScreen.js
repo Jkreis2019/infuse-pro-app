@@ -1406,19 +1406,12 @@ const submitSendIntake = async () => {
           {entry.status === 'cancelled' && (
             <View style={{ backgroundColor: 'rgba(240,144,144,0.08)', borderRadius: 8, padding: 8, marginTop: 6, borderLeftWidth: 3, borderLeftColor: '#f09090' }}>
               <Text style={{ color: '#f09090', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>
-                {entry.cancelled_by === 'patient' ? '🚨 CANCELLED BY PATIENT' : 'CANCEL REASON'}
+                {entry.cancelled_by === 'patient' && entry.cancelled_at_status === 'en_route' ? '🚨 CANCELLED BY PATIENT — POSSIBLE CANCEL FEE' : entry.cancelled_by === 'patient' ? 'CANCELLED BY PATIENT' : 'CANCEL REASON'}
               </Text>
               {entry.cancellation_disposition && (
                 <Text style={{ color: '#fff', fontSize: 12 }}>{entry.cancellation_disposition}{entry.cancellation_reason ? ` — ${entry.cancellation_reason}` : ''}</Text>
               )}
-              {entry.cancelled_by === 'patient' && entry.cancelled_at_status === 'en_route' && (
-                <TouchableOpacity
-                  style={{ backgroundColor: 'rgba(240,144,144,0.2)', borderRadius: 8, padding: 8, marginTop: 8, borderWidth: 1, borderColor: '#f09090', alignItems: 'center' }}
-                  onPress={() => sendCancelFeeToAdmin(entry)}
-                >
-                  <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '700' }}>📨 Send Cancel Fee Request to Admin</Text>
-                </TouchableOpacity>
-              )}
+
             </View>
           )}
         </View>
