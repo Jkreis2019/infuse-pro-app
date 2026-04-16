@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "374305347298",
+    "project_id": "infusionpro",
+    "storage_bucket": "infusionpro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374305347298:android:3632ca55f858063fa3f0bb",
+        "android_client_info": {
+          "package_name": "app.infusepro.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "374305347298-8jts0tb5eu9sc4i5allg9f7i75m2eta5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGf3av8D7z6TUCSlzYI7suLR_vHOl94YA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "374305347298-8jts0tb5eu9sc4i5allg9f7i75m2eta5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "374305347298-3rii4mbfvjb6502nh1rgf7io948mnp9n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "infusionpro"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
