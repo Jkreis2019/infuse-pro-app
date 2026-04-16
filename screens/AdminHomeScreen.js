@@ -1812,7 +1812,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>{m.plan_name}</Text>
                   </View>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{m.email}</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used this cycle</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · {m.billing_cycle === 'yearly' ? 'Annual' : 'Monthly'} billing · Renews the {new Date(m.current_cycle_end).getDate()}{['st','nd','rd'][((new Date(m.current_cycle_end).getDate()+90)%100-10)%10-1]||'th'}</Text>
                   <TouchableOpacity
                     style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 10, borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
                     onPress={() => Alert.alert('Cancel Membership', `Cancel ${m.first_name}'s membership?`, [{ text: 'Keep', style: 'cancel' }, { text: 'Cancel Membership', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/memberships/${m.id}/cancel`, { method: 'POST', headers }); fetchAll() } }])}
