@@ -722,21 +722,23 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
 
   const fetchAll = useCallback(async () => {
     try {
-      const [qRes, sRes, aRes, lRes, stRes, naRes, svcRes] = await Promise.all([
+      const [qRes, sRes, aRes, upRes, lRes, stRes, naRes, svcRes] = await Promise.all([
         fetch(`${API_URL}/dispatch/queue`, { headers }),
         fetch(`${API_URL}/dispatch/scheduled`, { headers }),
         fetch(`${API_URL}/dispatch/active`, { headers }),
+        fetch(`${API_URL}/dispatch/upcoming`, { headers }),
         fetch(`${API_URL}/dispatch/log`, { headers }),
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/dispatch/needs-attention`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers })
       ])
-      const [qData, sData, aData, lData, stData, naData, svcData] = await Promise.all([
-        qRes.json(), sRes.json(), aRes.json(), lRes.json(), stRes.json(), naRes.json(), svcRes.json()
+      const [qData, sData, aData, upData, lData, stData, naData, svcData] = await Promise.all([
+        qRes.json(), sRes.json(), aRes.json(), upRes.json(), lRes.json(), stRes.json(), naRes.json(), svcRes.json()
       ])
       if (qData.queue) setQueue(qData.queue)
       if (sData.scheduled) setScheduled(sData.scheduled)
         if (aData.active) setActive(aData.active)
+            if (upData.upcoming) setUpcoming(upData.upcoming)
       if (lData.log) setLog(lData.log)
       if (stData.stats) setStats(stData.stats)
       if (naData.bookings) setNeedsAttention(naData.bookings)
@@ -895,6 +897,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
           { key: 'queue', label: `Queue${queue.length > 0 ? ` (${queue.length})` : ''}` },
           { key: 'scheduled', label: `Scheduled${scheduled.length > 0 ? ` (${scheduled.length})` : ''}` },
           { key: 'active', label: `Active${active.length > 0 ? ` (${active.length})` : ''}` },
+          { key: 'upcoming', label: `Upcoming${upcoming.length > 0 ? ` (${upcoming.length})` : ''}` },
           { key: 'messages', label: 'Messages' },
         ].map(t => (
           <TouchableOpacity
@@ -957,12 +960,6 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   onPress={() => { setCancelBookingId(b.id); setCancelReason(''); setCancelDisposition(''); setCancelModal(true) }}
                 >
                   <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{ flex: 1, borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12, alignItems: 'center' }}
-                  onPress={() => openReconfirmModal(b.id, b.confirmed_time || b.requested_time)}
-                >
-                  <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '600' }}>🕐 Time</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1059,6 +1056,58 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
               </View>
+            </View>
+          ))}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      )}
+
+      {/* Upcoming Tab */}
+      {dispatchTab === 'upcoming' && (
+        <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchAll() }} tintColor={primaryColor} />}>
+          {upcoming.length === 0 ? (
+            <View style={{ alignItems: 'center', paddingTop: 60 }}>
+              <Text style={{ fontSize: 48, marginBottom: 16 }}>🗓</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '600' }}>No upcoming assignments</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 6 }}>Pre-assigned future bookings will appear here</Text>
+            </View>
+          ) : Object.entries(
+            upcoming.reduce((groups, b) => {
+              const date = new Date(b.confirmed_time || b.requested_time).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/Phoenix' })
+              if (!groups[date]) groups[date] = []
+              groups[date].push(b)
+              return groups
+            }, {})
+          ).map(([date, bookings]) => (
+            <View key={date}>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', letterSpacing: 0.5, marginTop: 16, marginBottom: 8 }}>📅 {date}</Text>
+              {bookings.map(b => (
+                <View key={b.id} style={sStyles.card}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', flex: 1 }}>{b.service}</Text>
+                    <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>
+                      {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'America/Phoenix' })}
+                    </Text>
+                  </View>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {b.patient_name}</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>📍 {b.address}</Text>
+                  {b.tech_first_name && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 8 }}>🧑‍⚕️ {b.tech_first_name} {b.tech_last_name}</Text>}
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      style={{ flex: 1, borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12, alignItems: 'center' }}
+                      onPress={() => openReconfirmModal(b.id, b.confirmed_time || b.requested_time)}
+                    >
+                      <Text style={{ color: '#FF9800', fontSize: 13, fontWeight: '600' }}>🕐 Change Time</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 10, padding: 12, alignItems: 'center' }}
+                      onPress={() => { setCancelBookingId(b.id); setCancelReason(''); setCancelDisposition(''); setCancelModal(true) }}
+                    >
+                      <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
             </View>
           ))}
           <View style={{ height: 40 }} />

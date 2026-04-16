@@ -53,11 +53,11 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState('queue')
   const [queue, setQueue] = useState([])
   const [active, setActive] = useState([])
+  const [upcoming, setUpcoming] = useState([])
   const [techs, setTechs] = useState([])
   const [stats, setStats] = useState({ pending: 0, active: 0, completed_today: 0, cancelled_today: 0 })
   const [log, setLog] = useState([])
   const [scheduled, setScheduled] = useState([])
-  const [upcoming, setUpcoming] = useState([])
   const [dualScreen, setDualScreen] = useState(false)
   const [chatBookingId, setChatBookingId] = useState(null)
   const [chatPatientName, setChatPatientName] = useState('')
@@ -1000,18 +1000,6 @@ const submitSendIntake = async () => {
 >
   <Text style={[styles.reassignButtonText, { color: primaryColor }]}>⊕ Merge</Text>
 </TouchableOpacity>
-<TouchableOpacity
-    style={[styles.reassignButton, { borderColor: '#FF9800' }]}
-    onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
-  >
-    <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
-  </TouchableOpacity>
-<TouchableOpacity
-    style={[styles.reassignButton, { borderColor: '#FF9800' }]}
-    onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
-  >
-    <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
-  </TouchableOpacity>
   <TouchableOpacity
     style={styles.cancelCardButton}
     onPress={() => openCancelModal(booking.id, 'pending')}
@@ -1069,12 +1057,6 @@ const submitSendIntake = async () => {
                         onPress={() => openAssignModal(booking, false)}
                       >
                         <Text style={[styles.assignButtonText, { color: secondaryColor }]}>Assign →</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.reassignButton, { borderColor: '#FF9800' }]}
-                        onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
-                      >
-                        <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.cancelCardButton}
@@ -1137,6 +1119,12 @@ const submitSendIntake = async () => {
                         onPress={() => openAssignModal(booking, true)}
                       >
                         <Text style={styles.reassignButtonText}>Reassign</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.reassignButton, { borderColor: '#FF9800' }]}
+                        onPress={() => openReconfirmModal(booking.id, booking.confirmed_time || booking.requested_time)}
+                      >
+                        <Text style={[styles.reassignButtonText, { color: '#FF9800' }]}>🕐 Time</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.cancelCardButton}
@@ -1206,22 +1194,7 @@ const submitSendIntake = async () => {
                   >
                     <Text style={[styles.viewPatientsText, { color: primaryColor }]}>👥 Patients</Text>
                   </TouchableOpacity>
-                  {call.status !== 'on_scene' && (
-                    <TouchableOpacity
-                      style={styles.reassignButton}
-                      onPress={() => openAssignModal(call, true)}
-                    >
-                      <Text style={styles.reassignButtonText}>Reassign</Text>
-                    </TouchableOpacity>
-                  )}
-                  {call.status !== 'on_scene' && (
-                    <TouchableOpacity
-                      style={styles.cancelCardButton}
-                      onPress={() => openCancelModal(call.id, call.status)}
-                    >
-                      <Text style={styles.cancelCardText}>Cancel</Text>
-                    </TouchableOpacity>
-                  )}
+                  √
                 </View>
               </TouchableOpacity>
             ))
