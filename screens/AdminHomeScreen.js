@@ -2387,6 +2387,12 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginTop: 8 }]}
+              onPress={() => Linking.openURL('https://api.infusepro.app/list-your-company')}
+            >
+              <Text style={[styles.actionBtnText, { color: primaryColor }]}>📍 Request Map Listing</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginTop: 8 }]}
               onPress={async () => {
                 try {
                   await fetch(`${API_URL}/map/request-rating`, {
@@ -2403,6 +2409,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={[styles.actionBtnText, { color: 'rgba(255,255,255,0.5)' }]}>⭐ Request Google Rating Link</Text>
             </TouchableOpacity>
           </View>
+          
           <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }]} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Text style={[styles.actionBtnText, { color: '#f09090' }]}>Log out</Text>
