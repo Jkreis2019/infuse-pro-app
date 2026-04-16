@@ -2263,7 +2263,15 @@ const submitSendIntake = async () => {
                 <input
                   type="datetime-local"
                   value={new Date(confirmedTime.getTime() - confirmedTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
-                  onChange={(e) => { if (e.target.value) setConfirmedTime(new Date(e.target.value)) }}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const [date, time] = e.target.value.split('T')
+                      const [y, mo, d] = date.split('-')
+                      const [h, m] = time.split(':')
+                      const local = new Date(parseInt(y), parseInt(mo)-1, parseInt(d), parseInt(h), parseInt(m))
+                      setConfirmedTime(local)
+                    }
+                  }}
                   style={{ background: '#162260', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, fontSize: 16, color: '#fff', width: '100%', cursor: 'pointer' }}
                 />
               ) : (
