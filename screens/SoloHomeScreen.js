@@ -1736,9 +1736,13 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/settings`, { headers })
-      const data = await res.json()
-      if (data.settings) setRequireGFE(data.settings.require_gfe || false)
+      const [settingsRes, companyRes] = await Promise.all([
+        fetch(`${API_URL}/admin/settings`, { headers }),
+        fetch(`${API_URL}/admin/company/settings`, { headers })
+      ])
+      const [settingsData, companyData] = await Promise.all([settingsRes.json(), companyRes.json()])
+      if (settingsData.settings) setRequireGFE(settingsData.settings.require_gfe || false)
+      if (companyData.company) setCompanyServiceArea(companyData.company.serviceArea || '')
     } catch (err) {}
   }, [token])
 
@@ -1862,14 +1866,19 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const saveSettings = async () => {
     setSavingSettings(true)
     try {
-      const res = await fetch(`${API_URL}/admin/settings`, {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone, serviceArea: companyServiceArea })
-      })
-      const data = await res.json()
-      if (data.success) Alert.alert('✅ Saved', 'Settings updated')
-      else Alert.alert('Error', data.message || 'Could not save')
+      await Promise.all([
+        fetch(`${API_URL}/admin/settings`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone })
+        }),
+        fetch(`${API_URL}/admin/company/settings`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ serviceArea: companyServiceArea })
+        })
+      ])
+      Alert.alert('✅ Saved', 'Settings updated')
     } catch (err) { Alert.alert('Error', 'Network error') }
     finally { setSavingSettings(false) }
   }
