@@ -176,30 +176,269 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
           )}
 
           {activeTab === 'chart' && (
-            <View style={rStyles.section}>
-              <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>TECH CHART</Text>
-              {chartLoading ? <ActivityIndicator color={primaryColor} /> : !chartData ? (
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No chart submitted yet</Text>
-              ) : (
-                <>
-                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Status</Text><Text style={[rStyles.infoValue, { color: chartData.status === 'submitted' ? '#4CAF50' : '#FF9800' }]}>{chartData.status?.toUpperCase()}</Text></View>
-                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>BP</Text><Text style={rStyles.infoValue}>{chartData.blood_pressure || '—'}</Text></View>
-                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>HR</Text><Text style={rStyles.infoValue}>{chartData.heart_rate || '—'}</Text></View>
-                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>O2</Text><Text style={rStyles.infoValue}>{chartData.oxygen_sat ? `${chartData.oxygen_sat}%` : '—'}</Text></View>
-                  <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Pain Scale</Text><Text style={rStyles.infoValue}>{chartData.pain_scale || '—'}</Text></View>
-                  {chartData.chief_complaint && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.chief_complaint}</Text></View>}
-                  {chartData.tech_notes && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text></View>}
-                  {chartData.complications === 'Yes' && <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ COMPLICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text></View>}
-                  {chartData.amendment_notes && <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>📝 AMENDMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text></View>}
-                  {chartData.iv_site_photo && (
-                    <View style={{ marginTop: 10 }}>
-                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>📷 IV SITE PHOTO</Text>
-                      <Image source={{ uri: chartData.iv_site_photo }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
+            <>
+              {/* Tech Chart - Read Only */}
+              <View style={rStyles.section}>
+                <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>TECH CHART</Text>
+                {chartLoading ? <ActivityIndicator color={primaryColor} /> : !chartData ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No tech chart submitted yet</Text>
+                ) : chartData.template_id ? (
+                  <>
+                    <View style={rStyles.infoRow}>
+                      <Text style={rStyles.infoLabel}>Template</Text>
+                      <Text style={rStyles.infoValue}>{chartData.template_name || 'Custom Template'}</Text>
                     </View>
-                  )}
-                </>
-              )}
-            </View>
+                    <View style={rStyles.infoRow}>
+                      <Text style={rStyles.infoLabel}>Status</Text>
+                      <Text style={[rStyles.infoValue, { color: chartData.status === 'submitted' ? '#4CAF50' : '#FF9800' }]}>{chartData.status?.toUpperCase()}</Text>
+                    </View>
+                    {(chartData.template_fields || []).map(field => {
+                      const val = chartData.responses?.[field.id]
+                      if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) return null
+                      if (['heading', 'divider'].includes(field.type)) return null
+                      return (
+                        <View key={field.id} style={{ marginBottom: 10 }}>
+                          <Text style={rStyles.infoLabel}>{field.label?.toUpperCase()}</Text>
+                          <Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>
+                            {typeof val === 'object' ? JSON.stringify(val, null, 2) : val.toString()}
+                          </Text>
+                        </View>
+                      )
+                    })}
+                    {chartData.amendment_notes && (
+                      <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}>
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>AMENDMENT</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Status</Text><Text style={[rStyles.infoValue, { color: chartData.status === 'submitted' ? '#4CAF50' : '#FF9800' }]}>{chartData.status?.toUpperCase()}</Text></View>
+                    <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>BP</Text><Text style={rStyles.infoValue}>{chartData.blood_pressure || '—'}</Text></View>
+                    <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>HR</Text><Text style={rStyles.infoValue}>{chartData.heart_rate || '—'}</Text></View>
+                    <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>O2</Text><Text style={rStyles.infoValue}>{chartData.oxygen_sat ? `${chartData.oxygen_sat}%` : '—'}</Text></View>
+                    <View style={rStyles.infoRow}><Text style={rStyles.infoLabel}>Pain Scale</Text><Text style={rStyles.infoValue}>{chartData.pain_scale || '—'}</Text></View>
+                    {chartData.chief_complaint && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.chief_complaint}</Text></View>}
+                    {chartData.tech_notes && <View style={{ marginTop: 10 }}><Text style={rStyles.infoLabel}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 13, marginTop: 4 }}>{chartData.tech_notes}</Text></View>}
+                    {chartData.complications === 'Yes' && <View style={{ marginTop: 10, backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10 }}><Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>COMPLICATIONS</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.complications_detail}</Text></View>}
+                    {chartData.amendment_notes && <View style={{ marginTop: 10, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 8, padding: 10 }}><Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>AMENDMENT</Text><Text style={{ color: '#fff', fontSize: 13 }}>{chartData.amendment_notes}</Text></View>}
+                    {chartData.iv_site_photo && (
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>IV SITE PHOTO</Text>
+                        <Image source={{ uri: chartData.iv_site_photo }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+
+              {/* NP Chart - Editable */}
+              <View style={rStyles.section}>
+                <Text style={[rStyles.sectionTitle, { color: primaryColor }]}>NP CHART</Text>
+                {!npTemplate && availableNpTemplates.length === 0 ? (
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No NP chart template configured. Ask your admin to create one in the Charts tab.</Text>
+                ) : !npTemplate && availableNpTemplates.length > 0 ? (
+                  <>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12 }}>Select a template to begin charting:</Text>
+                    {availableNpTemplates.map(t => (
+                      <TouchableOpacity key={t.id} onPress={() => setNpTemplate(t)}
+                        style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                        <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{t.name}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{(t.fields || []).length} fields</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </>
+                ) : npTemplate ? (
+                  <>
+                    {npChartStatus === 'submitted' && npTemplate?.submit_behavior === 'lock' && (
+                      <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', borderRadius: 8, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+                        <Text style={{ color: '#f06060', fontSize: 12 }}>NP chart submitted and locked.</Text>
+                      </View>
+                    )}
+                    {(npTemplate.fields || []).map(field => {
+                      const isLocked = npChartStatus === 'submitted' && npTemplate?.submit_behavior === 'lock'
+                      const val = npResponses[field.id]
+                      if (field.type === 'heading') return (
+                        <View key={field.id} style={{ marginBottom: 8, marginTop: 12 }}>
+                          <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+                          <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
+                        </View>
+                      )
+                      if (field.type === 'divider') return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 10 }} />
+                      if (field.type === 'yes_no') return (
+                        <View key={field.id} style={{ marginBottom: 12 }}>
+                          <Text style={rStyles.infoLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+                          <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                            {['Yes', 'No'].map(opt => (
+                              <TouchableOpacity key={opt} onPress={() => !isLocked && setNpResponses(prev => ({ ...prev, [field.id]: opt }))}
+                                style={{ flex: 1, padding: 10, borderRadius: 8, alignItems: 'center', backgroundColor: val === opt ? primaryColor : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: val === opt ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                                <Text style={{ color: val === opt ? secondaryColor : 'rgba(255,255,255,0.6)', fontWeight: '600', fontSize: 13 }}>{opt}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      )
+                      if (field.type === 'dropdown' || field.type === 'multi_select') return (
+                        <View key={field.id} style={{ marginBottom: 12 }}>
+                          <Text style={rStyles.infoLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                            {(field.options || []).map(opt => {
+                              const selected = field.type === 'multi_select' ? (Array.isArray(val) && val.includes(opt)) : val === opt
+                              return (
+                                <TouchableOpacity key={opt} onPress={() => {
+                                  if (isLocked) return
+                                  if (field.type === 'multi_select') {
+                                    const cur = Array.isArray(val) ? val : []
+                                    setNpResponses(prev => ({ ...prev, [field.id]: selected ? cur.filter(v => v !== opt) : [...cur, opt] }))
+                                  } else {
+                                    setNpResponses(prev => ({ ...prev, [field.id]: opt }))
+                                  }
+                                }}
+                                  style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: selected ? primaryColor : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: selected ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                                  <Text style={{ color: selected ? secondaryColor : 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' }}>{opt}</Text>
+                                </TouchableOpacity>
+                              )
+                            })}
+                          </View>
+                        </View>
+                      )
+                      if (field.type === 'vitals') {
+                        const vitalsVal = val || {}
+                        return (
+                          <View key={field.id} style={{ marginBottom: 12 }}>
+                            <Text style={rStyles.infoLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+                            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginTop: 6 }}>
+                              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                {[['bp', 'BP'], ['hr', 'HR'], ['o2', 'O2 %'], ['temp', 'Temp'], ['pain', 'Pain']].map(([k, label]) => (
+                                  <View key={k} style={{ flex: 1, minWidth: 70 }}>
+                                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginBottom: 4 }}>{label}</Text>
+                                    <TextInput
+                                      style={[rStyles.input, { marginBottom: 0, fontSize: 13 }]}
+                                      placeholder="—"
+                                      placeholderTextColor="rgba(255,255,255,0.2)"
+                                      value={vitalsVal[k] || ''}
+                                      onChangeText={v => !isLocked && setNpResponses(prev => ({ ...prev, [field.id]: { ...vitalsVal, [k]: v } }))}
+                                      editable={!isLocked}
+                                    />
+                                  </View>
+                                ))}
+                              </View>
+                            </View>
+                          </View>
+                        )
+                      }
+                      return (
+                        <View key={field.id} style={{ marginBottom: 12 }}>
+                          <Text style={rStyles.infoLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+                          <TextInput
+                            style={[rStyles.input, field.type === 'textarea' && { height: 80, textAlignVertical: 'top' }, isLocked && { opacity: 0.5 }]}
+                            placeholder={field.placeholder || ''}
+                            placeholderTextColor="rgba(255,255,255,0.3)"
+                            value={val?.toString() || ''}
+                            onChangeText={v => !isLocked && setNpResponses(prev => ({ ...prev, [field.id]: v }))}
+                            multiline={field.type === 'textarea'}
+                            keyboardType={field.type === 'number' ? 'numeric' : 'default'}
+                            editable={!isLocked}
+                          />
+                        </View>
+                      )
+                    })}
+                    {!(npChartStatus === 'submitted' && npTemplate?.submit_behavior === 'lock') && (
+                      <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+                        <TouchableOpacity
+                          style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, alignItems: 'center' }}
+                          onPress={async () => {
+                            setNpSaving(true)
+                            try {
+                              let res
+                              if (npChartId) {
+                                res = await fetch(`${API_URL}/charts/dynamic/${npChartId}`, {
+                                  method: 'PUT',
+                                  headers: { ...headers, 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ responses: npResponses, status: 'open' })
+                                })
+                              } else {
+                                res = await fetch(`${API_URL}/charts/dynamic`, {
+                                  method: 'POST',
+                                  headers: { ...headers, 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    callId: gfe.call_id,
+                                    bookingId: gfe.booking_id,
+                                    templateId: npTemplate.id,
+                                    chartType: 'np',
+                                    patientName: gfe.patient_name,
+                                    responses: npResponses
+                                  })
+                                })
+                              }
+                              const data = await res.json()
+                              if (data.success) {
+                                if (!npChartId && data.chart?.id) setNpChartId(data.chart.id)
+                                Alert.alert('Saved', 'NP chart saved as draft.')
+                              } else {
+                                Alert.alert('Error', data.error || 'Could not save')
+                              }
+                            } catch (err) {
+                              Alert.alert('Error', 'Network error')
+                            } finally {
+                              setNpSaving(false)
+                            }
+                          }}>
+                          <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Save Draft</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={{ flex: 1, backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }}
+                          onPress={() => Alert.alert('Submit NP Chart', 'Submit and lock this NP chart?', [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Submit', onPress: async () => {
+                              setNpSaving(true)
+                              try {
+                                let res
+                                if (npChartId) {
+                                  res = await fetch(`${API_URL}/charts/dynamic/${npChartId}`, {
+                                    method: 'PUT',
+                                    headers: { ...headers, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ responses: npResponses, status: 'submitted' })
+                                  })
+                                } else {
+                                  res = await fetch(`${API_URL}/charts/dynamic`, {
+                                    method: 'POST',
+                                    headers: { ...headers, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      callId: gfe.call_id,
+                                      bookingId: gfe.booking_id,
+                                      templateId: npTemplate.id,
+                                      chartType: 'np',
+                                      patientName: gfe.patient_name,
+                                      responses: npResponses,
+                                      status: 'submitted'
+                                    })
+                                  })
+                                }
+                                const data = await res.json()
+                                if (data.success) {
+                                  if (!npChartId && data.chart?.id) setNpChartId(data.chart.id)
+                                  setNpChartStatus('submitted')
+                                  Alert.alert('Submitted', 'NP chart submitted and locked.')
+                                } else {
+                                  Alert.alert('Error', data.error || 'Could not submit')
+                                }
+                              } catch (err) {
+                                Alert.alert('Error', 'Network error')
+                              } finally {
+                                setNpSaving(false)
+                              }
+                            }}
+                          ])}>
+                          <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>{npSaving ? 'Saving...' : 'Submit Chart'}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </>
+                ) : null}
+              </View>
+            </>
           )}
 
           {activeTab === 'orders' && (
