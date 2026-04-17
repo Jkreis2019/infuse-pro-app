@@ -2246,11 +2246,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
   return (
     <View style={{ flex: 1 }}>
       {/* Sub-tabs */}
-      {hasTemplates ? (
-        <DynamicChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
-      ) : (
-        <ChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
-      )}
+      <DynamicChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
       <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
         {[
           { key: 'call', label: '📞 My Call' },
@@ -2652,6 +2648,18 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
       const data = await res.json()
       if (data.success) {
+        try {
+          const dynRes = await fetch(`${API_URL}/charts/patient/${patient.id}`, { headers })
+          const dynData = await dynRes.json()
+          if (dynData.success && dynData.charts?.length > 0) {
+            const legacyCharts = data.charts || []
+            const dynCharts = dynData.charts || []
+            const allIds = new Set(legacyCharts.map(c => c.id))
+            const merged = [...legacyCharts, ...dynCharts.filter(c => !allIds.has(c.id))]
+            merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            data.charts = merged
+          }
+        } catch (e) {}
         setPsProfileData(data)
         setPsEditPhone(data.patient?.phone || '')
         setPsEditAddress(data.patient?.home_address || '')
@@ -2869,7 +2877,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                   </View>
                 </View>
                 <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
-                  {['overview', 'appointments', 'intake'].map(tab => (
+                  {['overview', 'appointments', 'charts', 'intake'].map(tab => (
                     <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => { setPsActiveTab(tab); setPsEditing(false) }}>
                       <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700' }}>{tab.toUpperCase()}</Text>
                     </TouchableOpacity>
@@ -2993,6 +3001,20 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                           </View>
                           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📅 {new Date(b.requested_time || b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
                           {b.address && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>📍 {b.address}</Text>}
+                        </View>
+                      ))}
+                    </>
+                  )}
+                  {psActiveTab === 'charts' && (
+                    <>
+                      {!psProfileData?.charts?.length ? (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
+                      ) : psProfileData.charts.map((ch, i) => (
+                        <View key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }}>
+                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{ch.chart_type === 'np' ? 'NP Chart' : 'Tech Chart'} — {ch.tech_name || 'Unknown'}</Text>
+                          {ch.template_name && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>{ch.template_name}</Text>}
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>{new Date(ch.created_at).toLocaleString()}</Text>
+                          <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700', marginTop: 4 }}>{ch.status?.toUpperCase()}</Text>
                         </View>
                       ))}
                     </>
