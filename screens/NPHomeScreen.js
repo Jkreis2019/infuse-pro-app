@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import {
-  Platform, View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, TextInput, Modal, KeyboardAvoidingView, Platform, Image,
 } from 'react-native'
 
