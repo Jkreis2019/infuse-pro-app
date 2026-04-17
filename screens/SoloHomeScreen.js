@@ -2272,10 +2272,10 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
 
           {!call ? (
             <View style={{ flex: 1 }}>
-              {upcoming?.length > 0 ? (
+              {upcomingCalls.length > 0 ? (
                 <>
                   <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12, textTransform: 'uppercase' }}>Today's Calls</Text>
-                  {upcoming.map(u => (
+                  {upcomingCalls.map(u => (
                     <View key={u.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: primaryColor }}>
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{u.service}</Text>
                       <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{u.patient_name}</Text>
