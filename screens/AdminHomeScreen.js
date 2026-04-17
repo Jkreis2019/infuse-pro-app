@@ -219,6 +219,8 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [adjustModal, setAdjustModal] = useState(false)
   const [cancelMembershipModal, setCancelMembershipModal] = useState(false)
   const [cancelMembershipTarget, setCancelMembershipTarget] = useState(null)
+  const [regionAssignModal, setRegionAssignModal] = useState(false)
+  const [regionAssignTarget, setRegionAssignTarget] = useState(null)
   const [adjustMembership, setAdjustMembership] = useState(null)
   const [adjustValue, setAdjustValue] = useState(0)
 
@@ -1392,21 +1394,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Region:</Text>
                 <TouchableOpacity
                   style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 }}
-                  onPress={() => {
-                    if (Platform.OS === 'web') {
-                      const choice = window.prompt(`Assign region for ${member.first_name}:\n${regions.map((r, i) => `${i + 1}. ${r.name}`).join('\n')}\n\nEnter region name:`)
-                      if (choice) {
-                        const region = regions.find(r => r.name.toLowerCase() === choice.toLowerCase())
-                        assignStaffRegion(member.id, region?.id || null)
-                      }
-                    } else {
-                      Alert.alert('Assign Region', `Select region for ${member.first_name}:`, [
-                        { text: 'Unassigned', onPress: () => assignStaffRegion(member.id, null) },
-                        ...regions.map(r => ({ text: r.name, onPress: () => assignStaffRegion(member.id, r.id) })),
-                        { text: 'Cancel', style: 'cancel' }
-                      ])
-                    }
-                  }}
+                  onPress={() => { setRegionAssignTarget(member); setRegionAssignModal(true) }}
                 >
                   <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>
                     {regions.find(r => parseInt(r.id) === parseInt(member.region_id))?.name || 'Unassigned'}
