@@ -138,30 +138,6 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
   const [npChart, setNpChart] = useState(null)
   const [npChartModalVisible, setNpChartModalVisible] = useState(false)
   const [formulary, setFormulary] = useState([])
-  const [chartTemplates, setChartTemplates] = useState([])
-  const [templateModalVisible, setTemplateModalVisible] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState(null)
-  const [templateName, setTemplateName] = useState('')
-  const [templateType, setTemplateType] = useState('tech')
-  const [templateIsDefault, setTemplateIsDefault] = useState(false)
-  const [templateServiceTypes, setTemplateServiceTypes] = useState([])
-  const [templateFields, setTemplateFields] = useState([])
-  const [fieldConfigModal, setFieldConfigModal] = useState(false)
-  const [editingField, setEditingField] = useState(null)
-  const [editingFieldIndex, setEditingFieldIndex] = useState(null)
-  const [formularyModalVisible, setFormularyModalVisible] = useState(false)
-  const [editingFormularyItem, setEditingFormularyItem] = useState(null)
-  const [formularyName, setFormularyName] = useState('')
-  const [formularyDose, setFormularyDose] = useState('')
-  const [formularyRoute, setFormularyRoute] = useState('iv_push')
-  const [formularyCategory, setFormularyCategory] = useState('')
-  const [formularyContraindications, setFormularyContraindications] = useState('')
-  const [chartsSubTab, setChartsSubTab] = useState('templates')
-  const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
-  const [templateBuilderTab, setTemplateBuilderTab] = useState('Build')
-  const [deleteConfirmTemplate, setDeleteConfirmTemplate] = useState(null)
-  const [deleteConfirmFormulary, setDeleteConfirmFormulary] = useState(null)
-  const [bugReportModal, setBugReportModal] = useState(false)
   const [services, setServices] = useState([])
   const [templatePickerVisible, setTemplatePickerVisible] = useState(false)
   const [availableTemplates, setAvailableTemplates] = useState([])
@@ -189,15 +165,6 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
       ])
 
       if (formData.success) setFormulary(formData.formulary || [])
-      try {
-        const [tmplRes2, svcRes] = await Promise.all([
-          fetch(`${API_URL}/chart-templates`, { headers }),
-          fetch(`${API_URL}/admin/services`, { headers })
-        ])
-        const [tmplData2, svcData] = await Promise.all([tmplRes2.json(), svcRes.json()])
-        if (tmplData2.success) setChartTemplates(tmplData2.templates || [])
-        if (svcData.services) setServices(svcData.services)
-      } catch (e) {}
       if (svcData.services) setServices(svcData.services || [])
       if (prefillData.success) setPrefill(prefillData.prefill)
 
@@ -3596,7 +3563,51 @@ export default function SoloHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const headers = { Authorization: `Bearer ${token}` }
   const [activeTab, setActiveTab] = useState('dispatch')
+  const [bugReportModal, setBugReportModal] = useState(false)
+  const [chartTemplates, setChartTemplates] = useState([])
+  const [formulary, setFormulary] = useState([])
+  const [services, setServices] = useState([])
+  const [templateModalVisible, setTemplateModalVisible] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [templateName, setTemplateName] = useState('')
+  const [templateType, setTemplateType] = useState('tech')
+  const [templateIsDefault, setTemplateIsDefault] = useState(false)
+  const [templateServiceTypes, setTemplateServiceTypes] = useState([])
+  const [templateFields, setTemplateFields] = useState([])
+  const [fieldConfigModal, setFieldConfigModal] = useState(false)
+  const [editingField, setEditingField] = useState(null)
+  const [editingFieldIndex, setEditingFieldIndex] = useState(null)
+  const [formularyModalVisible, setFormularyModalVisible] = useState(false)
+  const [editingFormularyItem, setEditingFormularyItem] = useState(null)
+  const [formularyName, setFormularyName] = useState('')
+  const [formularyDose, setFormularyDose] = useState('')
+  const [formularyRoute, setFormularyRoute] = useState('iv_push')
+  const [formularyCategory, setFormularyCategory] = useState('')
+  const [formularyContraindications, setFormularyContraindications] = useState('')
+  const [chartsSubTab, setChartsSubTab] = useState('templates')
+  const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
+  const [templateBuilderTab, setTemplateBuilderTab] = useState('Build')
+  const [deleteConfirmTemplate, setDeleteConfirmTemplate] = useState(null)
+  const [deleteConfirmFormulary, setDeleteConfirmFormulary] = useState(null)
+
+  useEffect(() => {
+    const fetchChartsData = async () => {
+      try {
+        const [tmplRes, formRes, svcRes] = await Promise.all([
+          fetch(`${API_URL}/chart-templates`, { headers }),
+          fetch(`${API_URL}/company-formulary`, { headers }),
+          fetch(`${API_URL}/admin/services`, { headers })
+        ])
+        const [tmplData, formData, svcData] = await Promise.all([tmplRes.json(), formRes.json(), svcRes.json()])
+        if (tmplData.success) setChartTemplates(tmplData.templates || [])
+        if (formData.success) setFormulary(formData.formulary || [])
+        if (svcData.services) setServices(svcData.services)
+      } catch (e) {}
+    }
+    fetchChartsData()
+  }, [])
 
   const TABS = [
     { key: 'dispatch', label: 'Dispatch', icon: '📋' },
