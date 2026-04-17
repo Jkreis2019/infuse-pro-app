@@ -260,6 +260,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [formularyContraindications, setFormularyContraindications] = useState('')
   const [chartsSubTab, setChartsSubTab] = useState('templates')
   const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
+  const [templateBuilderTab, setTemplateBuilderTab] = useState('Build')
   const [announcementModal, setAnnouncementModal] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null)
   const [anTitle, setAnTitle] = useState('')
@@ -3631,57 +3632,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
-  )
-}
 
-function PatientMembershipSection({ patientId, companyId, token, primaryColor, plans, onEnroll, onRefresh }) {
-  const [membership, setMembership] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const API_URL = 'https://api.infusepro.app'
-
-  useEffect(() => {
-    if (!patientId || !companyId) return
-    fetch(`${API_URL}/memberships/patient/${patientId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { setMembership(d.membership || null); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [patientId])
-
-  if (loading) return <ActivityIndicator color={primaryColor} style={{ marginBottom: 12 }} />
-
-  return (
-    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏅 MEMBERSHIP</Text>
-      {membership ? (
-        <>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{membership.plan_name}</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{membership.redemptions_this_cycle} of {membership.max_redemptions_per_cycle === 999 ? '∞' : membership.max_redemptions_per_cycle} visits used this cycle</Text>
-          {membership.current_cycle_end && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Renews {new Date(membership.current_cycle_end).toLocaleDateString()}</Text>}
-          <TouchableOpacity
-            style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
-            onPress={() => Alert.alert('Cancel Membership', `Cancel this patient's ${membership.plan_name} membership?`, [
-              { text: 'Keep', style: 'cancel' },
-              { text: 'Cancel Membership', style: 'destructive', onPress: async () => {
-                await fetch(`${API_URL}/memberships/${membership.id}/cancel`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
-                setMembership(null)
-                onRefresh()
-              }}
-            ])}
-          >
-            <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel Membership</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>No active membership</Text>
-          {plans.length > 0 && (
-            <TouchableOpacity style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: primaryColor + '40' }} onPress={onEnroll}>
-              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>+ Enroll in Membership</Text>
-            </TouchableOpacity>
-          )}
-        </>
-      )}
 
 
 
@@ -3696,186 +3647,253 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
-            <View style={{ padding: 20 }}>
-
-              {/* Template Name */}
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Template Name *</Text>
-              <TextInput
-                style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
-                placeholder="e.g. Standard IV Drip Chart"
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                value={templateName}
-                onChangeText={setTemplateName}
-              />
-
-              {/* Chart Type */}
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Chart Type *</Text>
-              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-                {[{ value: 'tech', label: 'Tech Chart' }, { value: 'np', label: 'NP Chart' }].map(opt => (
-                  <TouchableOpacity key={opt.value} onPress={() => setTemplateType(opt.value)}
-                    style={{ flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center', backgroundColor: templateType === opt.value ? primaryColor + '20' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.1)' }}>
-                    <Text style={{ color: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 14 }}>{opt.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              {/* Set as Default */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                <View>
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Set as Default</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>Auto-loads when no service match found</Text>
-                </View>
-                <TouchableOpacity
-                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
-                  onPress={() => setTemplateIsDefault(!templateIsDefault)}>
-                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: templateIsDefault ? 'flex-end' : 'flex-start' }} />
+          {/* Builder / Preview toggle for mobile */}
+          {Platform.OS !== 'web' && (
+            <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', margin: 12, borderRadius: 10, padding: 3 }}>
+              {['Build', 'Preview'].map(t => (
+                <TouchableOpacity key={t} onPress={() => setTemplateBuilderTab(t)}
+                  style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, backgroundColor: templateBuilderTab === t ? primaryColor : 'transparent' }}>
+                  <Text style={{ color: templateBuilderTab === t ? secondaryColor : 'rgba(255,255,255,0.4)', fontWeight: '700', fontSize: 13 }}>{t}</Text>
                 </TouchableOpacity>
-              </View>
+              ))}
+            </View>
+          )}
 
-              {/* Lock on Submit */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                <View style={{ flex: 1, marginRight: 12 }}>
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Lock on Submit</Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>Once submitted, chart is read-only. Staff can only add addendums. Recommended for clinical documentation.</Text>
-                </View>
-                <TouchableOpacity
-                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: templateSubmitBehavior === 'lock' ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
-                  onPress={() => setTemplateSubmitBehavior(prev => prev === 'lock' ? 'draft' : 'lock')}>
-                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: templateSubmitBehavior === 'lock' ? 'flex-end' : 'flex-start' }} />
-                </TouchableOpacity>
-              </View>
+          <View style={{ flex: 1, flexDirection: Platform.OS === 'web' ? 'row' : 'column' }}>
 
-              {/* Service Types */}
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Assign to Services (optional)</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-                {services.map(svc => {
-                  const selected = templateServiceTypes.includes(svc.name)
-                  return (
-                    <TouchableOpacity key={svc.id}
-                      onPress={() => setTemplateServiceTypes(prev => selected ? prev.filter(s => s !== svc.name) : [...prev, svc.name])}
-                      style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: selected ? primaryColor + '20' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: selected ? primaryColor : 'rgba(255,255,255,0.1)' }}>
-                      <Text style={{ color: selected ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' }}>{svc.name}</Text>
+            {/* ── LEFT / BUILD PANEL ── */}
+            {(Platform.OS === 'web' || templateBuilderTab === 'Build') && (
+              <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+                <View style={{ padding: 20 }}>
+
+                  {/* Template Name */}
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Template Name *</Text>
+                  <TextInput
+                    style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+                    placeholder="e.g. Standard IV Drip Chart"
+                    placeholderTextColor="rgba(255,255,255,0.3)"
+                    value={templateName}
+                    onChangeText={setTemplateName}
+                  />
+
+                  {/* Chart Type + toggles in a compact row */}
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    {[{ value: 'tech', label: '🔧 Tech' }, { value: 'np', label: '🩺 NP' }].map(opt => (
+                      <TouchableOpacity key={opt.value} onPress={() => setTemplateType(opt.value)}
+                        style={{ flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', backgroundColor: templateType === opt.value ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                        <Text style={{ color: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.4)', fontWeight: '700', fontSize: 13 }}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Compact toggles row */}
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    <TouchableOpacity onPress={() => setTemplateIsDefault(!templateIsDefault)}
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: templateIsDefault ? primaryColor + '15' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: templateIsDefault ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                        {templateIsDefault && <Text style={{ color: secondaryColor, fontSize: 10, fontWeight: '800' }}>✓</Text>}
+                      </View>
+                      <Text style={{ color: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>Default</Text>
                     </TouchableOpacity>
-                  )
-                })}
-                {services.length === 0 && <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No services defined yet — add them in the Services tab</Text>}
-              </View>
+                    <TouchableOpacity onPress={() => setTemplateSubmitBehavior(prev => prev === 'lock' ? 'draft' : 'lock')}
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: templateSubmitBehavior === 'lock' ? 'rgba(255,152,0,0.12)' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.1)' }}>
+                      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.3)', backgroundColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                        {templateSubmitBehavior === 'lock' && <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>✓</Text>}
+                      </View>
+                      <Text style={{ color: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>Lock on Submit</Text>
+                    </TouchableOpacity>
+                  </View>
 
-              {/* Fields Section */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1 }}>Fields ({templateFields.length})</Text>
-              </View>
-
-              {/* Field List */}
-              {templateFields.length === 0 ? (
-                <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 24, alignItems: 'center', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}>
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No fields yet — add from the palette below</Text>
-                </View>
-              ) : templateFields.map((field, index) => (
-                <View key={field.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: primaryColor }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{field.label || field.type}</Text>
-                      <View style={{ flexDirection: 'row', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
-                        <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{field.type}</Text>
-                        {field.required && <Text style={{ color: '#f09090', fontSize: 11 }}>required</Text>}
-                        {field.repeatable && <Text style={{ color: '#4CAF50', fontSize: 11 }}>repeatable</Text>}
-                        {field.conditional && <Text style={{ color: '#FF9800', fontSize: 11 }}>conditional</Text>}
+                  {/* Services */}
+                  {services.length > 0 && (
+                    <View style={{ marginBottom: 12 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Assign to Services</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {services.map(svc => {
+                          const selected = templateServiceTypes.includes(svc.name)
+                          return (
+                            <TouchableOpacity key={svc.id}
+                              onPress={() => setTemplateServiceTypes(prev => selected ? prev.filter(s => s !== svc.name) : [...prev, svc.name])}
+                              style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, backgroundColor: selected ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: selected ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                              <Text style={{ color: selected ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '600' }}>{svc.name}</Text>
+                            </TouchableOpacity>
+                          )
+                        })}
                       </View>
                     </View>
-                    <View style={{ flexDirection: 'row', gap: 6 }}>
-                      {index > 0 && (
-                        <TouchableOpacity onPress={() => {
-                          const newFields = [...templateFields]
-                          const temp = newFields[index - 1]
-                          newFields[index - 1] = newFields[index]
-                          newFields[index] = temp
-                          setTemplateFields(newFields)
-                        }} style={{ padding: 6 }}>
-                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>↑</Text>
-                        </TouchableOpacity>
-                      )}
-                      {index < templateFields.length - 1 && (
-                        <TouchableOpacity onPress={() => {
-                          const newFields = [...templateFields]
-                          const temp = newFields[index + 1]
-                          newFields[index + 1] = newFields[index]
-                          newFields[index] = temp
-                          setTemplateFields(newFields)
-                        }} style={{ padding: 6 }}>
-                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>↓</Text>
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity onPress={() => {
-                        setEditingField({ ...field })
-                        setEditingFieldIndex(index)
-                        setFieldConfigModal(true)
-                      }} style={{ padding: 6 }}>
-                        <Text style={{ color: primaryColor, fontSize: 14 }}>✏️</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => setTemplateFields(prev => prev.filter((_, i) => i !== index))} style={{ padding: 6 }}>
-                        <Text style={{ color: '#f06060', fontSize: 14 }}>🗑</Text>
-                      </TouchableOpacity>
+                  )}
+
+                  {/* Divider */}
+                  <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 12 }} />
+
+                  {/* Field List */}
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Fields ({templateFields.length})</Text>
+                  {templateFields.length === 0 ? (
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: 20, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', borderStyle: 'dashed' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Add fields from the palette below</Text>
                     </View>
-                  </View>
+                  ) : templateFields.map((field, index) => (
+                    <View key={field.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 10, marginBottom: 6, borderLeftWidth: 3, borderLeftColor: field.type === 'heading' ? primaryColor : field.type === 'divider' ? 'rgba(255,255,255,0.2)' : '#4CAF50' }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{field.label || field.type}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 2 }}>{field.type}{field.required ? ' · required' : ''}{field.repeatable ? ' · repeatable' : ''}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', gap: 4 }}>
+                          {index > 0 && <TouchableOpacity onPress={() => { const f=[...templateFields]; [f[index-1],f[index]]=[f[index],f[index-1]]; setTemplateFields(f) }} style={{ padding: 6 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>↑</Text></TouchableOpacity>}
+                          {index < templateFields.length-1 && <TouchableOpacity onPress={() => { const f=[...templateFields]; [f[index+1],f[index]]=[f[index],f[index+1]]; setTemplateFields(f) }} style={{ padding: 6 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>↓</Text></TouchableOpacity>}
+                          <TouchableOpacity onPress={() => { setEditingField({...field}); setEditingFieldIndex(index); setFieldConfigModal(true) }} style={{ padding: 6 }}><Text style={{ color: primaryColor, fontSize: 13 }}>✏️</Text></TouchableOpacity>
+                          <TouchableOpacity onPress={() => setTemplateFields(prev => prev.filter((_,i) => i !== index))} style={{ padding: 6 }}><Text style={{ color: '#f06060', fontSize: 13 }}>🗑</Text></TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+
+                  {/* Grouped Field Palette */}
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8 }}>Add Field</Text>
+                  {[
+                    { group: 'Structure', color: 'rgba(255,255,255,0.15)', fields: [{ type: 'heading', label: 'Heading', icon: '𝐇' }, { type: 'divider', label: 'Divider', icon: '─' }] },
+                    { group: 'Input', color: '#2196F3', fields: [{ type: 'text', label: 'Text', icon: 'Aa' }, { type: 'textarea', label: 'Long Text', icon: '¶' }, { type: 'number', label: 'Number', icon: '#' }, { type: 'yes_no', label: 'Yes/No', icon: '?' }, { type: 'dropdown', label: 'Dropdown', icon: '▾' }, { type: 'multi_select', label: 'Multi-Select', icon: '☑' }, { type: 'date', label: 'Date', icon: '📅' }, { type: 'time', label: 'Time', icon: '⏱' }] },
+                    { group: 'Medical', color: '#4CAF50', fields: [{ type: 'vitals', label: 'Vitals', icon: '❤️' }, { type: 'iv_details', label: 'IV Details', icon: '💉' }, { type: 'med_row', label: 'Medication', icon: '💊' }, { type: 'vitamin_row', label: 'Vitamin', icon: '🌿' }, { type: 'service_select', label: 'Service', icon: '🏥' }] },
+                    { group: 'Media & Legal', color: '#9C27B0', fields: [{ type: 'photo', label: 'Photo', icon: '📷' }, { type: 'signature', label: 'Signature', icon: '✍️' }, { type: 'consent', label: 'Consent', icon: '📋' }] },
+                  ].map(group => (
+                    <View key={group.group} style={{ marginBottom: 12 }}>
+                      <Text style={{ color: group.color, fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>{group.group}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {group.fields.map(ft => (
+                          <TouchableOpacity key={ft.type}
+                            onPress={() => {
+                              const newField = { id: `field_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, type: ft.type, label: ft.label, placeholder: '', required: false, repeatable: ['med_row','vitamin_row','vitals'].includes(ft.type), options: [], min: null, max: null, conditional: null }
+                              setTemplateFields(prev => [...prev, newField])
+                              if (['med_row','vitamin_row'].includes(ft.type) && formulary.length === 0) Alert.alert('Formulary Required', 'Add medications/vitamins in Charts > Formulary first.', [{text:'Got it'}])
+                            }}
+                            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                            <Text style={{ fontSize: 12 }}>{ft.icon}</Text>
+                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500' }}>{ft.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  ))}
+
+                  <View style={{ height: 40 }} />
                 </View>
-              ))}
+              </ScrollView>
+            )}
 
-              {/* Field Palette */}
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8 }}>Add Field</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-                {[
-                  { type: 'heading', label: 'Heading' },
-                  { type: 'divider', label: 'Divider' },
-                  { type: 'text', label: 'Text' },
-                  { type: 'textarea', label: 'Textarea' },
-                  { type: 'number', label: 'Number' },
-                  { type: 'yes_no', label: 'Yes/No' },
-                  { type: 'dropdown', label: 'Dropdown' },
-                  { type: 'multi_select', label: 'Multi-Select' },
-                  { type: 'date', label: 'Date' },
-                  { type: 'time', label: 'Time' },
-                  { type: 'vitals', label: 'Vitals Block' },
-                  { type: 'iv_details', label: 'IV Details' },
-                  { type: 'med_row', label: 'Med Row' },
-                  { type: 'vitamin_row', label: 'Vitamin Row' },
-                  { type: 'service_select', label: 'Service Select' },
-                  { type: 'photo', label: 'Photo' },
-                  { type: 'signature', label: 'Signature' },
-                  { type: 'consent', label: 'Consent' },
-                ].map(ft => (
-                  <TouchableOpacity key={ft.type}
-                    onPress={() => {
-                      const newField = {
-                        id: `field_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                        type: ft.type,
-                        label: ft.label.replace(/^[^\s]+\s/, ''),
-                        placeholder: '',
-                        required: false,
-                        repeatable: ['med_row', 'vitamin_row', 'vitals'].includes(ft.type),
-                        options: [],
-                        min: null,
-                        max: null,
-                        conditional: null
-                      }
-                      setTemplateFields(prev => [...prev, newField])
-                      if (['med_row', 'vitamin_row'].includes(ft.type) && formulary.length === 0) {
-                        Alert.alert(
-                          'Formulary Required',
-                          'This field pulls from your company formulary. Go to Charts > Formulary and add your approved medications and vitamins, otherwise techs will see an empty picker.',
-                          [{ text: 'Got it' }]
-                        )
-                      }
-                    }}
-                    style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}>
-                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>{ft.label}</Text>
-                  </TouchableOpacity>
-                ))}
+            {/* ── RIGHT / PREVIEW PANEL ── */}
+            {(Platform.OS === 'web' || templateBuilderTab === 'Preview') && (
+              <View style={{ flex: Platform.OS === 'web' ? 1 : undefined, backgroundColor: '#0a0a1a', borderLeftWidth: Platform.OS === 'web' ? 1 : 0, borderLeftColor: 'rgba(255,255,255,0.08)' }}>
+                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 1, textAlign: 'center' }}>PATIENT CHART PREVIEW</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, textAlign: 'center', marginTop: 2 }}>How techs will see this chart</Text>
+                </View>
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+                  {templateFields.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                      <Text style={{ fontSize: 32, marginBottom: 12 }}>📋</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, textAlign: 'center' }}>Add fields to see a preview</Text>
+                    </View>
+                  ) : templateFields.map(field => {
+                    if (field.type === 'heading') return (
+                      <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
+                        <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
+                      </View>
+                    )
+                    if (field.type === 'divider') return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 10 }} />
+                    if (field.type === 'vitals') return (
+                      <View key={field.id} style={{ marginBottom: 12 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 6 }}>{field.label || 'Vitals'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                          {['BP','HR','O2','Temp','Pain'].map(v => (
+                            <View key={v} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 55, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>{v}</Text>
+                              <View style={{ width: 40, height: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 8 }} />
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'iv_details') return (
+                      <View key={field.id} style={{ marginBottom: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 8 }}>IV Details</Text>
+                        {['Site','Catheter Size','Attempts','Time Started'].map(l => (
+                          <View key={l} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' }}>
+                            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{l}</Text>
+                            <View style={{ width: 80, height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 8 }} />
+                          </View>
+                        ))}
+                      </View>
+                    )
+                    if (field.type === 'yes_no') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Yes/No'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          {['Yes','No'].map(o => <View key={o} style={{ paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{o}</Text></View>)}
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'dropdown' || field.type === 'multi_select') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || field.type}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>{field.options?.length ? field.options[0] : 'Select...'}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)' }}>▾</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'med_row' || field.type === 'vitamin_row') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || (field.type === 'med_row' ? 'Medication' : 'Vitamin')}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Select from formulary...</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)' }}>▾</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'photo') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Photo'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}>
+                          <Text style={{ fontSize: 24, marginBottom: 4 }}>📷</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>Tap to take photo</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'signature') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Signature'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, height: 80, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>✍️ Sign here</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'consent') return (
+                      <View key={field.id} style={{ marginBottom: 10, backgroundColor: 'rgba(255,152,0,0.06)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(255,152,0,0.2)' }}>
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>CONSENT</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>{field.consentText || 'Consent statement will appear here...'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>I agree</Text>
+                        </View>
+                      </View>
+                    )
+                    // Default: text/textarea/number/date/time
+                    return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || field.type}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', minHeight: field.type === 'textarea' ? 80 : 44 }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>{field.placeholder || (field.type === 'date' ? 'MM/DD/YYYY' : field.type === 'time' ? 'HH:MM' : field.type === 'number' ? '0' : 'Enter text...')}</Text>
+                        </View>
+                      </View>
+                    )
+                  })}
+                  <View style={{ height: 40 }} />
+                </ScrollView>
               </View>
-
-            </View>
-          </ScrollView>
+            )}
+          </View>
 
           {/* Save Button */}
           <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
@@ -4206,6 +4224,57 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
         </View>
       </Modal>
 
+    </View>
+  )
+}
+
+function PatientMembershipSection({ patientId, companyId, token, primaryColor, plans, onEnroll, onRefresh }) {
+  const [membership, setMembership] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const API_URL = 'https://api.infusepro.app'
+
+  useEffect(() => {
+    if (!patientId || !companyId) return
+    fetch(`${API_URL}/memberships/patient/${patientId}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { setMembership(d.membership || null); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [patientId])
+
+  if (loading) return <ActivityIndicator color={primaryColor} style={{ marginBottom: 12 }} />
+
+  return (
+    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏅 MEMBERSHIP</Text>
+      {membership ? (
+        <>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{membership.plan_name}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{membership.redemptions_this_cycle} of {membership.max_redemptions_per_cycle === 999 ? '∞' : membership.max_redemptions_per_cycle} visits used this cycle</Text>
+          {membership.current_cycle_end && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Renews {new Date(membership.current_cycle_end).toLocaleDateString()}</Text>}
+          <TouchableOpacity
+            style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
+            onPress={() => Alert.alert('Cancel Membership', `Cancel this patient's ${membership.plan_name} membership?`, [
+              { text: 'Keep', style: 'cancel' },
+              { text: 'Cancel Membership', style: 'destructive', onPress: async () => {
+                await fetch(`${API_URL}/memberships/${membership.id}/cancel`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } })
+                setMembership(null)
+                onRefresh()
+              }}
+            ])}
+          >
+            <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Cancel Membership</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>No active membership</Text>
+          {plans.length > 0 && (
+            <TouchableOpacity style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 10, alignItems: 'center', borderWidth: 1, borderColor: primaryColor + '40' }} onPress={onEnroll}>
+              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700' }}>+ Enroll in Membership</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      )}
     </View>
   )
 }
