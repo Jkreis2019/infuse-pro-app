@@ -217,6 +217,15 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [enrollSelectedPlan, setEnrollSelectedPlan] = useState(null)
   const [enrolling, setEnrolling] = useState(false)
   const [adjustModal, setAdjustModal] = useState(false)
+  const [upgradeModal, setUpgradeModal] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState('')
+  const [upgradeRequired, setUpgradeRequired] = useState('')
+
+  const showUpgradeModal = (message, tier) => {
+    setUpgradeMessage(message)
+    setUpgradeRequired(tier)
+    setUpgradeModal(true)
+  }
   const [cancelMembershipModal, setCancelMembershipModal] = useState(false)
   const [cancelMembershipTarget, setCancelMembershipTarget] = useState(null)
   const [regionAssignModal, setRegionAssignModal] = useState(false)
@@ -774,6 +783,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               })
               const data = await res.json()
               if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved. Log out and back in to see the new logo in the header.') }
+              else if (res2.status === 403) { showUpgradeModal('White-label branding is available on the Scale plan. Upgrade to customize your logo.', 'Scale') }
               else Alert.alert('Error', data.message || 'Could not upload logo')
             } catch (err) {
               Alert.alert('Error', 'Could not upload logo')
@@ -823,6 +833,8 @@ const [showImportModal, setShowImportModal] = useState(false)
       const data = await res.json()
       if (data.success) {
         Alert.alert('Saved', 'Branding colors updated. Log out and back in to see new colors.')
+      } else if (res.status === 403) {
+        showUpgradeModal('White-label branding is available on the Scale plan. Upgrade to customize your colors and logo.', 'Scale')
       } else Alert.alert('Error', data.message || 'Could not save branding')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingBranding(false) }
   }
@@ -872,7 +884,8 @@ const [showImportModal, setShowImportModal] = useState(false)
         setNsFirstName(''); setNsLastName(''); setNsEmail(''); setNsPhone(''); setNsRole('tech')
         Alert.alert('Staff Created', `Welcome email sent to ${nsEmail}`)
         fetchAll()
-      } else Alert.alert('Error', data.message || 'Could not create staff')
+      } else if (res.status === 403) { setNewStaffModal(false); showUpgradeModal(data.message || 'You have reached your staff limit. Upgrade your plan to add more team members.', 'Higher Plan') }
+      else Alert.alert('Error', data.message || 'Could not create staff')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setCreatingStaff(false) }
   }
 
@@ -903,7 +916,8 @@ const [showImportModal, setShowImportModal] = useState(false)
         setNewRegionModal(false); setEditRegionModal(false); setSelectedRegion(null)
         setRName(''); setRColor('#C9A84C'); setRCities('')
         fetchAll()
-      } else Alert.alert('Error', data.message || 'Could not save region')
+      } else if (res.status === 403) { showUpgradeModal('Multi-region support is available on the Scale plan. Upgrade to organize your team by region.', 'Scale') }
+      else Alert.alert('Error', data.message || 'Could not save region')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingRegion(false) }
   }
 
@@ -2663,6 +2677,31 @@ const [showImportModal, setShowImportModal] = useState(false)
         </View>
       )}
 
+      {/* Upgrade Required Modal */}
+      {upgradeModal && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)', alignItems: 'center' }}>
+              <Text style={{ fontSize: 36, marginBottom: 12 }}>⭐</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>UPGRADE REQUIRED</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800', textTransform: 'capitalize' }}>{upgradeRequired} Plan</Text>
+            </View>
+            <View style={{ padding: 24 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 24, textAlign: 'center', marginBottom: 24 }}>{upgradeMessage}</Text>
+              <TouchableOpacity
+                style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 12 }}
+                onPress={() => { setUpgradeModal(false); setActiveTab('billing') }}
+              >
+                <Text style={{ color: secondaryColor, fontWeight: '700', fontSize: 15 }}>View Upgrade Options</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ padding: 12, alignItems: 'center' }} onPress={() => setUpgradeModal(false)}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>Maybe later</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Adjust Visits Modal */}
       {adjustModal && adjustMembership && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
@@ -3088,9 +3127,16 @@ const [showImportModal, setShowImportModal] = useState(false)
               setSavingAnnouncement(true)
               try {
                 const payload = { title: anTitle, body: anBody, emoji: anEmoji, ctaLabel: anCtaLabel, ctaUrl: anCtaUrl, bgStyle: anBgStyle, bgColor: anBgColor, active: anActive, sortOrder: editingAnnouncement?.sort_order || 0, target: anTarget }
-                if (editingAnnouncement) await fetch(`${API_URL}/admin/announcements/${editingAnnouncement.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-                else await fetch(`${API_URL}/admin/announcements`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-                setAnnouncementModal(false); fetchAll()
+                let res
+                if (editingAnnouncement) res = await fetch(`${API_URL}/admin/announcements/${editingAnnouncement.id}`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                else res = await fetch(`${API_URL}/admin/announcements`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                const data = await res.json()
+                if (data.success === false) {
+                  setAnnouncementModal(false)
+                  showUpgradeModal(data.message, 'Growth or Scale')
+                } else {
+                  setAnnouncementModal(false); fetchAll()
+                }
               } catch (err) { Alert.alert('Error', 'Could not save announcement') } finally { setSavingAnnouncement(false) }
             }} disabled={savingAnnouncement}>
               {savingAnnouncement ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Announcement</Text>}
