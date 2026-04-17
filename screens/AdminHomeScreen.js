@@ -1672,8 +1672,10 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TouchableOpacity style={[{ borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: primaryColor }, savingReferral && { opacity: 0.6 }]} onPress={async () => {
               setSavingReferral(true)
               try {
-                await fetch(`${API_URL}/admin/referral-settings`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ perkType: referralPerkType, perkAmount: referralPerkType === 'fixed' ? parseFloat(referralPerkAmount) : null, perkPercent: referralPerkType === 'percent' ? parseFloat(referralPerkPercent) : null, active: referralActive }) })
-                Alert.alert('✅ Saved', 'Referral settings updated!'); fetchAll()
+                const res = await fetch(`${API_URL}/admin/referral-settings`, { method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ perkType: referralPerkType, perkAmount: referralPerkType === 'fixed' ? parseFloat(referralPerkAmount) : null, perkPercent: referralPerkType === 'percent' ? parseFloat(referralPerkPercent) : null, active: referralActive }) })
+                const data = await res.json()
+                if (data.error === 'Upgrade required' || res.status === 403) { showUpgradeModal('Referral programs are available on the Growth plan and above. Upgrade to reward patients who refer friends.', 'Growth') }
+                else { Alert.alert('✅ Saved', 'Referral settings updated!'); fetchAll() }
               } catch (err) { Alert.alert('Error', 'Could not save') } finally { setSavingReferral(false) }
             }} disabled={savingReferral}>
               {savingReferral ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Referral Settings</Text>}
