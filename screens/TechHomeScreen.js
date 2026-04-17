@@ -895,7 +895,7 @@ if (data.call?.call_id) {
             <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
           </View>
           <TouchableOpacity onPress={() => setBugReportModal(true)} style={{ marginTop: 8 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🐛 Report a Problem</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Report a Problem</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>

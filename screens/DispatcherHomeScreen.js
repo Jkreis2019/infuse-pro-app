@@ -903,7 +903,7 @@ const submitSendIntake = async () => {
         onPress={() => setBugReportModal(true)}
         style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
-        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🐛 Report</Text>
+        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Report a Problem</Text>
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}

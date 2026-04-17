@@ -455,7 +455,7 @@ export default function NPHomeScreen({ route, navigation }) {
               <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setBugReportModal(true)}>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🐛 Report</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Report a Problem</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>

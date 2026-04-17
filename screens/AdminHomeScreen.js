@@ -992,7 +992,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Take a Break</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setBugReportModal(true)}>
-              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🐛 Report a Problem</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Report a Problem</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
