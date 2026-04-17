@@ -1721,8 +1721,10 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TouchableOpacity style={[{ borderRadius: 12, padding: 16, alignItems: 'center', backgroundColor: primaryColor }, savingLoyalty && { opacity: 0.6 }]} onPress={async () => {
               setSavingLoyalty(true)
               try {
-                await fetch(`${API_URL}/admin/loyalty`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ threshold: parseInt(loyaltyThreshold), rewardType: loyaltyRewardType, rewardAmount: loyaltyRewardType === 'fixed' ? parseFloat(loyaltyRewardAmount) : loyaltyRewardType === 'free' ? 0 : null, rewardPercent: loyaltyRewardType === 'percent' ? parseFloat(loyaltyRewardPercent) : null, active: loyaltyActive }) })
-                Alert.alert('✅ Saved', 'Loyalty program updated!'); fetchAll()
+                const res = await fetch(`${API_URL}/admin/loyalty`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ threshold: parseInt(loyaltyThreshold), rewardType: loyaltyRewardType, rewardAmount: loyaltyRewardType === 'fixed' ? parseFloat(loyaltyRewardAmount) : loyaltyRewardType === 'free' ? 0 : null, rewardPercent: loyaltyRewardType === 'percent' ? parseFloat(loyaltyRewardPercent) : null, active: loyaltyActive }) })
+                const data = await res.json()
+                if (data.error === 'Upgrade required' || res.status === 403) { showUpgradeModal('Loyalty programs are available on the Scale plan. Upgrade to reward your returning patients.', 'Scale') }
+                else { Alert.alert('✅ Saved', 'Loyalty program updated!'); fetchAll() }
               } catch (err) { Alert.alert('Error', 'Could not save') } finally { setSavingLoyalty(false) }
             }} disabled={savingLoyalty}>
               {savingLoyalty ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Loyalty Program</Text>}
