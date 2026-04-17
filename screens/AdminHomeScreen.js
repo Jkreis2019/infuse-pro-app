@@ -217,6 +217,8 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [enrollSelectedPlan, setEnrollSelectedPlan] = useState(null)
   const [enrolling, setEnrolling] = useState(false)
   const [adjustModal, setAdjustModal] = useState(false)
+  const [cancelMembershipModal, setCancelMembershipModal] = useState(false)
+  const [cancelMembershipTarget, setCancelMembershipTarget] = useState(null)
   const [adjustMembership, setAdjustMembership] = useState(null)
   const [adjustValue, setAdjustValue] = useState(0)
 
@@ -1832,7 +1834,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · {m.billing_cycle === 'yearly' ? 'Annual' : 'Monthly'} billing · Renews the {new Date(m.current_cycle_end).getDate()}{['st','nd','rd'][((new Date(m.current_cycle_end).getDate()+90)%100-10)%10-1]||'th'}</Text>
                   <TouchableOpacity
                     style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 10, borderWidth: 1, borderColor: 'rgba(240,144,144,0.2)' }}
-                    onPress={() => Alert.alert('Cancel Membership', `Cancel ${m.first_name}'s membership?`, [{ text: 'Keep', style: 'cancel' }, { text: 'Cancel Membership', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/memberships/${m.id}/cancel`, { method: 'POST', headers }); fetchAll() } }])}
+                    onPress={() => { setCancelMembershipTarget(m); setCancelMembershipModal(true) }}
                   >
                     <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '600' }}>Cancel Membership</Text>
                   </TouchableOpacity>
@@ -2599,6 +2601,38 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
               </View>
             </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* Cancel Membership Confirm Modal */}
+      {cancelMembershipModal && cancelMembershipTarget && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(240,144,144,0.3)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,144,144,0.2)' }}>
+              <Text style={{ color: '#f09090', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>CANCEL MEMBERSHIP</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>{cancelMembershipTarget.first_name} {cancelMembershipTarget.last_name}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{cancelMembershipTarget.plan_name} · ${cancelMembershipTarget.plan_price}/mo</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 22, marginBottom: 20 }}>Are you sure you want to cancel this patient's membership? This action cannot be undone. Their Stripe subscription will also be cancelled.</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setCancelMembershipModal(false)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Keep</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={{ flex: 2, backgroundColor: '#f09090', borderRadius: 12, padding: 14, alignItems: 'center' }}
+                  onPress={async () => {
+                    await fetch(`${API_URL}/memberships/${cancelMembershipTarget.id}/cancel`, { method: 'POST', headers })
+                    setCancelMembershipModal(false)
+                    setCancelMembershipTarget(null)
+                    fetchAll()
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Cancel Membership</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       )}
