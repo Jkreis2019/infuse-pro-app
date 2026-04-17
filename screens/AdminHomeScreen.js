@@ -259,6 +259,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [formularyCategory, setFormularyCategory] = useState('')
   const [formularyContraindications, setFormularyContraindications] = useState('')
   const [chartsSubTab, setChartsSubTab] = useState('templates')
+  const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
   const [announcementModal, setAnnouncementModal] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null)
   const [anTitle, setAnTitle] = useState('')
@@ -1552,6 +1553,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   setTemplateIsDefault(false)
                   setTemplateServiceTypes([])
                   setTemplateFields([])
+                  setTemplateSubmitBehavior('lock')
                   setTemplateModalVisible(true)
                 }}>
                 <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ New Template</Text>
@@ -1610,6 +1612,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                             setTemplateIsDefault(data.template.is_default)
                             setTemplateServiceTypes(data.template.service_types || [])
                             setTemplateFields(data.template.fields || [])
+                            setTemplateSubmitBehavior(data.template.submit_behavior || 'lock')
                             setTemplateModalVisible(true)
                           }
                         }}>
@@ -1686,6 +1689,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                             setTemplateIsDefault(data.template.is_default)
                             setTemplateServiceTypes(data.template.service_types || [])
                             setTemplateFields(data.template.fields || [])
+                            setTemplateSubmitBehavior(data.template.submit_behavior || 'lock')
                             setTemplateModalVisible(true)
                           }
                         }}>
@@ -3661,6 +3665,19 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
                 </TouchableOpacity>
               </View>
 
+              {/* Lock on Submit */}
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+                <View style={{ flex: 1, marginRight: 12 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Lock on Submit</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>Once submitted, chart is read-only. Staff can only add addendums. Recommended for clinical documentation.</Text>
+                </View>
+                <TouchableOpacity
+                  style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: templateSubmitBehavior === 'lock' ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+                  onPress={() => setTemplateSubmitBehavior(prev => prev === 'lock' ? 'draft' : 'lock')}>
+                  <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: templateSubmitBehavior === 'lock' ? 'flex-end' : 'flex-start' }} />
+                </TouchableOpacity>
+              </View>
+
               {/* Service Types */}
               <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Assign to Services (optional)</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
@@ -3810,7 +3827,8 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
                       chartType: templateType,
                       isDefault: templateIsDefault,
                       serviceTypes: templateServiceTypes,
-                      fields: templateFields
+                      fields: templateFields,
+                      submitBehavior: templateSubmitBehavior
                     })
                   })
                   const data = await res.json()
