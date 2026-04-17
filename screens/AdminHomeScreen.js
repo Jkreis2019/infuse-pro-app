@@ -2350,7 +2350,91 @@ const [showImportModal, setShowImportModal] = useState(false)
                               <Image source={{ uri: val }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
                             </View>
                           )
-                          const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : val.toString()
+                          // vitals
+                          if (field.type === 'vitals' && Array.isArray(val)) return (
+                            <View key={field.id} style={{ marginBottom: 12 }}>
+                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              {val.map((v, i) => (
+                                <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6 }}>
+                                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                    {v.bp && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.bp}</Text></View>}
+                                    {v.hr && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.hr}</Text></View>}
+                                    {v.o2 && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.o2}%</Text></View>}
+                                    {v.temp && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>TEMP</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.temp}</Text></View>}
+                                    {v.pain && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>PAIN</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.pain}/10</Text></View>}
+                                    {v.time && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>TIME</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.time}</Text></View>}
+                                  </View>
+                                </View>
+                              ))}
+                            </View>
+                          )
+                          // med_row / vitamin_row
+                          if ((field.type === 'med_row' || field.type === 'vitamin_row') && Array.isArray(val)) return (
+                            <View key={field.id} style={{ marginBottom: 12 }}>
+                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              {val.map((item, i) => (
+                                <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{item.name || item.dose}</Text>
+                                  <View style={{ alignItems: 'flex-end' }}>
+                                    {item.dose && item.name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{item.dose}</Text>}
+                                    {item.route && <Text style={{ color: primaryColor, fontSize: 11 }}>{item.route.replace('_',' ').toUpperCase()}</Text>}
+                                    {item.time && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{item.time}</Text>}
+                                  </View>
+                                </View>
+                              ))}
+                            </View>
+                          )
+                          // iv_details
+                          if (field.type === 'iv_details' && typeof val === 'object' && !Array.isArray(val)) return (
+                            <View key={field.id} style={{ marginBottom: 12 }}>
+                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10 }}>
+                                {Object.entries(val).filter(([k,v]) => v).map(([k,v]) => (
+                                  <View key={k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' }}>
+                                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, textTransform: 'capitalize' }}>{k.replace(/_/g,' ')}</Text>
+                                    <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>{v}</Text>
+                                  </View>
+                                ))}
+                              </View>
+                            </View>
+                          )
+                          // service_select
+                          if (field.type === 'service_select') return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '600' }}>{Array.isArray(val) ? val.join(', ') : val}</Text>
+                            </View>
+                          )
+                          // multi_select / dropdown
+                          if (field.type === 'multi_select' && Array.isArray(val)) return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>{val.join(', ')}</Text>
+                            </View>
+                          )
+                          // yes_no
+                          if (field.type === 'yes_no') return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: val === 'Yes' ? '#4CAF50' : '#f09090', fontSize: 13, fontWeight: '700' }}>{val}</Text>
+                            </View>
+                          )
+                          // consent
+                          if (field.type === 'consent') return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>{val === true || val === 'true' ? 'Agreed' : 'Not agreed'}</Text>
+                            </View>
+                          )
+                          // signature
+                          if (field.type === 'signature') return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>Signed</Text>
+                            </View>
+                          )
+                          // text, textarea, number, date, time, dropdown (default)
+                          const displayVal = typeof val === 'object' ? JSON.stringify(val) : val.toString()
                           return (
                             <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
