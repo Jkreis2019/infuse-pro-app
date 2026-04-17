@@ -382,6 +382,20 @@ const [showImportModal, setShowImportModal] = useState(false)
       const res = await fetch(`${API_URL}/patients/${patient.id}/profile`, { headers })
       const data = await res.json()
       if (data.success) {
+        // Also fetch dynamic charts for this patient
+        try {
+          const dynRes = await fetch(`${API_URL}/charts/patient/${patient.id}`, { headers })
+          const dynData = await dynRes.json()
+          if (dynData.success && dynData.charts?.length > 0) {
+            // Merge dynamic charts with legacy charts, deduplicate by id
+            const legacyCharts = data.charts || []
+            const dynCharts = dynData.charts || []
+            const allIds = new Set(legacyCharts.map(c => c.id))
+            const merged = [...legacyCharts, ...dynCharts.filter(c => !allIds.has(c.id))]
+            merged.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+            data.charts = merged
+          }
+        } catch (e) {}
         setPsProfileData(data)
         setPsEditPhone(data.patient?.phone || '')
         setPsEditAddress(data.patient?.home_address || '')
@@ -2326,11 +2340,52 @@ const [showImportModal, setShowImportModal] = useState(false)
                 {psSelectedChart && (
                   <>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{psSelectedChart.tech_name}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{psSelectedChart.chart_type === 'np' ? 'NP Chart' : 'Tech Chart'}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 2 }}>{psSelectedChart.tech_name}</Text>
+                        {psSelectedChart.template_name && <Text style={{ color: primaryColor, fontSize: 12, marginTop: 2 }}>{psSelectedChart.template_name}</Text>}
+                      </View>
                       <View style={{ backgroundColor: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
                         <Text style={{ color: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{psSelectedChart.status?.toUpperCase()}</Text>
                       </View>
                     </View>
+
+                    {/* Dynamic chart rendering */}
+                    {psSelectedChart.template_id ? (
+                      <>
+                        {(psSelectedChart.template_fields || []).map(field => {
+                          const val = psSelectedChart.responses?.[field.id]
+                          if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) return null
+                          if (field.type === 'heading') return (
+                            <View key={field.id} style={{ marginBottom: 8, marginTop: 12 }}>
+                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
+                            </View>
+                          )
+                          if (field.type === 'divider') return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 8 }} />
+                          if (field.type === 'photo') return (
+                            <View key={field.id} style={{ marginBottom: 12 }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <Image source={{ uri: val }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
+                            </View>
+                          )
+                          const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : val.toString()
+                          return (
+                            <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>{displayVal}</Text>
+                            </View>
+                          )
+                        })}
+                        {psSelectedChart.amendment_notes && (
+                          <View style={{ marginTop: 16, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12 }}>
+                            <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>AMENDMENT</Text>
+                            <Text style={{ color: '#fff', fontSize: 13 }}>{psSelectedChart.amendment_notes}</Text>
+                          </View>
+                        )}
+                      </>
+                    ) : (
+                      <>
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                       <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INITIAL VITALS</Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -2443,6 +2498,8 @@ const [showImportModal, setShowImportModal] = useState(false)
                       </View>
                     )}
                     <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center', marginTop: 8 }}>Submitted {new Date(psSelectedChart.created_at).toLocaleString()}</Text>
+                      </>
+                    )}
                   </>
                 )}
                 <View style={{ height: 40 }} />
@@ -2675,16 +2732,23 @@ const [showImportModal, setShowImportModal] = useState(false)
                   {!psProfileData?.charts?.length ? (
                     <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
                   ) : psProfileData.charts.map((ch, i) => (
-                    <TouchableOpacity key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }} onPress={() => { setPsSelectedChart(ch); setPsChartModal(true) }}>
+                    <TouchableOpacity key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.chart_type === 'np' ? '#9C27B0' : ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }} onPress={() => { setPsSelectedChart(ch); setPsChartModal(true) }}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>📋 {ch.tech_name}</Text>
-                        <View style={{ backgroundColor: ch.status === 'submitted' || ch.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{ch.chart_type === 'np' ? 'NP Chart' : 'Tech Chart'} — {ch.tech_name || 'Unknown'}</Text>
+                          {ch.template_name && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>{ch.template_name}</Text>}
+                        </View>
+                        <View style={{ backgroundColor: ch.status === 'submitted' || ch.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, alignSelf: 'flex-start' }}>
                           <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 10, fontWeight: '700' }}>{ch.status?.toUpperCase()}</Text>
                         </View>
                       </View>
                       <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 6 }}>{new Date(ch.created_at).toLocaleString()}</Text>
-                      {ch.chief_complaint && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>{ch.chief_complaint}</Text>}
-                      {ch.amendment_notes && <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 4 }}>📝 Has amendment</Text>}
+                      {ch.template_id ? (
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Dynamic chart — {(ch.template_fields || []).length} fields</Text>
+                      ) : (
+                        ch.chief_complaint && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>{ch.chief_complaint}</Text>
+                      )}
+                      {ch.amendment_notes && <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 4 }}>Has amendment</Text>}
                       <Text style={{ color: primaryColor, fontSize: 12, marginTop: 8, textAlign: 'right' }}>Tap to view full chart →</Text>
                     </TouchableOpacity>
                   ))}
