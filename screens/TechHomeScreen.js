@@ -114,6 +114,798 @@ const cStyles = StyleSheet.create({
   checkbox: { width: 22, height: 22, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)', borderRadius: 4, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
 })
 
+
+// ─── DYNAMIC CHART MODAL ─────────────────────────────────────────────────────
+function DynamicChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
+  const primaryColor = company?.primaryColor || '#C9A84C'
+  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const headers = { Authorization: `Bearer ${token}` }
+
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [template, setTemplate] = useState(null)
+  const [chartId, setChartId] = useState(null)
+  const [responses, setResponses] = useState({})
+  const [status, setStatus] = useState('open')
+  const [amendmentText, setAmendmentText] = useState('')
+  const [prefill, setPrefill] = useState(null)
+  const [npChart, setNpChart] = useState(null)
+  const [npChartModalVisible, setNpChartModalVisible] = useState(false)
+  const [formulary, setFormulary] = useState([])
+  const [services, setServices] = useState([])
+  const [templatePickerVisible, setTemplatePickerVisible] = useState(false)
+  const [availableTemplates, setAvailableTemplates] = useState([])
+
+  const isLocked = status === 'submitted' && template?.submit_behavior === 'lock'
+
+  useEffect(() => {
+    if (visible && call?.call_id) {
+      loadAll()
+    }
+  }, [visible, call?.call_id])
+
+  const loadAll = async () => {
+    setLoading(true)
+    try {
+      const [tmplRes, formRes, svcRes, prefillRes, chartsRes] = await Promise.all([
+        fetch(`${API_URL}/chart-templates?type=tech`, { headers }),
+        fetch(`${API_URL}/company-formulary`, { headers }),
+        fetch(`${API_URL}/tech/services`, { headers }),
+        fetch(`${API_URL}/charts/prefill/${call.call_id}`, { headers }),
+        fetch(`${API_URL}/charts/call/${call.call_id}/all`, { headers })
+      ])
+      const [tmplData, formData, svcData, prefillData, chartsData] = await Promise.all([
+        tmplRes.json(), formRes.json(), svcRes.json(), prefillRes.json(), chartsRes.json()
+      ])
+
+      if (formData.success) setFormulary(formData.formulary || [])
+      if (svcData.services) setServices(svcData.services || [])
+      if (prefillData.success) setPrefill(prefillData.prefill)
+
+      // Load NP chart if exists
+      if (chartsData.success && chartsData.npCharts?.length > 0) {
+        setNpChart(chartsData.npCharts[0])
+      }
+
+      // Load existing tech chart if exists
+      if (chartsData.success && chartsData.techCharts?.length > 0) {
+        const existingChart = chartsData.techCharts[0]
+        setChartId(existingChart.id)
+        setResponses(existingChart.responses || {})
+        setStatus(existingChart.status || 'open')
+
+        // Load template for existing chart
+        if (existingChart.template_id) {
+          const t = tmplData.templates?.find(t => t.id === existingChart.template_id)
+          if (t) setTemplate(t)
+        }
+      } else {
+        // New chart — find best template
+        const templates = tmplData.templates || []
+        setAvailableTemplates(templates)
+        if (templates.length === 1) {
+          setTemplate(templates[0])
+          // Prefill responses from intake
+          if (prefillData.prefill) {
+            applyPrefill(prefillData.prefill, templates[0])
+          }
+        } else if (templates.length > 1) {
+          setTemplatePickerVisible(true)
+        }
+      }
+    } catch (err) {
+      console.error('DynamicChartModal load error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const applyPrefill = (prefillData, tmpl) => {
+    if (!prefillData || !tmpl) return
+    const prefillResponses = {}
+    tmpl.fields?.forEach(field => {
+      if (field.type === 'text' && field.label?.toLowerCase().includes('allerg')) {
+        prefillResponses[field.id] = prefillData.allergies?.join(', ') || ''
+      }
+      if (field.type === 'textarea' && field.label?.toLowerCase().includes('medication')) {
+        prefillResponses[field.id] = prefillData.medications || ''
+      }
+    })
+    setResponses(prev => ({ ...prev, ...prefillResponses }))
+  }
+
+  const setResponse = (fieldId, value) => {
+    if (isLocked) return
+    setResponses(prev => ({ ...prev, [fieldId]: value }))
+  }
+
+  const saveChart = async (submit = false) => {
+    if (isLocked) return
+    if (!template) { Alert.alert('No Template', 'Please select a chart template first'); return }
+
+    // Validate required fields
+    if (submit) {
+      const missingFields = template.fields?.filter(field => {
+        if (!field.required) return false
+        if (['heading', 'divider'].includes(field.type)) return false
+        const val = responses[field.id]
+        if (val === undefined || val === null || val === '') return true
+        if (Array.isArray(val) && val.length === 0) return true
+        return false
+      })
+      if (missingFields?.length > 0) {
+        Alert.alert('Required Fields Missing', `Please complete: ${missingFields.map(f => f.label).join(', ')}`)
+        return
+      }
+    }
+
+    setSaving(true)
+    try {
+      let res
+      if (chartId) {
+        res = await fetch(`${API_URL}/charts/dynamic/${chartId}`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ responses, status: submit ? 'submitted' : 'open' })
+        })
+      } else {
+        res = await fetch(`${API_URL}/charts/dynamic`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            callId: call.call_id,
+            bookingId: call.id,
+            templateId: template.id,
+            chartType: 'tech',
+            patientName: patientName || call?.patient_name,
+            patientDob: patientDob || call?.patient_dob,
+            responses
+          })
+        })
+      }
+      const data = await res.json()
+      if (data.success) {
+        if (!chartId && data.chart?.id) setChartId(data.chart.id)
+        if (submit) {
+          setStatus('submitted')
+          Alert.alert('Chart Submitted', 'Chart has been saved and locked.')
+          onClose()
+        } else {
+          Alert.alert('Saved', 'Chart saved as draft.')
+        }
+      } else {
+        Alert.alert('Error', data.error || 'Could not save chart')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const submitAmendment = async () => {
+    if (!amendmentText.trim()) { Alert.alert('Required', 'Please enter amendment notes'); return }
+    try {
+      const res = await fetch(`${API_URL}/charts/${chartId}/amend`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amendmentNotes: amendmentText })
+      })
+      const data = await res.json()
+      if (data.success) {
+        Alert.alert('Amendment Saved', 'Your amendment has been recorded.')
+        setAmendmentText('')
+        setStatus('amended')
+      } else {
+        Alert.alert('Error', data.error || 'Could not save amendment')
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Network error')
+    }
+  }
+
+  const shouldShowField = (field) => {
+    if (!field.conditional) return true
+    const { fieldId, value } = field.conditional
+    const currentVal = responses[fieldId]
+    if (typeof currentVal === 'string') return currentVal.toLowerCase() === value?.toLowerCase()
+    if (typeof currentVal === 'boolean') return currentVal === (value === 'true' || value === true)
+    return false
+  }
+
+  const renderField = (field) => {
+    if (!shouldShowField(field)) return null
+    const val = responses[field.id]
+
+    switch (field.type) {
+      case 'heading':
+        return (
+          <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
+            <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+            <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 6 }} />
+          </View>
+        )
+
+      case 'divider':
+        return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 12 }} />
+
+      case 'text':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TextInput
+              style={[cStyles.input, isLocked && { opacity: 0.5 }]}
+              placeholder={field.placeholder || ''}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={val || ''}
+              onChangeText={v => setResponse(field.id, v)}
+              editable={!isLocked}
+            />
+          </View>
+        )
+
+      case 'textarea':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TextInput
+              style={[cStyles.input, { height: 80, textAlignVertical: 'top' }, isLocked && { opacity: 0.5 }]}
+              placeholder={field.placeholder || ''}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={val || ''}
+              onChangeText={v => setResponse(field.id, v)}
+              multiline
+              editable={!isLocked}
+            />
+          </View>
+        )
+
+      case 'number':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TextInput
+              style={[cStyles.input, isLocked && { opacity: 0.5 }]}
+              placeholder={field.placeholder || (field.min != null && field.max != null ? `${field.min} - ${field.max}` : '')}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={val?.toString() || ''}
+              onChangeText={v => setResponse(field.id, v)}
+              keyboardType="numeric"
+              editable={!isLocked}
+            />
+          </View>
+        )
+
+      case 'yes_no':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {['Yes', 'No'].map(opt => (
+                <TouchableOpacity key={opt} onPress={() => !isLocked && setResponse(field.id, opt)}
+                  style={[cStyles.optionBtn, { flex: 1, alignItems: 'center' }, val === opt && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                  <Text style={[cStyles.optionText, val === opt && { color: secondaryColor }]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )
+
+      case 'dropdown':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {(field.options || []).map(opt => (
+                <TouchableOpacity key={opt} onPress={() => !isLocked && setResponse(field.id, opt)}
+                  style={[cStyles.optionBtn, val === opt && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                  <Text style={[cStyles.optionText, val === opt && { color: secondaryColor }]}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )
+
+      case 'multi_select':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {(field.options || []).map(opt => {
+                const selected = Array.isArray(val) && val.includes(opt)
+                return (
+                  <TouchableOpacity key={opt} onPress={() => {
+                    if (isLocked) return
+                    const current = Array.isArray(val) ? val : []
+                    setResponse(field.id, selected ? current.filter(v => v !== opt) : [...current, opt])
+                  }}
+                    style={[cStyles.optionBtn, selected && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                    <Text style={[cStyles.optionText, selected && { color: secondaryColor }]}>{opt}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </View>
+          </View>
+        )
+
+      case 'date':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TextInput
+              style={[cStyles.input, isLocked && { opacity: 0.5 }]}
+              placeholder={field.placeholder || 'MM/DD/YYYY'}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={val || ''}
+              onChangeText={v => setResponse(field.id, v)}
+              editable={!isLocked}
+            />
+          </View>
+        )
+
+      case 'time':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TextInput
+              style={[cStyles.input, isLocked && { opacity: 0.5 }]}
+              placeholder={field.placeholder || 'HH:MM'}
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={val || ''}
+              onChangeText={v => setResponse(field.id, v)}
+              editable={!isLocked}
+            />
+          </View>
+        )
+
+      case 'vitals':
+        const vitalsVal = val || {}
+        const vitalsEntries = Array.isArray(vitalsVal) ? vitalsVal : [vitalsVal]
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            {vitalsEntries.map((entry, idx) => (
+              <View key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                {vitalsEntries.length > 1 && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 8 }}>Entry {idx + 1}</Text>}
+                <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  {[['bp', 'BP'], ['hr', 'HR'], ['o2', 'O2 %'], ['temp', 'Temp'], ['pain', 'Pain 1-10'], ['time', 'Time']].map(([k, label]) => (
+                    <View key={k} style={{ flex: 1, minWidth: 80 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, marginBottom: 4 }}>{label}</Text>
+                      <TextInput
+                        style={[cStyles.input, { marginBottom: 0, fontSize: 13 }]}
+                        placeholder="—"
+                        placeholderTextColor="rgba(255,255,255,0.2)"
+                        value={entry[k] || ''}
+                        onChangeText={v => {
+                          if (isLocked) return
+                          const updated = [...vitalsEntries]
+                          updated[idx] = { ...updated[idx], [k]: v }
+                          setResponse(field.id, field.repeatable ? updated : updated[0])
+                        }}
+                        editable={!isLocked}
+                      />
+                    </View>
+                  ))}
+                </View>
+                {field.repeatable && !isLocked && vitalsEntries.length > 1 && (
+                  <TouchableOpacity onPress={() => {
+                    const updated = vitalsEntries.filter((_, i) => i !== idx)
+                    setResponse(field.id, updated)
+                  }} style={{ marginTop: 8 }}>
+                    <Text style={{ color: '#f06060', fontSize: 12 }}>Remove entry</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            {field.repeatable && !isLocked && (
+              <TouchableOpacity onPress={() => {
+                const updated = [...vitalsEntries, {}]
+                setResponse(field.id, updated)
+              }} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
+                <Text style={{ color: primaryColor, fontSize: 13 }}>+ Add Vitals Set</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )
+
+      case 'iv_details':
+        const ivVal = val || {}
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12 }}>
+              {[['site', 'IV Site'], ['gauge', 'Catheter Size'], ['attempts', 'Attempts'], ['time_in', 'Time Initiated'], ['time_out', 'Time Discontinued'], ['status', 'Catheter Status']].map(([k, label]) => (
+                <View key={k} style={{ marginBottom: 10 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 4 }}>{label}</Text>
+                  <TextInput
+                    style={[cStyles.input, { marginBottom: 0 }, isLocked && { opacity: 0.5 }]}
+                    placeholder=""
+                    placeholderTextColor="rgba(255,255,255,0.2)"
+                    value={ivVal[k] || ''}
+                    onChangeText={v => !isLocked && setResponse(field.id, { ...ivVal, [k]: v })}
+                    editable={!isLocked}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        )
+
+      case 'med_row':
+        const medEntries = Array.isArray(val) ? val : []
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            {medEntries.map((entry, idx) => (
+              <View key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 8 }}>Medication {idx + 1}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 4 }}>Select Medication</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {formulary.filter(f => ['IV Medication', 'IM Injection'].includes(f.category)).map(f => (
+                    <TouchableOpacity key={f.id} onPress={() => {
+                      if (isLocked) return
+                      const updated = [...medEntries]
+                      updated[idx] = { ...updated[idx], name: f.name, dose: f.dose, route: f.route }
+                      setResponse(field.id, updated)
+                    }}
+                      style={[cStyles.optionBtn, entry.name === f.name && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                      <Text style={[cStyles.optionText, { fontSize: 11 }, entry.name === f.name && { color: secondaryColor }]}>{f.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {formulary.filter(f => ['IV Medication', 'IM Injection'].includes(f.category)).length === 0 && (
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>No medications in formulary</Text>
+                  )}
+                </View>
+                {[['dose', 'Dose'], ['route', 'Route'], ['time', 'Time Given'], ['lot', 'Lot #'], ['given_by', 'Given By']].map(([k, label]) => (
+                  <View key={k} style={{ marginBottom: 8 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 4 }}>{label}</Text>
+                    <TextInput
+                      style={[cStyles.input, { marginBottom: 0 }, isLocked && { opacity: 0.5 }]}
+                      value={entry[k] || ''}
+                      onChangeText={v => {
+                        if (isLocked) return
+                        const updated = [...medEntries]
+                        updated[idx] = { ...updated[idx], [k]: v }
+                        setResponse(field.id, updated)
+                      }}
+                      editable={!isLocked}
+                    />
+                  </View>
+                ))}
+                {!isLocked && (
+                  <TouchableOpacity onPress={() => setResponse(field.id, medEntries.filter((_, i) => i !== idx))}>
+                    <Text style={{ color: '#f06060', fontSize: 12, marginTop: 4 }}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            {!isLocked && (
+              <TouchableOpacity onPress={() => setResponse(field.id, [...medEntries, {}])}
+                style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
+                <Text style={{ color: primaryColor, fontSize: 13 }}>+ Add Medication</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )
+
+      case 'vitamin_row':
+        const vitEntries = Array.isArray(val) ? val : []
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            {vitEntries.map((entry, idx) => (
+              <View key={idx} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 8 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 8 }}>Vitamin/Additive {idx + 1}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 4 }}>Select Item</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+                  {formulary.filter(f => ['Bag Additive', 'Vitamin'].includes(f.category)).map(f => (
+                    <TouchableOpacity key={f.id} onPress={() => {
+                      if (isLocked) return
+                      const updated = [...vitEntries]
+                      updated[idx] = { ...updated[idx], name: f.name, dose: f.dose }
+                      setResponse(field.id, updated)
+                    }}
+                      style={[cStyles.optionBtn, entry.name === f.name && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                      <Text style={[cStyles.optionText, { fontSize: 11 }, entry.name === f.name && { color: secondaryColor }]}>{f.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {formulary.filter(f => ['Bag Additive', 'Vitamin'].includes(f.category)).length === 0 && (
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>No vitamins in formulary</Text>
+                  )}
+                </View>
+                {[['dose', 'Dose'], ['added_to', 'Added To (Bag #)'], ['time', 'Time Added']].map(([k, label]) => (
+                  <View key={k} style={{ marginBottom: 8 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 4 }}>{label}</Text>
+                    <TextInput
+                      style={[cStyles.input, { marginBottom: 0 }, isLocked && { opacity: 0.5 }]}
+                      value={entry[k] || ''}
+                      onChangeText={v => {
+                        if (isLocked) return
+                        const updated = [...vitEntries]
+                        updated[idx] = { ...updated[idx], [k]: v }
+                        setResponse(field.id, updated)
+                      }}
+                      editable={!isLocked}
+                    />
+                  </View>
+                ))}
+                {!isLocked && (
+                  <TouchableOpacity onPress={() => setResponse(field.id, vitEntries.filter((_, i) => i !== idx))}>
+                    <Text style={{ color: '#f06060', fontSize: 12, marginTop: 4 }}>Remove</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+            {!isLocked && (
+              <TouchableOpacity onPress={() => setResponse(field.id, [...vitEntries, {}])}
+                style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center' }}>
+                <Text style={{ color: primaryColor, fontSize: 13 }}>+ Add Vitamin/Additive</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )
+
+      case 'service_select':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {services.map(svc => {
+                const selected = Array.isArray(val) ? val.includes(svc.name) : val === svc.name
+                return (
+                  <TouchableOpacity key={svc.id} onPress={() => {
+                    if (isLocked) return
+                    if (field.repeatable) {
+                      const current = Array.isArray(val) ? val : []
+                      setResponse(field.id, selected ? current.filter(v => v !== svc.name) : [...current, svc.name])
+                    } else {
+                      setResponse(field.id, svc.name)
+                    }
+                  }}
+                    style={[cStyles.optionBtn, selected && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                    <Text style={[cStyles.optionText, selected && { color: secondaryColor }]}>{svc.name}</Text>
+                  </TouchableOpacity>
+                )
+              })}
+              {services.length === 0 && <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>No services defined</Text>}
+            </View>
+          </View>
+        )
+
+      case 'photo':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+              onPress={async () => {
+                if (isLocked) return
+                if (!chartId) { Alert.alert('Save First', 'Please save draft before adding photos'); return }
+                const permission = await ImagePicker.requestCameraPermissionsAsync()
+                if (!permission.granted) return
+                const result = await ImagePicker.launchCameraAsync({ allowsEditing: true, quality: 0.7, base64: true })
+                if (!result.canceled && result.assets[0].base64) {
+                  const res = await fetch(`${API_URL}/charts/${chartId}/photo`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ photo: `data:image/jpeg;base64,${result.assets[0].base64}`, fieldId: field.id })
+                  })
+                  const data = await res.json()
+                  if (data.success) setResponse(field.id, data.photoUrl)
+                }
+              }}>
+              {val ? (
+                <Image source={{ uri: val }} style={{ width: '100%', height: 200, borderRadius: 8 }} resizeMode="cover" />
+              ) : (
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Tap to take photo</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        )
+
+      case 'signature':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <Text style={cStyles.fieldLabel}>{field.label}{field.required ? ' *' : ''}</Text>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: val ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+              {val ? (
+                <Text style={{ color: '#4CAF50', fontSize: 13 }}>Signed</Text>
+              ) : (
+                <TouchableOpacity onPress={() => !isLocked && setResponse(field.id, `Signed by tech at ${new Date().toLocaleTimeString()}`)}>
+                  <Text style={{ color: primaryColor, fontSize: 13 }}>Tap to sign</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )
+
+      case 'consent':
+        return (
+          <View key={field.id} style={{ marginBottom: 14 }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+              {field.consentText && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 12, lineHeight: 18 }}>{field.consentText}</Text>}
+              <TouchableOpacity onPress={() => !isLocked && setResponse(field.id, !val)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <View style={[cStyles.checkbox, val && { backgroundColor: primaryColor, borderColor: primaryColor }]}>
+                  {val && <Text style={{ color: secondaryColor, fontSize: 12 }}>✓</Text>}
+                </View>
+                <Text style={{ color: '#fff', fontSize: 14, flex: 1 }}>{field.label}{field.required ? ' *' : ''}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+
+        {/* Header */}
+        <View style={[cStyles.header, { backgroundColor: secondaryColor }]}>
+          <TouchableOpacity onPress={() => { saveChart(false); onClose() }}>
+            <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>{isLocked ? 'Back' : 'Save & Back'}</Text>
+          </TouchableOpacity>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Chart</Text>
+            {template && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{template.name}</Text>}
+          </View>
+          <TouchableOpacity onPress={() => !isLocked && saveChart(false)}>
+            <Text style={{ color: isLocked ? 'rgba(255,255,255,0.2)' : primaryColor, fontSize: 14, fontWeight: '600' }}>
+              {saving ? 'Saving...' : 'Save'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator color={primaryColor} size="large" />
+          </View>
+        ) : (
+          <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+
+            {/* Template Picker */}
+            {templatePickerVisible && availableTemplates.length > 1 && (
+              <View style={{ margin: 16, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 12 }}>Select Chart Template</Text>
+                {availableTemplates.map(t => (
+                  <TouchableOpacity key={t.id} onPress={() => {
+                    setTemplate(t)
+                    setTemplatePickerVisible(false)
+                    if (prefill) applyPrefill(prefill, t)
+                  }}
+                    style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                    <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{t.name}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{(t.fields || []).length} fields</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* NP Chart Card */}
+            {npChart && (
+              <TouchableOpacity onPress={() => setNpChartModalVisible(true)}
+                style={{ margin: 16, marginBottom: 8, backgroundColor: '#9C27B0' + '20', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#9C27B0' + '60', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View>
+                  <Text style={{ color: '#9C27B0', fontSize: 13, fontWeight: '700' }}>NP Chart Available</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>
+                    {npChart.template_name || 'NP Assessment'} — Tap to view
+                  </Text>
+                </View>
+                <Text style={{ color: '#9C27B0', fontSize: 18 }}>›</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Prefill Banner */}
+            {prefill?.hasValidIntake && (
+              <View style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: '#4CAF50' + '15', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#4CAF50' + '40' }}>
+                <Text style={{ color: '#4CAF50', fontSize: 12, fontWeight: '600' }}>Intake on file — some fields pre-filled from patient intake</Text>
+              </View>
+            )}
+
+            {/* GFE Banner */}
+            {prefill?.gfe && (
+              <View style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: primaryColor + '15', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: primaryColor + '40' }}>
+                <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>GFE Approved — {prefill.gfe.npName}</Text>
+                {prefill.gfe.restrictions && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4 }}>Restrictions: {prefill.gfe.restrictions}</Text>}
+                {prefill.gfe.npOrders && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 2 }}>Orders: {prefill.gfe.npOrders}</Text>}
+              </View>
+            )}
+
+            {/* Locked Banner */}
+            {isLocked && (
+              <View style={{ marginHorizontal: 16, marginBottom: 8, backgroundColor: 'rgba(240,100,100,0.1)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+                <Text style={{ color: '#f06060', fontSize: 12, fontWeight: '600' }}>Chart submitted and locked. Add an addendum below if needed.</Text>
+              </View>
+            )}
+
+            {/* Fields */}
+            {template && (
+              <View style={{ padding: 16 }}>
+                {template.fields?.map(field => renderField(field))}
+              </View>
+            )}
+
+            {!template && !templatePickerVisible && !loading && (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center' }}>No chart template found. Contact your administrator to set up a chart template.</Text>
+              </View>
+            )}
+
+            {/* Addendum */}
+            {isLocked && chartId && (
+              <View style={{ margin: 16, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '700', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 }}>Add Addendum</Text>
+                <TextInput
+                  style={[cStyles.input, { height: 80, textAlignVertical: 'top' }]}
+                  placeholder="Enter addendum notes..."
+                  placeholderTextColor="rgba(255,255,255,0.3)"
+                  value={amendmentText}
+                  onChangeText={setAmendmentText}
+                  multiline
+                />
+                <TouchableOpacity onPress={submitAmendment}
+                  style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8 }}>
+                  <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>Save Addendum</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View style={{ height: 120 }} />
+          </ScrollView>
+        )}
+
+        {/* Submit Button */}
+        {!isLocked && template && (
+          <View style={{ padding: 16, paddingBottom: 32, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0a0a1a' }}>
+            <TouchableOpacity
+              style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }}
+              onPress={() => Alert.alert('Submit Chart', 'Submit and lock this chart? You will only be able to add addendums after this.', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Submit', onPress: () => saveChart(true) }
+              ])}>
+              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{saving ? 'Saving...' : 'Submit Chart'}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* NP Chart View Modal */}
+        <Modal visible={npChartModalVisible} animationType="slide" presentationStyle="pageSheet">
+          <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>NP Chart</Text>
+              <TouchableOpacity onPress={() => setNpChartModalVisible(false)}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>Close</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ flex: 1, padding: 20 }}>
+              {npChart && (
+                <>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 16 }}>{npChart.template_name} — Read Only</Text>
+                  {npChart.template_fields?.map(field => {
+                    const val = npChart.responses?.[field.id]
+                    if (val === undefined || val === null || val === '') return null
+                    return (
+                      <View key={field.id} style={{ marginBottom: 14 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '600', marginBottom: 4, textTransform: 'uppercase' }}>{field.label}</Text>
+                        <Text style={{ color: '#fff', fontSize: 14 }}>{typeof val === 'object' ? JSON.stringify(val) : val.toString()}</Text>
+                      </View>
+                    )
+                  })}
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </Modal>
+
+      </KeyboardAvoidingView>
+    </Modal>
+  )
+}
+
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
   const primaryColor = company?.primaryColor || '#C9A84C'
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
@@ -210,6 +1002,10 @@ const [showServicePicker, setShowServicePicker] = useState(false)
     fetch(`${API_URL}/tech/services`, { headers })
       .then(r => r.json())
       .then(d => setCompanyServices(d.services || []))
+      .catch(() => {})
+    fetch(`${API_URL}/chart-templates?type=tech`, { headers })
+      .then(r => r.json())
+      .then(d => setHasTemplates((d.templates || []).length > 0))
       .catch(() => {})
   }, [visible, call?.call_id])
 
@@ -643,6 +1439,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [mySchedule, setMySchedule] = useState([])
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const [showChart, setShowChart] = useState(false)
+  const [hasTemplates, setHasTemplates] = useState(false)
   const [bugReportModal, setBugReportModal] = useState(false)
   const [chartPatient, setChartPatient] = useState(null)
 const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
@@ -876,7 +1673,11 @@ if (data.call?.call_id) {
 
   return (
     <View style={styles.container}>
-      <ChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
+      {hasTemplates ? (
+        <DynamicChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
+      ) : (
+        <ChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
+      )}
 
       <View style={[styles.header, { backgroundColor: secondaryColor }]}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
