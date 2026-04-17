@@ -769,7 +769,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 body: JSON.stringify({ logo: base64 })
               })
               const data = await res.json()
-              if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
+              if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved. Log out and back in to see the new logo in the header.') }
               else Alert.alert('Error', data.message || 'Could not upload logo')
             } catch (err) {
               Alert.alert('Error', 'Could not upload logo')
@@ -797,7 +797,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             body: JSON.stringify({ logo: `data:image/jpeg;base64,${base64}` })
           })
           const data = await res.json()
-          if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved.') }
+          if (data.success) { setBrandingLogo(data.logoUrl); Alert.alert('Logo Updated', 'Your company logo has been saved. Log out and back in to see the new logo in the header.') }
           else Alert.alert('Error', data.message || 'Could not upload logo')
         }
       }
@@ -817,8 +817,9 @@ const [showImportModal, setShowImportModal] = useState(false)
         body: JSON.stringify({ primaryColor: brandingPrimary, secondaryColor: brandingSecondary })
       })
       const data = await res.json()
-      if (data.success) Alert.alert('Saved', 'Branding colors updated.')
-      else Alert.alert('Error', data.message || 'Could not save branding')
+      if (data.success) {
+        Alert.alert('Saved', 'Branding colors updated. Log out and back in to see new colors.')
+      } else Alert.alert('Error', data.message || 'Could not save branding')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingBranding(false) }
   }
 
@@ -1215,7 +1216,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>{patient.first_name} {patient.last_name}</Text>
                     {patient.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
                   </View>
-                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{patient.phone || 'No phone'} · {patient.email}</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{patient.phone || 'No phone'}{patient.email && !patient.email.includes('@infusepro.internal') ? ' · ' + patient.email : ''}</Text>
                   {patient.last_address && <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>📍 {patient.last_address}</Text>}
                   <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{patient.total_bookings || 0} visits</Text>
                 </View>
@@ -2557,7 +2558,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               {enrollPatientResults.map(p => (
             <TouchableOpacity key={p.id} style={{ backgroundColor: enrollSelectedPatient?.id === p.id ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: enrollSelectedPatient?.id === p.id ? primaryColor : 'rgba(255,255,255,0.08)' }} onPress={() => setEnrollSelectedPatient(p)}>
               <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email && !p.email.includes('@infusepro.internal') ? p.email : ''}</Text>
             </TouchableOpacity>
               ))}
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 16, marginBottom: 8 }}>SELECT PLAN</Text>

@@ -1982,7 +1982,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                     <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>{p.first_name} {p.last_name}</Text>
                     {p.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
                   </View>
-                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{p.phone || 'No phone'} · {p.email}</Text>
+                  <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{p.phone || 'No phone'}{p.email && !p.email.includes('@infusepro.internal') ? ' · ' + p.email : ''}</Text>
                   <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{p.total_bookings || 0} visits</Text>
                 </View>
                 <Text style={{ color: primaryColor, fontSize: 18 }}>›</Text>

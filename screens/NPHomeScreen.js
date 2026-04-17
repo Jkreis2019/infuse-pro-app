@@ -764,7 +764,7 @@ export default function NPHomeScreen({ route, navigation }) {
                           <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
                           {p.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
                         </View>
-                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email}</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{p.email && !p.email.includes('@infusepro.internal') ? p.email : ''}</Text>
                         {p.phone && <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>{p.phone}</Text>}
                       </View>
                       <Text style={{ color: p.has_valid_intake ? '#4CAF50' : 'rgba(255,255,255,0.2)', fontSize: 11, fontWeight: '700' }}>{p.has_valid_intake ? '📋 Intake' : 'No intake'}</Text>
