@@ -138,6 +138,30 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
   const [npChart, setNpChart] = useState(null)
   const [npChartModalVisible, setNpChartModalVisible] = useState(false)
   const [formulary, setFormulary] = useState([])
+  const [chartTemplates, setChartTemplates] = useState([])
+  const [templateModalVisible, setTemplateModalVisible] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [templateName, setTemplateName] = useState('')
+  const [templateType, setTemplateType] = useState('tech')
+  const [templateIsDefault, setTemplateIsDefault] = useState(false)
+  const [templateServiceTypes, setTemplateServiceTypes] = useState([])
+  const [templateFields, setTemplateFields] = useState([])
+  const [fieldConfigModal, setFieldConfigModal] = useState(false)
+  const [editingField, setEditingField] = useState(null)
+  const [editingFieldIndex, setEditingFieldIndex] = useState(null)
+  const [formularyModalVisible, setFormularyModalVisible] = useState(false)
+  const [editingFormularyItem, setEditingFormularyItem] = useState(null)
+  const [formularyName, setFormularyName] = useState('')
+  const [formularyDose, setFormularyDose] = useState('')
+  const [formularyRoute, setFormularyRoute] = useState('iv_push')
+  const [formularyCategory, setFormularyCategory] = useState('')
+  const [formularyContraindications, setFormularyContraindications] = useState('')
+  const [chartsSubTab, setChartsSubTab] = useState('templates')
+  const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
+  const [templateBuilderTab, setTemplateBuilderTab] = useState('Build')
+  const [deleteConfirmTemplate, setDeleteConfirmTemplate] = useState(null)
+  const [deleteConfirmFormulary, setDeleteConfirmFormulary] = useState(null)
+  const [bugReportModal, setBugReportModal] = useState(false)
   const [services, setServices] = useState([])
   const [templatePickerVisible, setTemplatePickerVisible] = useState(false)
   const [availableTemplates, setAvailableTemplates] = useState([])
@@ -165,6 +189,15 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
       ])
 
       if (formData.success) setFormulary(formData.formulary || [])
+      try {
+        const [tmplRes2, svcRes] = await Promise.all([
+          fetch(`${API_URL}/chart-templates`, { headers }),
+          fetch(`${API_URL}/admin/services`, { headers })
+        ])
+        const [tmplData2, svcData] = await Promise.all([tmplRes2.json(), svcRes.json()])
+        if (tmplData2.success) setChartTemplates(tmplData2.templates || [])
+        if (svcData.services) setServices(svcData.services)
+      } catch (e) {}
       if (svcData.services) setServices(svcData.services || [])
       if (prefillData.success) setPrefill(prefillData.prefill)
 
@@ -3568,6 +3601,7 @@ export default function SoloHomeScreen({ route, navigation }) {
   const TABS = [
     { key: 'dispatch', label: 'Dispatch', icon: '📋' },
     { key: 'tech', label: 'My Calls', icon: '🚗' },
+    { key: 'charts', label: 'Charts', icon: '📊' },
     { key: 'admin', label: 'Admin', icon: '⚙️' },
   ]
 
@@ -3610,6 +3644,143 @@ export default function SoloHomeScreen({ route, navigation }) {
         {activeTab === 'tech' && (
           <TechSection token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} navigation={navigation} user={user} company={company} />
         )}
+        {activeTab === 'charts' && (
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+              {['templates', 'formulary'].map(st => (
+                <TouchableOpacity key={st} onPress={() => setChartsSubTab(st)}
+                  style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: chartsSubTab === st ? primaryColor : 'transparent' }}>
+                  <Text style={{ color: chartsSubTab === st ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '600' }}>
+                    {st === 'templates' ? 'Templates' : 'Formulary'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {chartsSubTab === 'templates' && (
+              <ScrollView style={{ flex: 1, padding: 16 }}>
+                <TouchableOpacity style={{ backgroundColor: primaryColor, marginBottom: 12, borderRadius: 8, padding: 14, alignItems: 'center' }}
+                  onPress={() => { setEditingTemplate(null); setTemplateName(''); setTemplateType('tech'); setTemplateIsDefault(false); setTemplateServiceTypes([]); setTemplateFields([]); setTemplateSubmitBehavior('lock'); setTemplateModalVisible(true) }}>
+                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>🔧 Tech Templates</Text>
+                {chartTemplates.filter(t => t.chart_type === 'tech').length === 0 ? (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, alignItems: 'center', paddingVertical: 24 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No tech templates yet</Text>
+                  </View>
+                ) : chartTemplates.filter(t => t.chart_type === 'tech').map(t => (
+                  <View key={t.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{t.name}</Text>
+                        <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{(t.fields || []).length} fields</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 8 }}
+                          onPress={async () => {
+                            const res = await fetch(`${API_URL}/chart-templates/${t.id}/duplicate`, { method: 'POST', headers })
+                            const data = await res.json()
+                            if (data.success) { const r = await fetch(`${API_URL}/chart-templates`, { headers }); const d = await r.json(); if (d.success) setChartTemplates(d.templates) }
+                          }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>⧉ Copy</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 8 }}
+                          onPress={async () => {
+                            const res = await fetch(`${API_URL}/chart-templates/${t.id}`, { headers })
+                            const data = await res.json()
+                            if (data.success) { setEditingTemplate(data.template); setTemplateName(data.template.name); setTemplateType(data.template.chart_type); setTemplateIsDefault(data.template.is_default); setTemplateServiceTypes(data.template.service_types || []); setTemplateFields(data.template.fields || []); setTemplateSubmitBehavior(data.template.submit_behavior || 'lock'); setTemplateModalVisible(true) }
+                          }}>
+                          <Text style={{ color: primaryColor, fontSize: 12 }}>✏️ Edit</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }} onPress={() => setDeleteConfirmTemplate(t)}>
+                          <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+                <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8, marginTop: 12 }}>🩺 NP Templates</Text>
+                {chartTemplates.filter(t => t.chart_type === 'np').length === 0 ? (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, alignItems: 'center', paddingVertical: 24 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No NP templates yet</Text>
+                  </View>
+                ) : chartTemplates.filter(t => t.chart_type === 'np').map(t => (
+                  <View key={t.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{t.name}</Text>
+                        <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{(t.fields || []).length} fields</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 8 }}
+                          onPress={async () => {
+                            const res = await fetch(`${API_URL}/chart-templates/${t.id}/duplicate`, { method: 'POST', headers })
+                            const data = await res.json()
+                            if (data.success) { const r = await fetch(`${API_URL}/chart-templates`, { headers }); const d = await r.json(); if (d.success) setChartTemplates(d.templates) }
+                          }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>⧉ Copy</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ backgroundColor: '#9C27B020', borderRadius: 8, padding: 8 }}
+                          onPress={async () => {
+                            const res = await fetch(`${API_URL}/chart-templates/${t.id}`, { headers })
+                            const data = await res.json()
+                            if (data.success) { setEditingTemplate(data.template); setTemplateName(data.template.name); setTemplateType(data.template.chart_type); setTemplateIsDefault(data.template.is_default); setTemplateServiceTypes(data.template.service_types || []); setTemplateFields(data.template.fields || []); setTemplateSubmitBehavior(data.template.submit_behavior || 'lock'); setTemplateModalVisible(true) }
+                          }}>
+                          <Text style={{ color: '#9C27B0', fontSize: 12 }}>✏️ Edit</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }} onPress={() => setDeleteConfirmTemplate(t)}>
+                          <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            )}
+            {chartsSubTab === 'formulary' && (
+              <ScrollView style={{ flex: 1, padding: 16 }}>
+                <TouchableOpacity style={{ backgroundColor: primaryColor, marginBottom: 12, borderRadius: 8, padding: 14, alignItems: 'center' }}
+                  onPress={() => { setEditingFormularyItem(null); setFormularyName(''); setFormularyDose(''); setFormularyRoute('iv_push'); setFormularyCategory(''); setFormularyContraindications(''); setFormularyModalVisible(true) }}>
+                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Add to Formulary</Text>
+                </TouchableOpacity>
+                {formulary.length === 0 ? (
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 24, alignItems: 'center' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>No formulary items yet</Text>
+                  </View>
+                ) : ['IV Medication','IM Injection','Bag Additive','Vitamin','Other'].map(cat => {
+                  const items = formulary.filter(f => (f.category || 'Other') === cat)
+                  if (items.length === 0) return null
+                  return (
+                    <View key={cat}>
+                      <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>{cat}</Text>
+                      {items.map(item => (
+                        <View key={item.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{item.name}</Text>
+                              {item.dose && <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>{item.dose}</Text>}
+                              {item.contraindications && <Text style={{ fontSize: 12, color: '#f09090', marginTop: 4 }}>⚠️ {item.contraindications}</Text>}
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <TouchableOpacity style={{ backgroundColor: primaryColor + '20', borderRadius: 8, padding: 8 }}
+                                onPress={() => { setEditingFormularyItem(item); setFormularyName(item.name); setFormularyDose(item.dose || ''); setFormularyRoute(item.route || 'iv_push'); setFormularyCategory(item.category || ''); setFormularyContraindications(item.contraindications || ''); setFormularyModalVisible(true) }}>
+                                <Text style={{ color: primaryColor, fontSize: 12 }}>✏️</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }} onPress={() => setDeleteConfirmFormulary(item)}>
+                                <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )
+                })}
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            )}
+          </View>
+        )}
         {activeTab === 'admin' && (
           <AdminSection token={token} primaryColor={primaryColor} secondaryColor={secondaryColor} company={company} />
         )}
@@ -3628,6 +3799,312 @@ export default function SoloHomeScreen({ route, navigation }) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* DELETE TEMPLATE CONFIRM */}
+      {deleteConfirmTemplate && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+            <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
+              <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>DELETE TEMPLATE</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmTemplate.name}</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 20 }}>This template will be deactivated. Charts already filled using this template are unaffected.</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setDeleteConfirmTemplate(null)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 2, backgroundColor: '#f06060', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={async () => {
+                  const t = deleteConfirmTemplate
+                  setDeleteConfirmTemplate(null)
+                  await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
+                  const tmplRes = await fetch(`${API_URL}/chart-templates`, { headers })
+                  const tmplData = await tmplRes.json()
+                  if (tmplData.success) setChartTemplates(tmplData.templates)
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* DELETE FORMULARY CONFIRM */}
+      {deleteConfirmFormulary && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+            <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
+              <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REMOVE FROM FORMULARY</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmFormulary.name}</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 20 }}>This item will be removed from your formulary. Existing charts are unaffected.</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setDeleteConfirmFormulary(null)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 2, backgroundColor: '#f06060', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={async () => {
+                  const item = deleteConfirmFormulary
+                  setDeleteConfirmFormulary(null)
+                  await fetch(`${API_URL}/company-formulary/${item.id}`, { method: 'DELETE', headers })
+                  const formRes = await fetch(`${API_URL}/company-formulary`, { headers })
+                  const formData = await formRes.json()
+                  if (formData.success) setFormulary(formData.formulary)
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* TEMPLATE BUILDER MODAL */}
+      <Modal visible={templateModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
+        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingTemplate ? 'Edit Template' : 'New Template'}</Text>
+            <TouchableOpacity onPress={() => setTemplateModalVisible(false)}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>X Cancel</Text>
+            </TouchableOpacity>
+          </View>
+          {Platform.OS !== 'web' && (
+            <View style={{ flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', margin: 12, borderRadius: 10, padding: 3 }}>
+              {['Build', 'Preview'].map(t => (
+                <TouchableOpacity key={t} onPress={() => setTemplateBuilderTab(t)}
+                  style={{ flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8, backgroundColor: templateBuilderTab === t ? primaryColor : 'transparent' }}>
+                  <Text style={{ color: templateBuilderTab === t ? secondaryColor : 'rgba(255,255,255,0.4)', fontWeight: '700', fontSize: 13 }}>{t}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+          <View style={{ flex: 1, flexDirection: Platform.OS === 'web' ? 'row' : 'column' }}>
+            {(Platform.OS === 'web' || templateBuilderTab === 'Build') && (
+              <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+                <View style={{ padding: 20 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Template Name *</Text>
+                  <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} placeholder="e.g. Standard IV Drip Chart" placeholderTextColor="rgba(255,255,255,0.3)" value={templateName} onChangeText={setTemplateName} />
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    {[{ value: 'tech', label: 'Tech' }, { value: 'np', label: 'NP' }].map(opt => (
+                      <TouchableOpacity key={opt.value} onPress={() => setTemplateType(opt.value)}
+                        style={{ flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center', backgroundColor: templateType === opt.value ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                        <Text style={{ color: templateType === opt.value ? primaryColor : 'rgba(255,255,255,0.4)', fontWeight: '700', fontSize: 13 }}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    <TouchableOpacity onPress={() => setTemplateIsDefault(!templateIsDefault)}
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: templateIsDefault ? primaryColor + '15' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: templateIsDefault ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                        {templateIsDefault && <Text style={{ color: secondaryColor, fontSize: 10, fontWeight: '800' }}>v</Text>}
+                      </View>
+                      <Text style={{ color: templateIsDefault ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>Default</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setTemplateSubmitBehavior(prev => prev === 'lock' ? 'draft' : 'lock')}
+                      style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: templateSubmitBehavior === 'lock' ? 'rgba(255,152,0,0.12)' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.1)' }}>
+                      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.3)', backgroundColor: templateSubmitBehavior === 'lock' ? '#FF9800' : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                        {templateSubmitBehavior === 'lock' && <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>v</Text>}
+                      </View>
+                      <Text style={{ color: templateSubmitBehavior === 'lock' ? '#FF9800' : 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: '600' }}>Lock on Submit</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 12 }} />
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Fields ({templateFields.length})</Text>
+                  {templateFields.length === 0 ? (
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: 20, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', borderStyle: 'dashed' }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Add fields from the palette below</Text>
+                    </View>
+                  ) : templateFields.map((field, index) => (
+                    <View key={field.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 10, marginBottom: 6, borderLeftWidth: 3, borderLeftColor: field.type === 'heading' ? primaryColor : field.type === 'divider' ? 'rgba(255,255,255,0.2)' : '#4CAF50' }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{field.label || field.type}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 2 }}>{field.type}{field.required ? ' · required' : ''}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', gap: 4 }}>
+                          {index > 0 && <TouchableOpacity onPress={() => { const f=[...templateFields]; [f[index-1],f[index]]=[f[index],f[index-1]]; setTemplateFields(f) }} style={{ padding: 6 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>up</Text></TouchableOpacity>}
+                          {index < templateFields.length-1 && <TouchableOpacity onPress={() => { const f=[...templateFields]; [f[index+1],f[index]]=[f[index],f[index+1]]; setTemplateFields(f) }} style={{ padding: 6 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14 }}>dn</Text></TouchableOpacity>}
+                          <TouchableOpacity onPress={() => { setEditingField({...field}); setEditingFieldIndex(index); setFieldConfigModal(true) }} style={{ padding: 6 }}><Text style={{ color: primaryColor, fontSize: 13 }}>edit</Text></TouchableOpacity>
+                          <TouchableOpacity onPress={() => setTemplateFields(prev => prev.filter((_,i) => i !== index))} style={{ padding: 6 }}><Text style={{ color: '#f06060', fontSize: 13 }}>del</Text></TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1, marginTop: 8 }}>Add Field</Text>
+                  {[
+                    { group: 'Structure', fields: [{ type: 'heading', label: 'Heading' }, { type: 'divider', label: 'Divider' }] },
+                    { group: 'Input', fields: [{ type: 'text', label: 'Text' }, { type: 'textarea', label: 'Long Text' }, { type: 'number', label: 'Number' }, { type: 'yes_no', label: 'Yes/No' }, { type: 'dropdown', label: 'Dropdown' }, { type: 'multi_select', label: 'Multi-Select' }, { type: 'date', label: 'Date' }, { type: 'time', label: 'Time' }] },
+                    { group: 'Medical', fields: [{ type: 'vitals', label: 'Vitals' }, { type: 'iv_details', label: 'IV Details' }, { type: 'med_row', label: 'Medication' }, { type: 'vitamin_row', label: 'Vitamin' }, { type: 'service_select', label: 'Service' }] },
+                    { group: 'Media & Legal', fields: [{ type: 'photo', label: 'Photo' }, { type: 'signature', label: 'Signature' }, { type: 'consent', label: 'Consent' }] },
+                  ].map(group => (
+                    <View key={group.group} style={{ marginBottom: 12 }}>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' }}>{group.group}</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                        {group.fields.map(ft => (
+                          <TouchableOpacity key={ft.type}
+                            onPress={() => {
+                              const newField = { id: `field_${Date.now()}_${Math.random().toString(36).slice(2,7)}`, type: ft.type, label: ft.label, placeholder: '', required: false, repeatable: ['med_row','vitamin_row','vitals'].includes(ft.type), options: [], min: null, max: null, conditional: null }
+                              setTemplateFields(prev => [...prev, newField])
+                            }}
+                            style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                            <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '500' }}>{ft.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  ))}
+                  <View style={{ height: 40 }} />
+                </View>
+              </ScrollView>
+            )}
+          </View>
+          <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }}
+              onPress={async () => {
+                if (!templateName.trim()) { Alert.alert('Error', 'Template name is required'); return }
+                if (templateFields.length === 0) { Alert.alert('Error', 'Add at least one field'); return }
+                try {
+                  const method = editingTemplate ? 'PUT' : 'POST'
+                  const url = editingTemplate ? `${API_URL}/chart-templates/${editingTemplate.id}` : `${API_URL}/chart-templates`
+                  const res = await fetch(url, { method, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: templateName, chartType: templateType, isDefault: templateIsDefault, serviceTypes: templateServiceTypes, fields: templateFields, submitBehavior: templateSubmitBehavior }) })
+                  const data = await res.json()
+                  if (data.success) {
+                    setTemplateModalVisible(false)
+                    const tmplRes = await fetch(`${API_URL}/chart-templates`, { headers })
+                    const tmplData = await tmplRes.json()
+                    if (tmplData.success) setChartTemplates(tmplData.templates)
+                    Alert.alert('Success', editingTemplate ? 'Template updated' : 'Template created')
+                  } else { Alert.alert('Error', data.error || 'Could not save template') }
+                } catch (err) { Alert.alert('Error', 'Could not save template') }
+              }}>
+              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingTemplate ? 'Save Changes' : 'Create Template'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* FIELD CONFIG MODAL */}
+      <Modal visible={fieldConfigModal} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
+        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Configure Field</Text>
+            <TouchableOpacity onPress={() => setFieldConfigModal(false)}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>X Close</Text>
+            </TouchableOpacity>
+          </View>
+          {editingField && (
+            <ScrollView style={{ flex: 1, padding: 20 }} keyboardShouldPersistTaps="handled">
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Label *</Text>
+              <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} placeholder="e.g. Blood Pressure" placeholderTextColor="rgba(255,255,255,0.3)" value={editingField.label} onChangeText={val => setEditingField(prev => ({ ...prev, label: val }))} />
+              {!['vitals','iv_details','med_row','vitamin_row','heading','divider','signature','photo','service_select'].includes(editingField.type) && (
+                <>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Placeholder</Text>
+                  <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} placeholder="e.g. 120/80" placeholderTextColor="rgba(255,255,255,0.3)" value={editingField.placeholder} onChangeText={val => setEditingField(prev => ({ ...prev, placeholder: val }))} />
+                </>
+              )}
+              {!['heading','divider'].includes(editingField.type) && (
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>Required</Text>
+                  <TouchableOpacity style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: editingField.required ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }} onPress={() => setEditingField(prev => ({ ...prev, required: !prev.required }))}>
+                    <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: editingField.required ? 'flex-end' : 'flex-start' }} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              {['dropdown','multi_select'].includes(editingField.type) && (
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 1 }}>Options</Text>
+                  {(editingField.options || []).map((opt, i) => (
+                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <TextInput style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, color: '#fff', fontSize: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} value={opt} onChangeText={val => { const newOpts = [...editingField.options]; newOpts[i] = val; setEditingField(prev => ({ ...prev, options: newOpts })) }} />
+                      <TouchableOpacity onPress={() => setEditingField(prev => ({ ...prev, options: prev.options.filter((_,j) => j !== i) }))}><Text style={{ color: '#f06060', fontSize: 18 }}>X</Text></TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderStyle: 'dashed' }} onPress={() => setEditingField(prev => ({ ...prev, options: [...(prev.options || []), ''] }))}>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>+ Add Option</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {editingField.type === 'consent' && (
+                <View style={{ marginBottom: 16 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Consent Text</Text>
+                  <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', height: 100, textAlignVertical: 'top' }} placeholder="Enter the consent statement..." placeholderTextColor="rgba(255,255,255,0.3)" multiline value={editingField.consentText || ''} onChangeText={val => setEditingField(prev => ({ ...prev, consentText: val }))} />
+                </View>
+              )}
+              <View style={{ height: 40 }} />
+            </ScrollView>
+          )}
+          <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }}
+              onPress={() => {
+                if (!editingField.label.trim()) { Alert.alert('Error', 'Field label is required'); return }
+                const newFields = [...templateFields]
+                newFields[editingFieldIndex] = editingField
+                setTemplateFields(newFields)
+                setFieldConfigModal(false)
+              }}>
+              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Field</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* FORMULARY MODAL */}
+      <Modal visible={formularyModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
+        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingFormularyItem ? 'Edit Item' : 'Add to Formulary'}</Text>
+            <TouchableOpacity onPress={() => setFormularyModalVisible(false)}>
+              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16 }}>X Cancel</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView style={{ flex: 1, padding: 20 }} keyboardShouldPersistTaps="handled">
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Name *</Text>
+            <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} placeholder="e.g. Reglan 10mg" placeholderTextColor="rgba(255,255,255,0.3)" value={formularyName} onChangeText={setFormularyName} />
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Dose</Text>
+            <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }} placeholder="e.g. 10mg/2mL" placeholderTextColor="rgba(255,255,255,0.3)" value={formularyDose} onChangeText={setFormularyDose} />
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Route</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {['iv_push','iv_bag','im','sq','oral','topical','other'].map(r => (
+                <TouchableOpacity key={r} onPress={() => setFormularyRoute(r)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: formularyRoute === r ? primaryColor + '20' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: formularyRoute === r ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                  <Text style={{ color: formularyRoute === r ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' }}>{r.replace('_',' ').toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Category</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+              {['IV Medication','IM Injection','Bag Additive','Vitamin','Other'].map(cat => (
+                <TouchableOpacity key={cat} onPress={() => setFormularyCategory(cat)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: formularyCategory === cat ? primaryColor + '20' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: formularyCategory === cat ? primaryColor : 'rgba(255,255,255,0.1)' }}>
+                  <Text style={{ color: formularyCategory === cat ? primaryColor : 'rgba(255,255,255,0.5)', fontSize: 13, fontWeight: '600' }}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>Contraindications</Text>
+            <TextInput style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, color: '#fff', fontSize: 15, marginBottom: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', height: 80, textAlignVertical: 'top' }} placeholder="e.g. Sulfa allergy, renal failure" placeholderTextColor="rgba(255,255,255,0.3)" multiline value={formularyContraindications} onChangeText={setFormularyContraindications} />
+          </ScrollView>
+          <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+            <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }}
+              onPress={async () => {
+                if (!formularyName.trim()) { Alert.alert('Error', 'Name is required'); return }
+                try {
+                  const method = editingFormularyItem ? 'PUT' : 'POST'
+                  const url = editingFormularyItem ? `${API_URL}/company-formulary/${editingFormularyItem.id}` : `${API_URL}/company-formulary`
+                  const res = await fetch(url, { method, headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: formularyName, dose: formularyDose, route: formularyRoute, category: formularyCategory, contraindications: formularyContraindications }) })
+                  const data = await res.json()
+                  if (data.success || data.item) {
+                    setFormularyModalVisible(false)
+                    const formRes = await fetch(`${API_URL}/company-formulary`, { headers })
+                    const formData = await formRes.json()
+                    if (formData.success) setFormulary(formData.formulary)
+                  } else { Alert.alert('Error', data.error || 'Could not save item') }
+                } catch (err) { Alert.alert('Error', 'Could not save item') }
+              }}>
+              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingFormularyItem ? 'Save Changes' : 'Add to Formulary'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   )
 }
