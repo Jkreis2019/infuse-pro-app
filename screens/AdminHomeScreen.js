@@ -1793,7 +1793,8 @@ const [showImportModal, setShowImportModal] = useState(false)
                         Alert.alert('Created', 'Membership plan created!')
                         setNewPlanName(''); setNewPlanPrice(''); setNewPlanDesc(''); setNewPlanVisits('4')
                         fetchAll()
-                      } else Alert.alert('Error', data.error || 'Failed to create plan')
+                      } else if (data.error === 'Upgrade required' || res.status === 403) { showUpgradeModal('Membership plans are available on the Scale plan. Upgrade to offer recurring memberships to your patients.', 'Scale') }
+                      else Alert.alert('Error', data.error || 'Failed to create plan')
                     } catch (e) { Alert.alert('Error', 'Network error') } finally { setSavingPlan(false) }
                   }}
                 >
