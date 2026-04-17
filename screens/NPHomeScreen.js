@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Platform, View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Alert, TextInput, Modal, KeyboardAvoidingView, Platform, Image,
 } from 'react-native'
 
@@ -445,6 +445,9 @@ export default function NPHomeScreen({ route, navigation }) {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setProfileModal(true)}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => { const url = `https://api.infusepro.app/dispatch/chat-window?token=${token}`; if (Platform.OS === 'web') { window.open(url, '_blank', 'width=1000,height=700') } }}>
+              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🖥️ Pop Out Chat</Text>
             </TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(255,152,0,0.4)' }} onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }}>
               <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
