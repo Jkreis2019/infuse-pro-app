@@ -833,7 +833,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       const data = await res.json()
       if (data.success) {
         Alert.alert('Saved', 'Branding colors updated. Log out and back in to see new colors.')
-      } else if (res.status === 403) {
+      } else if (res.status === 403 || data.error === 'Upgrade required') {
         showUpgradeModal('White-label branding is available on the Scale plan. Upgrade to customize your colors and logo.', 'Scale')
       } else Alert.alert('Error', data.message || 'Could not save branding')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingBranding(false) }
@@ -884,7 +884,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         setNsFirstName(''); setNsLastName(''); setNsEmail(''); setNsPhone(''); setNsRole('tech')
         Alert.alert('Staff Created', `Welcome email sent to ${nsEmail}`)
         fetchAll()
-      } else if (res.status === 403) { setNewStaffModal(false); showUpgradeModal(data.message || 'You have reached your staff limit. Upgrade your plan to add more team members.', 'Higher Plan') }
+      } else if (res.status === 403 || data.error === 'Upgrade required') { setNewStaffModal(false); showUpgradeModal(data.message || 'You have reached your staff limit. Upgrade your plan to add more team members.', 'Higher Plan') }
       else Alert.alert('Error', data.message || 'Could not create staff')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setCreatingStaff(false) }
   }
@@ -916,7 +916,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         setNewRegionModal(false); setEditRegionModal(false); setSelectedRegion(null)
         setRName(''); setRColor('#C9A84C'); setRCities('')
         fetchAll()
-      } else if (res.status === 403) { showUpgradeModal('Multi-region support is available on the Scale plan. Upgrade to organize your team by region.', 'Scale') }
+      } else if (res.status === 403 || data.error === 'Upgrade required' || data.error === 'Subscription required') { setNewRegionModal(false); setEditRegionModal(false); showUpgradeModal('Multi-region support is available on the Scale plan. Upgrade to organize your team by region.', 'Scale') }
       else Alert.alert('Error', data.message || 'Could not save region')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingRegion(false) }
   }
