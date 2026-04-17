@@ -1559,22 +1559,18 @@ const [showImportModal, setShowImportModal] = useState(false)
           {/* TEMPLATES SUB TAB */}
           {chartsSubTab === 'templates' && (
             <ScrollView style={styles.scroll}>
-              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 12 }]}
+              <TouchableOpacity style={{ backgroundColor: primaryColor, marginBottom: 12, borderRadius: 8, padding: 14, alignItems: 'center' }}
                 onPress={() => {
-                  try {
-                    setEditingTemplate(null)
-                    setTemplateName('')
-                    setTemplateType('tech')
-                    setTemplateIsDefault(false)
-                    setTemplateServiceTypes([])
-                    setTemplateFields([])
-                    setTemplateSubmitBehavior('lock')
-                    setTemplateModalVisible(true)
-                  } catch(e) {
-                    Alert.alert('Error', e.message)
-                  }
+                  setEditingTemplate(null)
+                  setTemplateName('')
+                  setTemplateType('tech')
+                  setTemplateIsDefault(false)
+                  setTemplateServiceTypes([])
+                  setTemplateFields([])
+                  setTemplateSubmitBehavior('lock')
+                  setTemplateModalVisible(true)
                 }}>
-                <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ New Template</Text>
+                <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
               </TouchableOpacity>
 
               {/* Tech Templates */}
@@ -3684,6 +3680,8 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
           )}
         </>
       )}
+
+
 
       {/* ── TEMPLATE BUILDER MODAL ── */}
       <Modal visible={templateModalVisible} animationType="slide" presentationStyle="pageSheet">
