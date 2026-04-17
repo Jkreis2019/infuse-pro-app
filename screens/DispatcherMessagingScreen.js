@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
@@ -16,6 +17,7 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
   const [activeTab, setActiveTab] = useState(soloMode === true ? 'patients' : 'team')
   const [regions, setRegions] = useState([])
   const [selectedRegion, setSelectedRegion] = useState(null)
+  const [pinnedRegions, setPinnedRegions] = useState([])
   const [regionMessages, setRegionMessages] = useState([])
   const [contacts, setContacts] = useState([])
   const [patientChats, setPatientChats] = useState([])
@@ -90,6 +92,8 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     fetchContacts()
     fetchPatientChats()
     fetchRegions()
+    // Load pinned regions
+    AsyncStorage.getItem('pinnedRegions').then(val => { if (val) setPinnedRegions(JSON.parse(val)) }).catch(() => {})
     const interval = setInterval(() => {
       fetchContacts()
       fetchPatientChats()
@@ -98,6 +102,14 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
     }, 10000)
     return () => clearInterval(interval)
   }, [fetchContacts, fetchPatientChats])
+
+  const togglePin = async (regionId) => {
+    const newPinned = pinnedRegions.includes(regionId)
+      ? pinnedRegions.filter(id => id !== regionId)
+      : [...pinnedRegions, regionId]
+    setPinnedRegions(newPinned)
+    await AsyncStorage.setItem('pinnedRegions', JSON.stringify(newPinned))
+  }
 
   const fetchDMMessages = useCallback(async (contactId, showLoader = false) => {
     if (showLoader) setMessagesLoading(true)
@@ -348,7 +360,13 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
           data={activeTab === 'team'
             ? [
                 { type: 'groupHeader' },
-                ...regions.map(r => ({ type: 'region', ...r })),
+                ...[...regions].sort((a, b) => {
+                  const aPinned = pinnedRegions.includes(a.id)
+                  const bPinned = pinnedRegions.includes(b.id)
+                  if (aPinned && !bPinned) return -1
+                  if (!aPinned && bPinned) return 1
+                  return 0
+                }).map(r => ({ type: 'region', ...r })),
                 { type: 'dmHeader' },
                 ...Object.entries(groupedContacts).flatMap(([region, data]) => [
                   { type: 'header', region, color: data.color },
@@ -394,6 +412,9 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                       </Text>
                     )}
                   </View>
+                  <TouchableOpacity onPress={() => togglePin(item.id)} style={{ padding: 8 }}>
+                    <Text style={{ fontSize: 16, opacity: pinnedRegions.includes(item.id) ? 1 : 0.3 }}>📌</Text>
+                  </TouchableOpacity>
                 </TouchableOpacity>
               )
             }
