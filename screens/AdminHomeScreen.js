@@ -1,3 +1,4 @@
+import BugReportModal from '../components/BugReportModal'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -218,6 +219,7 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [enrolling, setEnrolling] = useState(false)
   const [adjustModal, setAdjustModal] = useState(false)
   const [upgradeModal, setUpgradeModal] = useState(false)
+  const [bugReportModal, setBugReportModal] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState('')
   const [upgradeRequired, setUpgradeRequired] = useState('')
 
@@ -989,10 +991,14 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TouchableOpacity onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }} style={{ backgroundColor: 'rgba(255,152,0,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255,152,0,0.3)' }}>
               <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Take a Break</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => setBugReportModal(true)}>
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🐛 Report a Problem</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
             </TouchableOpacity>
           </View>
+          <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="AdminHomeScreen" />
         </View>
       </View>
 

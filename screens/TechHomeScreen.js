@@ -1,3 +1,4 @@
+import BugReportModal from '../components/BugReportModal'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -642,6 +643,7 @@ export default function TechHomeScreen({ route, navigation }) {
   const [mySchedule, setMySchedule] = useState([])
   const [selectedScheduleDate, setSelectedScheduleDate] = useState(null)
   const [showChart, setShowChart] = useState(false)
+  const [bugReportModal, setBugReportModal] = useState(false)
   const [chartPatient, setChartPatient] = useState(null)
 const [primaryChartCompleted, setPrimaryChartCompleted] = useState(false)
   const [showNpOrders, setShowNpOrders] = useState(false)
@@ -892,9 +894,13 @@ if (data.call?.call_id) {
             <Text style={styles.headerTitle}>My Call</Text>
             <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
           </View>
+          <TouchableOpacity onPress={() => setBugReportModal(true)} style={{ marginTop: 8 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🐛 Report a Problem</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
           </TouchableOpacity>
+          <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="TechHomeScreen" />
         </View>
       </View>
 

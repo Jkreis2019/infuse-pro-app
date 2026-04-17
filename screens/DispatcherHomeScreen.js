@@ -1,3 +1,4 @@
+import BugReportModal from '../components/BugReportModal'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard, Image , StatusBar} from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -59,6 +60,7 @@ export default function DispatcherHomeScreen({ route, navigation }) {
   const [log, setLog] = useState([])
   const [scheduled, setScheduled] = useState([])
   const [dualScreen, setDualScreen] = useState(false)
+  const [bugReportModal, setBugReportModal] = useState(false)
   const [chatBookingId, setChatBookingId] = useState(null)
   const [chatPatientName, setChatPatientName] = useState('')
   const [chatMessages, setChatMessages] = useState([])
@@ -898,6 +900,12 @@ const submitSendIntake = async () => {
         <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
       </TouchableOpacity>
       <TouchableOpacity
+        onPress={() => setBugReportModal(true)}
+        style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+      >
+        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🐛 Report</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >
@@ -906,6 +914,7 @@ const submitSendIntake = async () => {
     </View>
 </View>
 </View>
+<BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="DispatcherHomeScreen" />
 
       <View style={{ flex: 1, flexDirection: dualScreen ? 'row' : 'column' }}>
       {/* Tabs */}

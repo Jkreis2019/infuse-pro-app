@@ -1,3 +1,4 @@
+import BugReportModal from '../components/BugReportModal'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -1740,6 +1741,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [minimumMinorAge, setMinimumMinorAge] = useState(0)
   const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
+  const [bugReportModal, setBugReportModal] = useState(false)
 
   const fetchServices = useCallback(async () => {
     try {
@@ -2787,6 +2789,9 @@ export default function SoloHomeScreen({ route, navigation }) {
             </Text>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{user?.firstName} {user?.lastName} · SOLO</Text>
           </View>
+          <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setBugReportModal(true)}>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>🐛 Report</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
             onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
@@ -2795,6 +2800,7 @@ export default function SoloHomeScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+      <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="SoloHomeScreen" />
 
       {/* Content */}
       <View style={{ flex: 1 }}>

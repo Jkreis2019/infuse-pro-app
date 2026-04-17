@@ -1,3 +1,4 @@
+import BugReportModal from '../components/BugReportModal'
 import React, { useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -319,6 +320,7 @@ export default function NPHomeScreen({ route, navigation }) {
   const [reviewModal, setReviewModal] = useState(false)
   const [loadingGFE, setLoadingGFE] = useState(false)
   const [profileModal, setProfileModal] = useState(false)
+  const [bugReportModal, setBugReportModal] = useState(false)
   const [activeTab, setActiveTab] = useState('queue')
   const [log, setLog] = useState([])
   const [logSearch, setLogSearch] = useState('')
@@ -452,12 +454,16 @@ export default function NPHomeScreen({ route, navigation }) {
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(255,152,0,0.4)' }} onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }}>
               <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setBugReportModal(true)}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>🐛 Report</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
+      <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="NPHomeScreen" />
 
       {/* Tab Bar */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)', flexGrow: 0 }}>
