@@ -1677,7 +1677,7 @@ if (data.call?.call_id) {
 
   return (
     <View style={styles.container}>
-      {hasTemplates ? (
+      {true ? (
         <DynamicChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
       ) : (
         <ChartModal key={chartPatient?.name || 'chart'} visible={showChart} onClose={() => { setShowChart(false); setChartPatient(null); fetchCall() }} call={call} token={token} company={company} patientName={chartPatient?.name} patientDob={chartPatient?.dob} />
