@@ -1789,7 +1789,6 @@ const [showImportModal, setShowImportModal] = useState(false)
                         body: JSON.stringify({ name: newPlanName, description: newPlanDesc, price: parseFloat(newPlanPrice), billingCycle: 'monthly', maxRedemptionsPerCycle: newPlanVisits === 'unlimited' ? 999 : parseInt(newPlanVisits), cancellationPolicy: newPlanCancellationPolicy })
                       })
                       const data = await res.json()
-                      console.log('Plan create response:', res.status, data)
                       if (data.success) {
                         Alert.alert('Created', 'Membership plan created!')
                         setNewPlanName(''); setNewPlanPrice(''); setNewPlanDesc(''); setNewPlanVisits('4')
