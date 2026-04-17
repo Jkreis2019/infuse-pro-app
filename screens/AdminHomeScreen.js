@@ -1056,9 +1056,11 @@ const [showImportModal, setShowImportModal] = useState(false)
       <View style={{ backgroundColor: secondaryColor, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)' }}>
         <FlatList
           horizontal
-          showsHorizontalScrollIndicator={false}
+          showsHorizontalScrollIndicator={true}
           data={TABS}
           keyExtractor={item => item}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ flexGrow: 0 }}
           renderItem={({ item: tab }) => (
             <TouchableOpacity
               key={tab}
@@ -3684,7 +3686,7 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
 
 
       {/* ── TEMPLATE BUILDER MODAL ── */}
-      <Modal visible={templateModalVisible} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={templateModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
         <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
@@ -3918,7 +3920,7 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
       </Modal>
 
       {/* ── FIELD CONFIG MODAL ── */}
-      <Modal visible={fieldConfigModal} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={fieldConfigModal} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
         <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Configure Field</Text>
@@ -4107,7 +4109,7 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
       </Modal>
 
       {/* ── FORMULARY MODAL ── */}
-      <Modal visible={formularyModalVisible} animationType="slide" presentationStyle="pageSheet">
+      <Modal visible={formularyModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
         <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingFormularyItem ? 'Edit Item' : 'Add to Formulary'}</Text>
