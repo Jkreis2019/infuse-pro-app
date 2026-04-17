@@ -3775,6 +3775,13 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
                         conditional: null
                       }
                       setTemplateFields(prev => [...prev, newField])
+                      if (['med_row', 'vitamin_row'].includes(ft.type) && formulary.length === 0) {
+                        Alert.alert(
+                          'Formulary Required',
+                          'This field pulls from your company formulary. Go to Charts > Formulary and add your approved medications and vitamins, otherwise techs will see an empty picker.',
+                          [{ text: 'Got it' }]
+                        )
+                      }
                     }}
                     style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>{ft.label}</Text>
