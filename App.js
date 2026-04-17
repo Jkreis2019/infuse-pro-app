@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Text, View, TouchableOpacity } from 'react-native'
+import { Text, View, TouchableOpacity, TextInput, ActivityIndicator, Image } from 'react-native'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { AppState } from 'react-native'
 import * as Notifications from 'expo-notifications'
@@ -172,6 +172,15 @@ export default function App() {
   const navigationRef = useRef(null)
   const [showInactivityWarning, setShowInactivityWarning] = useState(false)
   const [userRole, setUserRole] = useState(null)
+  const [isLocked, setIsLocked] = useState(false)
+  const [lockPassword, setLockPassword] = useState('')
+  const [lockError, setLockError] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+  const [lockToken, setLockToken] = useState(null)
+  const [lockCompany, setLockCompany] = useState(null)
+  const [lockTime, setLockTime] = useState(null)
+
+  const LOCK_ROLES = ['admin', 'owner', 'dispatcher', 'np']
 
   const startInactivityTimer = useCallback((role) => {
     const timeout = TIMEOUTS[role]
@@ -179,11 +188,20 @@ export default function App() {
     setShowInactivityWarning(false)
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current)
     if (warningTimer.current) clearTimeout(warningTimer.current)
-    warningTimer.current = setTimeout(() => setShowInactivityWarning(true), timeout - 60 * 1000)
-    inactivityTimer.current = setTimeout(() => {
-      setShowInactivityWarning(false)
-      if (navigationRef.current) navigationRef.current.reset({ index: 0, routes: [{ name: 'Login' }] })
-    }, timeout)
+    if (LOCK_ROLES.includes(role)) {
+      // Lock screen instead of logout for these roles
+      inactivityTimer.current = setTimeout(() => {
+        setShowInactivityWarning(false)
+        setIsLocked(true)
+        setLockTime(new Date())
+      }, timeout)
+    } else {
+      warningTimer.current = setTimeout(() => setShowInactivityWarning(true), timeout - 60 * 1000)
+      inactivityTimer.current = setTimeout(() => {
+        setShowInactivityWarning(false)
+        if (navigationRef.current) navigationRef.current.reset({ index: 0, routes: [{ name: 'Login' }] })
+      }, timeout)
+    }
   }, [])
 
   const resetInactivityTimer = useCallback(() => {
@@ -192,8 +210,9 @@ export default function App() {
 
   useEffect(() => {
     const { sessionManager } = require('./utils/sessionManager')
-    sessionManager.setOnLogin((role) => setUserRole(role))
+    sessionManager.setOnLogin((role, token, company) => { setUserRole(role); setLockToken(token); setLockCompany(company) })
     sessionManager.setOnActivity(() => resetInactivityTimer())
+    sessionManager.setOnLock(() => { setIsLocked(true); setLockTime(new Date()) })
     if (userRole) startInactivityTimer(userRole)
     const sub = AppState.addEventListener('change', state => { if (state === 'active') resetInactivityTimer() })
     return () => { sub.remove(); clearTimeout(inactivityTimer.current); clearTimeout(warningTimer.current) }
@@ -268,6 +287,69 @@ export default function App() {
           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginBottom: 24, lineHeight: 20 }}>You'll be automatically logged out in 1 minute due to inactivity.</Text>
           <TouchableOpacity style={{ backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={resetInactivityTimer}>
             <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Keep me logged in</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    )}
+
+    {/* Lock Screen */}
+    {isLocked && (
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 99999 }}>
+        <View style={{ alignItems: 'center', width: '100%', maxWidth: 380 }}>
+          {lockCompany?.logoUrl ? (
+            <Image source={{ uri: lockCompany.logoUrl }} style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 16 }} />
+          ) : (
+            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(201,168,76,0.2)', borderWidth: 2, borderColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Text style={{ color: '#C9A84C', fontSize: 32 }}>🔒</Text>
+            </View>
+          )}
+          <Text style={{ color: '#C9A84C', fontSize: 13, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>SCREEN LOCKED</Text>
+          <Text style={{ color: '#fff', fontSize: 28, fontWeight: '800', marginBottom: 4 }}>{lockCompany?.name || 'Infuse Pro'}</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 40 }}>
+            Locked at {lockTime ? lockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+          </Text>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 10, alignSelf: 'flex-start' }}>Enter your password to unlock</Text>
+          <TextInput
+            style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, color: '#fff', fontSize: 16, borderWidth: 1, borderColor: lockError ? '#e53e3e' : 'rgba(255,255,255,0.15)', marginBottom: 8, outlineStyle: 'none' }}
+            value={lockPassword}
+            onChangeText={(t) => { setLockPassword(t); setLockError('') }}
+            placeholder="Password"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+            secureTextEntry
+          />
+          {lockError ? <Text style={{ color: '#e53e3e', fontSize: 13, marginBottom: 8, alignSelf: 'flex-start' }}>{lockError}</Text> : null}
+          <TouchableOpacity
+            style={{ width: '100%', backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: unlocking ? 0.6 : 1 }}
+            disabled={unlocking}
+            onPress={async () => {
+              if (!lockPassword) return setLockError('Please enter your password')
+              setUnlocking(true)
+              try {
+                const res = await fetch('https://api.infusepro.app/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: lockCompany?.userEmail, password: lockPassword, companyCode: lockCompany?.code })
+                })
+                const data = await res.json()
+                if (data.token) {
+                  setIsLocked(false)
+                  setLockPassword('')
+                  setLockError('')
+                  resetInactivityTimer()
+                } else {
+                  setLockError('Incorrect password')
+                }
+              } catch (e) {
+                setLockError('Network error')
+              } finally {
+                setUnlocking(false)
+              }
+            }}
+          >
+            {unlocking ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 16 }}>Unlock</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setIsLocked(false); if (navigationRef.current) navigationRef.current.reset({ index: 0, routes: [{ name: 'Login' }] }) }}>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Sign out instead</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -446,6 +446,9 @@ export default function NPHomeScreen({ route, navigation }) {
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => setProfileModal(true)}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
             </TouchableOpacity>
+            <TouchableOpacity style={{ backgroundColor: 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(255,152,0,0.4)' }} onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }}>
+              <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
               <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
             </TouchableOpacity>

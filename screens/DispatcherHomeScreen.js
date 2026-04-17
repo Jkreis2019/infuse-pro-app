@@ -892,6 +892,12 @@ const submitSendIntake = async () => {
         <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>👤 Profile</Text>
       </TouchableOpacity>
       <TouchableOpacity
+        onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }}
+        style={{ backgroundColor: 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(255,152,0,0.4)' }}
+      >
+        <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Break</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
         onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}
         style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
       >

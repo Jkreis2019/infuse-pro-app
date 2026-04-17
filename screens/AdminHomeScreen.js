@@ -956,9 +956,14 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.headerTitle}>Admin Console</Text>
             <Text style={styles.headerSub}>{user?.firstName} {user?.lastName} · {user?.role?.toUpperCase()}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
-          </TouchableOpacity>
+          <View style={{ alignItems: 'flex-end', gap: 8 }}>
+            <TouchableOpacity onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }} style={{ backgroundColor: 'rgba(255,152,0,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255,152,0,0.3)' }}>
+              <Text style={{ color: '#FF9800', fontSize: 12, fontWeight: '600' }}>☕ Take a Break</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
