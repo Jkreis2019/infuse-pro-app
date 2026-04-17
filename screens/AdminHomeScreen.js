@@ -261,6 +261,8 @@ export default function AdminHomeScreen({ route, navigation }) {
   const [chartsSubTab, setChartsSubTab] = useState('templates')
   const [templateSubmitBehavior, setTemplateSubmitBehavior] = useState('lock')
   const [templateBuilderTab, setTemplateBuilderTab] = useState('Build')
+  const [deleteConfirmTemplate, setDeleteConfirmTemplate] = useState(null)
+  const [deleteConfirmFormulary, setDeleteConfirmFormulary] = useState(null)
   const [announcementModal, setAnnouncementModal] = useState(false)
   const [editingAnnouncement, setEditingAnnouncement] = useState(null)
   const [anTitle, setAnTitle] = useState('')
@@ -1637,15 +1639,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }}
-                        onPress={() => setTimeout(() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Delete', style: 'destructive', onPress: async () => {
-                            await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
-                            const tmplRes = await fetch(`${API_URL}/chart-templates`, { headers })
-                            const tmplData = await tmplRes.json()
-                            if (tmplData.success) setChartTemplates(tmplData.templates)
-                          }}
-                        ]), 100)}>
+                        onPress={() => setDeleteConfirmTemplate(t)}>
                         <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
                       </TouchableOpacity>
                     </View>
@@ -1714,15 +1708,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }}
-                        onPress={() => setTimeout(() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Delete', style: 'destructive', onPress: async () => {
-                            await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
-                            const tmplRes = await fetch(`${API_URL}/chart-templates`, { headers })
-                            const tmplData = await tmplRes.json()
-                            if (tmplData.success) setChartTemplates(tmplData.templates)
-                          }}
-                        ]), 100)}>
+                        onPress={() => setDeleteConfirmTemplate(t)}>
                         <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
                       </TouchableOpacity>
                     </View>
@@ -1787,15 +1773,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                   style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }}
-                                  onPress={() => Alert.alert('Remove', `Remove ${item.name} from formulary?`, [
-                                    { text: 'Cancel', style: 'cancel' },
-                                    { text: 'Remove', style: 'destructive', onPress: async () => {
-                                      await fetch(`${API_URL}/company-formulary/${item.id}`, { method: 'DELETE', headers })
-                                      const formRes = await fetch(`${API_URL}/company-formulary`, { headers })
-                                      const formData = await formRes.json()
-                                      if (formData.success) setFormulary(formData.formulary)
-                                    }}
-                                  ])}>
+                                  onPress={() => setDeleteConfirmFormulary(item)}>
                                   <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
                                 </TouchableOpacity>
                               </View>
@@ -3635,6 +3613,66 @@ const [showImportModal, setShowImportModal] = useState(false)
 
 
 
+
+      {/* ── DELETE FORMULARY CONFIRM ── */}
+      {deleteConfirmFormulary && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+            <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
+              <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REMOVE FROM FORMULARY</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmFormulary.name}</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 20 }}>This item will be removed from your formulary. Existing charts are unaffected.</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setDeleteConfirmFormulary(null)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 2, backgroundColor: '#f06060', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={async () => {
+                  const item = deleteConfirmFormulary
+                  setDeleteConfirmFormulary(null)
+                  await fetch(`${API_URL}/company-formulary/${item.id}`, { method: 'DELETE', headers })
+                  const formRes = await fetch(`${API_URL}/company-formulary`, { headers })
+                  const formData = await formRes.json()
+                  if (formData.success) setFormulary(formData.formulary)
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* ── DELETE TEMPLATE CONFIRM ── */}
+      {deleteConfirmTemplate && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+            <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
+              <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>DELETE TEMPLATE</Text>
+              <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmTemplate.name}</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 20 }}>This template will be deactivated. Charts already filled using this template are unaffected.</Text>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={() => setDeleteConfirmTemplate(null)}>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ flex: 2, backgroundColor: '#f06060', borderRadius: 12, padding: 14, alignItems: 'center' }} onPress={async () => {
+                  const t = deleteConfirmTemplate
+                  setDeleteConfirmTemplate(null)
+                  await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
+                  const tmplRes = await fetch(`${API_URL}/chart-templates`, { headers })
+                  const tmplData = await tmplRes.json()
+                  if (tmplData.success) setChartTemplates(tmplData.templates)
+                }}>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
 
       {/* ── TEMPLATE BUILDER MODAL ── */}
       <Modal visible={templateModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
