@@ -2593,6 +2593,39 @@ const [showImportModal, setShowImportModal] = useState(false)
         </View>
       )}
 
+      {/* Region Assign Modal */}
+      {regionAssignModal && regionAssignTarget && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>ASSIGN REGION</Text>
+              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>{regionAssignTarget.first_name} {regionAssignTarget.last_name}</Text>
+            </View>
+            <View style={{ padding: 20 }}>
+              <TouchableOpacity
+                style={{ backgroundColor: !regions.find(r => parseInt(r.id) === parseInt(regionAssignTarget.region_id)) ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: !regions.find(r => parseInt(r.id) === parseInt(regionAssignTarget.region_id)) ? primaryColor : 'rgba(255,255,255,0.1)' }}
+                onPress={() => { assignStaffRegion(regionAssignTarget.id, null); setRegionAssignModal(false) }}
+              >
+                <Text style={{ color: !regions.find(r => parseInt(r.id) === parseInt(regionAssignTarget.region_id)) ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Unassigned</Text>
+              </TouchableOpacity>
+              {regions.map(r => (
+                <TouchableOpacity
+                  key={r.id}
+                  style={{ backgroundColor: parseInt(r.id) === parseInt(regionAssignTarget.region_id) ? primaryColor + '20' : 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: parseInt(r.id) === parseInt(regionAssignTarget.region_id) ? primaryColor : 'rgba(255,255,255,0.1)', flexDirection: 'row', alignItems: 'center', gap: 10 }}
+                  onPress={() => { assignStaffRegion(regionAssignTarget.id, r.id); setRegionAssignModal(false) }}
+                >
+                  {r.color && <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: r.color }} />}
+                  <Text style={{ color: parseInt(r.id) === parseInt(regionAssignTarget.region_id) ? primaryColor : '#fff', fontWeight: '600' }}>{r.name}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 8 }} onPress={() => setRegionAssignModal(false)}>
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontWeight: '600' }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Cancel Membership Confirm Modal */}
       {cancelMembershipModal && cancelMembershipTarget && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
