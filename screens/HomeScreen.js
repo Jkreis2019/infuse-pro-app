@@ -330,6 +330,9 @@ export default function HomeScreen({ route, navigation }) {
                   </Text>
                 </View>
               </View>
+              {booking.for_family_member && (
+                <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>For {booking.for_family_member}</Text>
+              )}
               <Text style={styles.bookingAddress}>{booking.address}</Text>
               <Text style={styles.bookingDate}>
                 {new Date(booking.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
