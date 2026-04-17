@@ -2462,6 +2462,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [psProfileModal, setPsProfileModal] = useState(false)
   const [psProfileData, setPsProfileData] = useState(null)
   const [psLoadingProfile, setPsLoadingProfile] = useState(false)
+  const [psSelectedChart, setPsSelectedChart] = useState(null)
+  const [psChartModal, setPsChartModal] = useState(false)
   const [psActiveTab, setPsActiveTab] = useState('overview')
   const [psEditing, setPsEditing] = useState(false)
   const [psEditPhone, setPsEditPhone] = useState('')
@@ -3010,12 +3012,13 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                       {!psProfileData?.charts?.length ? (
                         <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No charts on record</Text>
                       ) : psProfileData.charts.map((ch, i) => (
-                        <View key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }}>
+                        <TouchableOpacity key={ch.id || i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800' }} onPress={() => { setPsSelectedChart(ch); setPsChartModal(true) }}>
                           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{ch.chart_type === 'np' ? 'NP Chart' : 'Tech Chart'} — {ch.tech_name || 'Unknown'}</Text>
                           {ch.template_name && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 }}>{ch.template_name}</Text>}
                           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>{new Date(ch.created_at).toLocaleString()}</Text>
                           <Text style={{ color: ch.status === 'submitted' || ch.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700', marginTop: 4 }}>{ch.status?.toUpperCase()}</Text>
-                        </View>
+                          <Text style={{ color: primaryColor, fontSize: 12, marginTop: 8, textAlign: 'right' }}>Tap to view full chart</Text>
+                        </TouchableOpacity>
                       ))}
                     </>
                   )}
@@ -3046,6 +3049,121 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                 </ScrollView>
               )}
             </View>
+
+            {/* Chart Detail Modal */}
+            <Modal visible={psChartModal} animationType="slide" presentationStyle="fullScreen">
+              <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+                <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
+                  <TouchableOpacity onPress={() => setPsChartModal(false)}>
+                    <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Back</Text>
+                  </TouchableOpacity>
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Full Chart</Text>
+                  <View style={{ width: 60 }} />
+                </View>
+                <ScrollView contentContainerStyle={{ padding: 16 }}>
+                  {psSelectedChart && (
+                    <>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{psSelectedChart.chart_type === 'np' ? 'NP Chart' : 'Tech Chart'}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 2 }}>{psSelectedChart.tech_name}</Text>
+                          {psSelectedChart.template_name && <Text style={{ color: primaryColor, fontSize: 12, marginTop: 2 }}>{psSelectedChart.template_name}</Text>}
+                        </View>
+                        <View style={{ backgroundColor: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? 'rgba(76,175,80,0.2)' : 'rgba(255,152,0,0.2)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 }}>
+                          <Text style={{ color: psSelectedChart.status === 'submitted' || psSelectedChart.status === 'amended' ? '#4CAF50' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{psSelectedChart.status?.toUpperCase()}</Text>
+                        </View>
+                      </View>
+                      {psSelectedChart.template_id ? (
+                        <>
+                          {(psSelectedChart.template_fields || []).map(field => {
+                            const val = psSelectedChart.responses?.[field.id]
+                            if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) return null
+                            if (field.type === 'heading') return (
+                              <View key={field.id} style={{ marginBottom: 8, marginTop: 12 }}>
+                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+                                <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
+                              </View>
+                            )
+                            if (field.type === 'divider') return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 8 }} />
+                            if (field.type === 'photo') return (
+                              <View key={field.id} style={{ marginBottom: 12 }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', marginBottom: 6, textTransform: 'uppercase' }}>{field.label}</Text>
+                                <Image source={{ uri: val }} style={{ width: '100%', height: 200, borderRadius: 10 }} resizeMode="cover" />
+                              </View>
+                            )
+                            if (field.type === 'vitals' && Array.isArray(val)) return (
+                              <View key={field.id} style={{ marginBottom: 12 }}>
+                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                                {val.map((v, i) => (
+                                  <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6 }}>
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                      {v.bp && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.bp}</Text></View>}
+                                      {v.hr && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.hr}</Text></View>}
+                                      {v.o2 && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>O2</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.o2}%</Text></View>}
+                                      {v.pain && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>PAIN</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.pain}/10</Text></View>}
+                                      {v.time && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 6, padding: 8, alignItems: 'center', minWidth: 60 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>TIME</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{v.time}</Text></View>}
+                                    </View>
+                                  </View>
+                                ))}
+                              </View>
+                            )
+                            if ((field.type === 'med_row' || field.type === 'vitamin_row') && Array.isArray(val)) return (
+                              <View key={field.id} style={{ marginBottom: 12 }}>
+                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                                {val.map((item, i) => (
+                                  <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{item.name || item.dose}</Text>
+                                    <View style={{ alignItems: 'flex-end' }}>
+                                      {item.dose && item.name && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{item.dose}</Text>}
+                                      {item.route && <Text style={{ color: primaryColor, fontSize: 11 }}>{item.route.replace('_',' ').toUpperCase()}</Text>}
+                                      {item.time && <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>{item.time}</Text>}
+                                    </View>
+                                  </View>
+                                ))}
+                              </View>
+                            )
+                            if (field.type === 'yes_no') return (
+                              <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                                <Text style={{ color: val === 'Yes' ? '#4CAF50' : '#f09090', fontSize: 13, fontWeight: '700' }}>{val}</Text>
+                              </View>
+                            )
+                            if (field.type === 'consent') return (
+                              <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                                <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>{val === true || val === 'true' ? 'Agreed' : 'Not agreed'}</Text>
+                              </View>
+                            )
+                            if (field.type === 'signature') return (
+                              <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                                <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>Signed</Text>
+                              </View>
+                            )
+                            const displayVal = typeof val === 'object' ? JSON.stringify(val) : val.toString()
+                            return (
+                              <View key={field.id} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
+                                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, flex: 1 }}>{field.label}</Text>
+                                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600', flex: 1, textAlign: 'right' }}>{displayVal}</Text>
+                              </View>
+                            )
+                          })}
+                          {psSelectedChart.amendment_notes && (
+                            <View style={{ marginTop: 16, backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 10, padding: 12 }}>
+                              <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>AMENDMENT</Text>
+                              <Text style={{ color: '#fff', fontSize: 13 }}>{psSelectedChart.amendment_notes}</Text>
+                            </View>
+                          )}
+                        </>
+                      ) : (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>Legacy chart — no template data available</Text>
+                      )}
+                    </>
+                  )}
+                  <View style={{ height: 40 }} />
+                </ScrollView>
+              </View>
+            </Modal>
           </Modal>
         </View>
       )}
