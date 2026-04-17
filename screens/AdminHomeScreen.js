@@ -842,18 +842,33 @@ const [showImportModal, setShowImportModal] = useState(false)
   const saveListingSettings = async () => {
     setSavingListing(true)
     try {
+      // Always save service area and website
       const res = await fetch(`${API_URL}/admin/company/settings`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           website: companyWebsite,
-          serviceArea: companyServiceArea,
-          promoText: companyPromoText
+          serviceArea: companyServiceArea
         })
       })
       const data = await res.json()
-      if (data.success) Alert.alert('✅ Saved', 'Service area and promo updated successfully.')
-      else Alert.alert('Error', data.message || 'Could not save listing')
+      if (!data.success) { Alert.alert('Error', data.message || 'Could not save'); return }
+
+      // Try to save promo — gated to Scale
+      if (companyPromoText) {
+        const promoRes = await fetch(`${API_URL}/admin/company/settings`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ promoText: companyPromoText })
+        })
+        const promoData = await promoRes.json()
+        if (promoData.error === 'Upgrade required' || promoRes.status === 403) {
+          Alert.alert('✅ Saved', 'Service area saved. Promo text requires Scale plan.')
+          showUpgradeModal('Promotional banners on the map are available on the Scale plan. Upgrade to promote specials to nearby patients.', 'Scale')
+          return
+        }
+      }
+      Alert.alert('✅ Saved', 'Listing settings updated successfully.')
     } catch (err) { Alert.alert('Error', 'Network error') } finally { setSavingListing(false) }
   }
 
