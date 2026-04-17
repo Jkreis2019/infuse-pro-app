@@ -1637,7 +1637,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }}
-                        onPress={() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
+                        onPress={() => setTimeout(() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
                           { text: 'Cancel', style: 'cancel' },
                           { text: 'Delete', style: 'destructive', onPress: async () => {
                             await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
@@ -1645,7 +1645,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                             const tmplData = await tmplRes.json()
                             if (tmplData.success) setChartTemplates(tmplData.templates)
                           }}
-                        ])}>
+                        ]), 100)}>
                         <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
                       </TouchableOpacity>
                     </View>
@@ -1714,7 +1714,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ backgroundColor: 'rgba(240,100,100,0.15)', borderRadius: 8, padding: 8 }}
-                        onPress={() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
+                        onPress={() => setTimeout(() => Alert.alert('Delete Template', `Delete "${t.name}"?`, [
                           { text: 'Cancel', style: 'cancel' },
                           { text: 'Delete', style: 'destructive', onPress: async () => {
                             await fetch(`${API_URL}/chart-templates/${t.id}`, { method: 'DELETE', headers })
@@ -1722,7 +1722,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                             const tmplData = await tmplRes.json()
                             if (tmplData.success) setChartTemplates(tmplData.templates)
                           }}
-                        ])}>
+                        ]), 100)}>
                         <Text style={{ color: '#f06060', fontSize: 12 }}>🗑</Text>
                       </TouchableOpacity>
                     </View>
