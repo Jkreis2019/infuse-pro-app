@@ -2118,6 +2118,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
   const [techTab, setTechTab] = useState('call')
   const [call, setCall] = useState(null)
   const [mySchedule, setMySchedule] = useState([])
+  const [upcomingCalls, setUpcomingCalls] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -2137,6 +2138,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
       if (data.success) {
         setCall(data.call)
         setMySchedule(data.mySchedule || [])
+        setUpcomingCalls(data.upcoming || [])
         if (data.call?.call_id) {
           fetch(`${API_URL}/charts/call/${data.call.call_id}?patientName=${encodeURIComponent(data.call.patient_name)}`, { headers })
             .then(r => r.json())
