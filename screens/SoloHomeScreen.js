@@ -940,7 +940,10 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>{b.source === 'phone' ? 'PHONE' : 'APP'}</Text>
                 </View>
               </View>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {b.patient_name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>👤 {b.patient_name}</Text>
+                {b.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+              </View>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>📍 {b.address}</Text>
               {!b.has_valid_intake && <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 4 }}>⚠️ No intake on file</Text>}
               {b.patient_phone && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>📞 {b.patient_phone}</Text>}
@@ -1004,7 +1007,10 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                         {b.confirmed_time && <Text style={{ color: '#4CAF50' }}> ✓</Text>}
                       </Text>
                     </View>
-                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {b.patient_name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>👤 {b.patient_name}</Text>
+                {b.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+              </View>
                     <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>📍 {b.address}</Text>
                     {!b.has_valid_intake && <Text style={{ color: '#e53e3e', fontSize: 12, fontWeight: '600', marginBottom: 8 }}>⚠️ No intake on file</Text>}
                     <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -1051,7 +1057,10 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   <Text style={{ color: call.status === 'en_route' ? '#2196F3' : call.status === 'on_scene' ? '#4CAF50' : primaryColor, fontSize: 10, fontWeight: '700' }}>{call.status?.replace('_', ' ').toUpperCase()}</Text>
                 </View>
               </View>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {call.patient_name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>👤 {call.patient_name}</Text>
+                {call.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+              </View>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>📍 {call.address}</Text>
               {call.tech_first && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 4 }}>🧑‍⚕️ {call.tech_first} {call.tech_last}</Text>}
               {(call.confirmed_time || call.requested_time) && (
@@ -1106,7 +1115,10 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                       {new Date(b.confirmed_time || b.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}
                     </Text>
                   </View>
-                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 4 }}>👤 {b.patient_name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>👤 {b.patient_name}</Text>
+                {b.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+              </View>
                   <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>📍 {b.address}</Text>
                   {b.tech_first_name && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 8 }}>🧑‍⚕️ {b.tech_first_name} {b.tech_last_name}</Text>}
                   <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -1494,7 +1506,10 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
   <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{primaryChartCompleted ? '🔒 View Chart' : 'Chart Patient'}</Text>
 </TouchableOpacity>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 2 }}>PATIENT</Text>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 4 }}>{call.patient_name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>{call.patient_name}</Text>
+                  {call.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+                </View>
                 {call.patient_phone && <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>📞 {call.patient_phone}</Text>}
                 
                 {(call.confirmed_time || call.requested_time) && (
@@ -1957,7 +1972,10 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                 onPress={() => openProfile(p)}
               >
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 }}>{p.first_name} {p.last_name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>{p.first_name} {p.last_name}</Text>
+                    {p.is_minor && <Text style={{ fontSize: 11, fontWeight: '700', color: '#e53e3e' }}>Minor</Text>}
+                  </View>
                   <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 2 }}>{p.phone || 'No phone'} · {p.email}</Text>
                   <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{p.total_bookings || 0} visits</Text>
                 </View>
