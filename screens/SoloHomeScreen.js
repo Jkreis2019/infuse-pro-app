@@ -3969,6 +3969,114 @@ export default function SoloHomeScreen({ route, navigation }) {
                 </View>
               </ScrollView>
             )}
+            {(Platform.OS === 'web' || templateBuilderTab === 'Preview') && (
+              <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 1, textAlign: 'center' }}>CHART PREVIEW</Text>
+                </View>
+                <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+                  {templateFields.length === 0 ? (
+                    <View style={{ alignItems: 'center', paddingTop: 60 }}>
+                      <Text style={{ fontSize: 32, marginBottom: 12 }}>📋</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, textAlign: 'center' }}>Add fields to see a preview</Text>
+                    </View>
+                  ) : templateFields.map(field => {
+                    if (field.type === 'heading') return (
+                      <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
+                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
+                        <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
+                      </View>
+                    )
+                    if (field.type === 'divider') return <View key={field.id} style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginVertical: 10 }} />
+                    if (field.type === 'vitals') return (
+                      <View key={field.id} style={{ marginBottom: 12 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 6 }}>{field.label || 'Vitals'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                          {['BP','HR','O2','Temp','Pain'].map(v => (
+                            <View key={v} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 55, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>{v}</Text>
+                              <View style={{ width: 40, height: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginTop: 8 }} />
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'yes_no') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Yes/No'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                          {['Yes','No'].map(o => <View key={o} style={{ paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>{o}</Text></View>)}
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'photo') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Photo'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>Tap to take photo</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'signature') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || 'Signature'}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, height: 80, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderStyle: 'dashed' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>Sign here</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'iv_details') return (
+                      <View key={field.id} style={{ marginBottom: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 8 }}>IV Details</Text>
+                        {['Site','Catheter Size','Attempts','Time Started'].map(l => (
+                          <View key={l} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' }}>
+                            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{l}</Text>
+                            <View style={{ width: 80, height: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginTop: 8 }} />
+                          </View>
+                        ))}
+                      </View>
+                    )
+                    if (field.type === 'dropdown' || field.type === 'multi_select') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || field.type}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>{field.options?.length ? field.options[0] : 'Select...'}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)' }}>v</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'med_row' || field.type === 'vitamin_row') return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || (field.type === 'med_row' ? 'Medication' : 'Vitamin')}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Select from formulary...</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.3)' }}>v</Text>
+                        </View>
+                      </View>
+                    )
+                    if (field.type === 'consent') return (
+                      <View key={field.id} style={{ marginBottom: 10, backgroundColor: 'rgba(255,152,0,0.06)', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: 'rgba(255,152,0,0.2)' }}>
+                        <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>CONSENT</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>{field.consentText || 'Consent statement will appear here...'}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: 'rgba(255,255,255,0.2)' }} />
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>I agree</Text>
+                        </View>
+                      </View>
+                    )
+                    return (
+                      <View key={field.id} style={{ marginBottom: 10 }}>
+                        <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 6 }}>{field.label || field.type}{field.required ? ' *' : ''}</Text>
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', minHeight: field.type === 'textarea' ? 80 : 44 }}>
+                          <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>{field.placeholder || (field.type === 'date' ? 'MM/DD/YYYY' : field.type === 'time' ? 'HH:MM' : field.type === 'number' ? '0' : 'Enter text...')}</Text>
+                        </View>
+                      </View>
+                    )
+                  })}
+                  <View style={{ height: 40 }} />
+                </ScrollView>
+              </View>
+            )}
           </View>
           <View style={{ padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
             <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }}

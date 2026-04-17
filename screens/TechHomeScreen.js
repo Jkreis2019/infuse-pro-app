@@ -1593,6 +1593,10 @@ if (data.call?.call_id) {
 
   useEffect(() => {
     fetchCall()
+    fetch(`${API_URL}/chart-templates?type=tech`, { headers })
+      .then(r => r.json())
+      .then(d => setHasTemplates((d.templates || []).length > 0))
+      .catch(() => {})
     const interval = setInterval(fetchCall, 15000)
     // Send heartbeat every 5 minutes to keep in-service status alive
     const sendHeartbeat = () => {
