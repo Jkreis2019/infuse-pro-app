@@ -390,6 +390,8 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [companyEmail, setCompanyEmail] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
   const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
+  const [acceptMinors, setAcceptMinors] = useState(true)
+  const [minimumMinorAge, setMinimumMinorAge] = useState(0)
   const [companyWebsite, setCompanyWebsite] = useState('')
   const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [companyPromoText, setCompanyPromoText] = useState('')
@@ -631,6 +633,8 @@ const [showImportModal, setShowImportModal] = useState(false)
         setCompanyWebsite(settingsData.company.website || '')
         setCompanyServiceArea(settingsData.company.serviceArea || '')
         setCompanyPromoText(settingsData.company.promoText || '')
+        setAcceptMinors(settingsData.company.accept_minors !== false)
+        setMinimumMinorAge(settingsData.company.minimum_minor_age || 0)
       }
     } catch (err) {
       console.error('Admin fetch error:', err)
@@ -841,7 +845,7 @@ const [showImportModal, setShowImportModal] = useState(false)
     try {
       const res = await fetch(`${API_URL}/admin/settings`, {
         method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: companyName, phone: companyPhone, email: companyEmail, address: companyAddress, timezone: companyTimezone })
+        body: JSON.stringify({ name: companyName, phone: companyPhone, email: companyEmail, address: companyAddress, timezone: companyTimezone, acceptMinors, minimumMinorAge })
       })
       const data = await res.json()
       if (data.success) Alert.alert('Saved', 'Company settings updated.')
@@ -2817,6 +2821,32 @@ const [showImportModal, setShowImportModal] = useState(false)
                 ))}
               </View>
             )}
+            {/* Minor Booking Policy */}
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>Accept Minor Bookings</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>Allow patients under 18 to be booked</Text>
+                </View>
+                <TouchableOpacity style={{ width: 52, height: 30, borderRadius: 15, backgroundColor: acceptMinors ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }} onPress={() => setAcceptMinors(!acceptMinors)}>
+                  <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: acceptMinors ? 'flex-end' : 'flex-start' }} />
+                </TouchableOpacity>
+              </View>
+              {acceptMinors && (
+                <>
+                  <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 10 }}>Minimum age allowed</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                    {[0, 13, 14, 15, 16, 17].map(age => (
+                      <TouchableOpacity key={age} style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, borderColor: minimumMinorAge === age ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: minimumMinorAge === age ? primaryColor + '20' : 'transparent' }} onPress={() => setMinimumMinorAge(age)}>
+                        <Text style={{ color: minimumMinorAge === age ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 13 }}>{age === 0 ? 'Any age' : `${age}+`}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
+            </View>
+
             <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor }, savingSettings && { opacity: 0.6 }]} onPress={saveSettings} disabled={savingSettings}>
               {savingSettings ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Settings</Text>}
             </TouchableOpacity>

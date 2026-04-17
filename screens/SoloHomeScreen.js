@@ -1736,6 +1736,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
   const [requireGFE, setRequireGFE] = useState(false)
   const [companyName, setCompanyName] = useState(company?.name || '')
   const [companyTimezone, setCompanyTimezone] = useState(company?.timezone || 'America/Phoenix')
+  const [acceptMinors, setAcceptMinors] = useState(true)
+  const [minimumMinorAge, setMinimumMinorAge] = useState(0)
   const [companyServiceArea, setCompanyServiceArea] = useState('')
   const [savingSettings, setSavingSettings] = useState(false)
 
@@ -1764,7 +1766,11 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       ])
       const [settingsData, companyData] = await Promise.all([settingsRes.json(), companyRes.json()])
       if (settingsData.settings) setRequireGFE(settingsData.settings.require_gfe || false)
-      if (companyData.company) setCompanyServiceArea(companyData.company.serviceArea || '')
+      if (companyData.company) {
+        setCompanyServiceArea(companyData.company.serviceArea || '')
+        setAcceptMinors(companyData.company.accept_minors !== false)
+        setMinimumMinorAge(companyData.company.minimum_minor_age || 0)
+      }
     } catch (err) {}
   }, [token])
 
@@ -1899,7 +1905,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
         fetch(`${API_URL}/admin/settings`, {
           method: 'PUT',
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone })
+          body: JSON.stringify({ name: companyName, requireGFE, timezone: companyTimezone, acceptMinors, minimumMinorAge })
         }),
         fetch(`${API_URL}/admin/company/settings`, {
           method: 'PUT',
@@ -2522,6 +2528,32 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           >
             <Text style={[sStyles.primaryBtnText, { color: primaryColor }]}>📍 Request Map Listing</Text>
           </TouchableOpacity>
+          {/* Minor Booking Policy */}
+          <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 8 }}>
+            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>Accept Minor Bookings</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>Allow patients under 18 to be booked</Text>
+              </View>
+              <TouchableOpacity style={{ width: 52, height: 30, borderRadius: 15, backgroundColor: acceptMinors ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }} onPress={() => setAcceptMinors(!acceptMinors)}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#fff', alignSelf: acceptMinors ? 'flex-end' : 'flex-start' }} />
+              </TouchableOpacity>
+            </View>
+            {acceptMinors && (
+              <>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 10 }}>Minimum age allowed</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {[0, 13, 14, 15, 16, 17].map(age => (
+                    <TouchableOpacity key={age} style={{ borderWidth: 1, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, borderColor: minimumMinorAge === age ? primaryColor : 'rgba(255,255,255,0.2)', backgroundColor: minimumMinorAge === age ? primaryColor + '20' : 'transparent' }} onPress={() => setMinimumMinorAge(age)}>
+                      <Text style={{ color: minimumMinorAge === age ? primaryColor : 'rgba(255,255,255,0.5)', fontWeight: '600', fontSize: 13 }}>{age === 0 ? 'Any age' : `${age}+`}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+          </View>
+
           <TouchableOpacity
             style={[sStyles.primaryBtn, { backgroundColor: primaryColor, marginTop: 24, opacity: savingSettings ? 0.6 : 1 }]}
             onPress={saveSettings}
