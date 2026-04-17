@@ -1561,14 +1561,18 @@ const [showImportModal, setShowImportModal] = useState(false)
             <ScrollView style={styles.scroll}>
               <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 12 }]}
                 onPress={() => {
-                  setEditingTemplate(null)
-                  setTemplateName('')
-                  setTemplateType('tech')
-                  setTemplateIsDefault(false)
-                  setTemplateServiceTypes([])
-                  setTemplateFields([])
-                  setTemplateSubmitBehavior('lock')
-                  setTemplateModalVisible(true)
+                  try {
+                    setEditingTemplate(null)
+                    setTemplateName('')
+                    setTemplateType('tech')
+                    setTemplateIsDefault(false)
+                    setTemplateServiceTypes([])
+                    setTemplateFields([])
+                    setTemplateSubmitBehavior('lock')
+                    setTemplateModalVisible(true)
+                  } catch(e) {
+                    Alert.alert('Error', e.message)
+                  }
                 }}>
                 <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ New Template</Text>
               </TouchableOpacity>
