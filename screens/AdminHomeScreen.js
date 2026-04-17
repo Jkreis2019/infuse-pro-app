@@ -1804,7 +1804,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   <Text style={{ color: plan.stripe_price_id ? '#4CAF50' : '#FF9800', fontSize: 11, marginTop: 6 }}>{plan.stripe_price_id ? '✓ Stripe Connected' : '⚠ No Stripe — manual enrollment only'}</Text>
                   <TouchableOpacity
                     style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 12, borderWidth: 1, borderColor: 'rgba(240,144,144,0.3)' }}
-                    onPress={() => Alert.alert('Deactivate Plan', 'This will hide the plan from new signups. Existing members keep their membership.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Deactivate', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/memberships/plans/${plan.id}`, { method: 'DELETE', headers }); fetchAll() } }])}
+                    onPress={async () => { await fetch(`${API_URL}/memberships/plans/${plan.id}`, { method: 'DELETE', headers }); fetchAll() }}
                   >
                     <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Deactivate Plan</Text>
                   </TouchableOpacity>
