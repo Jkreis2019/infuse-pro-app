@@ -2861,7 +2861,13 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TextInput style={styles.input} value={companyServiceArea} onChangeText={setCompanyServiceArea} placeholder="Phoenix, Scottsdale, Tempe..." placeholderTextColor="#444" />
             <Text style={styles.fieldLabel}>🏷️ Current Promo <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>(Scale plan only — shows as banner on map)</Text></Text>
             <TextInput style={styles.input} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" maxLength={80} />
-            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>{companyPromoText.length}/80</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 8 }}>{companyPromoText.length}/80</Text>
+            {companyPromoText.length > 0 && (
+              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(201,168,76,0.2)' }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>CURRENT SAVED PROMO</Text>
+                <Text style={{ color: primaryColor, fontSize: 13 }}>🏷️ {companyPromoText}</Text>
+              </View>
+            )}
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: primaryColor }, savingListing && { opacity: 0.6 }]}
               onPress={saveListingSettings}
