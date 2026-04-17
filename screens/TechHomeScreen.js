@@ -795,7 +795,14 @@ if (data.call?.call_id) {
   useEffect(() => {
     fetchCall()
     const interval = setInterval(fetchCall, 15000)
-    return () => clearInterval(interval)
+    // Send heartbeat every 5 minutes to keep in-service status alive
+    const sendHeartbeat = () => {
+      fetch(`${API_URL}/tech/heartbeat`, { method: 'POST', headers })
+        .catch(() => {})
+    }
+    sendHeartbeat()
+    const heartbeatInterval = setInterval(sendHeartbeat, 5 * 60 * 1000)
+    return () => { clearInterval(interval); clearInterval(heartbeatInterval) }
   }, [fetchCall])
 
   useEffect(() => {
