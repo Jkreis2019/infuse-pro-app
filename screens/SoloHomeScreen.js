@@ -2269,10 +2269,43 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
         <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchCall() }} tintColor={primaryColor} />}>
 
           {!call ? (
-            <View style={{ alignItems: 'center', paddingTop: 40 }}>
-              <Text style={{ fontSize: 56, marginBottom: 16 }}>📵</Text>
-              <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 8 }}>No active call</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center' }}>You'll be notified when a call is assigned</Text>
+            <View style={{ flex: 1 }}>
+              {upcoming?.length > 0 ? (
+                <>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12, textTransform: 'uppercase' }}>Today's Calls</Text>
+                  {upcoming.map(u => (
+                    <View key={u.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: primaryColor }}>
+                      <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{u.service}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{u.patient_name}</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 12 }}>{u.address}</Text>
+                      <Text style={{ color: primaryColor, fontSize: 12, marginBottom: 12 }}>{new Date(u.confirmed_time || u.requested_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: company?.timezone || 'America/Phoenix' })}</Text>
+                      <TouchableOpacity
+                        style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }}
+                        onPress={async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/tech/status`, {
+                              method: 'PUT',
+                              headers: { ...headers, 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ bookingId: u.id, status: 'en_route' })
+                            })
+                            const data = await res.json()
+                            if (data.success) fetchCall()
+                            else Alert.alert('Error', data.message || 'Could not update status')
+                          } catch (e) { Alert.alert('Error', 'Network error') }
+                        }}
+                      >
+                        <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Go En Route</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </>
+              ) : (
+                <View style={{ alignItems: 'center', paddingTop: 40 }}>
+                  <Text style={{ fontSize: 56, marginBottom: 16 }}>📵</Text>
+                  <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 8 }}>No active call</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, textAlign: 'center' }}>You'll be notified when a call is assigned</Text>
+                </View>
+              )}
             </View>
           ) : (
             <>
