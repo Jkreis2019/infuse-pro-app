@@ -3613,14 +3613,34 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={styles.sectionTitle}>SERVICE LOCATIONS</Text>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Add additional map pins for other cities or states you serve.</Text>
               {locations.map((loc, i) => (
-                <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 12, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
-                  <View>
-                    <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{loc.city}, {loc.state}</Text>
-                    {loc.service_area ? <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{loc.service_area}</Text> : null}
+                <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: loc.approved && !loc.google_rating ? 8 : 0 }}>
+                    <View>
+                      <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{loc.city}, {loc.state}</Text>
+                      {loc.service_area ? <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{loc.service_area}</Text> : null}
+                      {loc.google_rating ? <Text style={{ color: '#FFD700', fontSize: 12, marginTop: 2 }}>★ {loc.google_rating} Google Rating</Text> : null}
+                    </View>
+                    <View style={{ backgroundColor: loc.approved ? 'rgba(76,175,80,0.15)' : loc.denied ? 'rgba(240,144,144,0.15)' : 'rgba(255,152,0,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800' }}>
+                      <Text style={{ color: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{loc.approved ? 'APPROVED' : loc.denied ? 'DENIED' : 'PENDING'}</Text>
+                    </View>
                   </View>
-                  <View style={{ backgroundColor: loc.approved ? 'rgba(76,175,80,0.15)' : loc.denied ? 'rgba(240,144,144,0.15)' : 'rgba(255,152,0,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800' }}>
-                    <Text style={{ color: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{loc.approved ? 'APPROVED' : loc.denied ? 'DENIED' : 'PENDING'}</Text>
-                  </View>
+                  {loc.approved && !loc.google_rating && (
+                    <TouchableOpacity
+                      style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: 8, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}
+                      onPress={async () => {
+                        try {
+                          await fetch(`${API_URL}/map/request-rating-location`, {
+                            method: 'POST',
+                            headers: { ...headers, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ locationId: loc.id, city: loc.city, state: loc.state })
+                          })
+                          Alert.alert('Requested', 'We will link your Google rating for this location within 1-2 business days.')
+                        } catch (e) {}
+                      }}
+                    >
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Request Google Rating Link</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
               <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', marginTop: 4 }]} onPress={() => setLocationModal(true)}>
