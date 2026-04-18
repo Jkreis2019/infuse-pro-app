@@ -448,6 +448,7 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [locCity, setLocCity] = useState('')
   const [locState, setLocState] = useState('')
   const [locServiceArea, setLocServiceArea] = useState('')
+  const [locAddress, setLocAddress] = useState('')
   const [locSubmitting, setLocSubmitting] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
@@ -3670,6 +3671,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 22, marginBottom: 24 }}>Submit a request to add a new service location pin on the map. We will review and approve within 1-2 business days.</Text>
             <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12 }}>LOCATION DETAILS</Text>
+            <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="Street Address (optional)" placeholderTextColor="rgba(255,255,255,0.3)" value={locAddress} onChangeText={setLocAddress} />
             <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="City *" placeholderTextColor="rgba(255,255,255,0.3)" value={locCity} onChangeText={setLocCity} />
             <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="State (e.g. AZ) *" placeholderTextColor="rgba(255,255,255,0.3)" value={locState} onChangeText={setLocState} maxLength={2} autoCapitalize="characters" />
             <TextInput style={[styles.input, { marginBottom: 24, height: 80, textAlignVertical: 'top' }]} placeholder="Service area description (optional)" placeholderTextColor="rgba(255,255,255,0.3)" value={locServiceArea} onChangeText={setLocServiceArea} multiline />
@@ -3683,12 +3685,12 @@ const [showImportModal, setShowImportModal] = useState(false)
                   const res = await fetch(`${API_URL}/company/locations`, {
                     method: 'POST',
                     headers: { ...headers, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ city: locCity, state: locState.toUpperCase(), serviceArea: locServiceArea })
+                    body: JSON.stringify({ city: locCity, state: locState.toUpperCase(), address: locAddress, serviceArea: locServiceArea })
                   })
                   const data = await res.json()
                   if (data.success) {
                     setLocationModal(false)
-                    setLocCity(''); setLocState(''); setLocServiceArea('')
+                    setLocCity(''); setLocState(''); setLocServiceArea(''); setLocAddress('')
                     Alert.alert('Submitted', 'Your location request has been submitted. We will review and approve within 1-2 business days.')
                     fetchAll()
                   } else {
