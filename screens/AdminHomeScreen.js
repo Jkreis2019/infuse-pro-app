@@ -1098,6 +1098,14 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20 }}>This Agreement is governed by the laws of the State of Arizona and complies with HIPAA, HITECH, and their implementing regulations (45 CFR Parts 160 and 164).</Text>
             </View>
 
+            <TouchableOpacity
+              style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: 14, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flexDirection: 'row', justifyContent: 'center', gap: 8 }}
+              onPress={() => { const { Linking } = require('react-native'); Linking.openURL('https://infuse-pro-documents.s3.us-east-1.amazonaws.com/Infuse_Pro_BAA.pdf') }}
+            >
+              <Text style={{ fontSize: 16 }}>📄</Text>
+              <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>View Full Agreement (PDF)</Text>
+            </TouchableOpacity>
+
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>YOUR INFORMATION</Text>
             <TextInput
               style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff', marginBottom: 12 }}
