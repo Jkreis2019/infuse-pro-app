@@ -3609,7 +3609,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
           </View>
           
-          {['scale', 'legacy'].includes(company?.subscriptionTier) && (
+          {(['scale', 'legacy'].includes(company?.subscriptionTier) || ['scale', 'legacy'].includes(billingStatus?.tier)) && (
             <View style={{ marginBottom: 16 }}>
               <Text style={styles.sectionTitle}>SERVICE LOCATIONS</Text>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Add additional map pins for other cities or states you serve.</Text>
