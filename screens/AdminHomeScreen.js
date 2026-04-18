@@ -163,6 +163,11 @@ export default function AdminHomeScreen({ route, navigation }) {
   useEffect(() => { tokenRef.current = token }, [token])
 
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [baaModal, setBaaModal] = useState(user?.role === 'owner' && !company?.baaSigned)
+  const [baaSignerName, setBaaSignerName] = useState(`${user?.firstName || ''} ${user?.lastName || ''}`.trim())
+  const [baaSignerTitle, setBaaSignerTitle] = useState('')
+  const [baaAgreed, setBaaAgreed] = useState(false)
+  const [baaSigning, setBaaSigning] = useState(false)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -1039,6 +1044,20 @@ const [showImportModal, setShowImportModal] = useState(false)
 )}
             <Text style={styles.headerTitle}>Admin Console</Text>
             <Text style={styles.headerSub}>{user?.firstName} {user?.lastName} · {user?.role?.toUpperCase()}</Text>
+            <View style={{ flexDirection: 'row', gap: 6, marginTop: 8 }}>
+              <TouchableOpacity
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}
+                onPress={() => navigation.navigate('DispatcherHome', { token, user, company })}
+              >
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>📋 Dispatch View</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }}
+                onPress={() => navigation.navigate('TechHome', { token, user, company })}
+              >
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🚗 Tech View</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={{ alignItems: 'flex-end', gap: 8 }}>
             <TouchableOpacity onPress={() => { try { const { sessionManager } = require('../utils/sessionManager'); sessionManager.lock() } catch(e) {} }} style={{ backgroundColor: 'rgba(255,152,0,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(255,152,0,0.3)' }}>
@@ -1052,6 +1071,91 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
           </View>
           <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="AdminHomeScreen" />
+
+      {/* BAA Modal */}
+      <Modal visible={baaModal} animationType="slide" presentationStyle="fullScreen">
+        <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+          <View style={{ paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24, backgroundColor: secondaryColor, alignItems: 'center' }}>
+            <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>HIPAA COMPLIANCE</Text>
+            <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 4 }}>Business Associate Agreement</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, textAlign: 'center' }}>Required before accessing Infuse Pro</Text>
+          </View>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24 }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BUSINESS ASSOCIATE AGREEMENT</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, lineHeight: 22, marginBottom: 12 }}>This Business Associate Agreement ("BAA") is entered into between Infuse Pro LLC, an Arizona limited liability company ("Business Associate"), and your company ("Covered Entity"), effective upon electronic acceptance.</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>1. PERMITTED USES AND DISCLOSURES</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate agrees to not use or disclose Protected Health Information (PHI) other than as permitted by this Agreement or as Required By Law, including to perform platform services, for proper management and administration, and for data aggregation services relating to health care operations.</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>2. SAFEGUARDS</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate agrees to implement appropriate administrative, physical, and technical safeguards, including SSL/TLS encryption in transit, role-based access controls, and HIPAA audit logging.</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>3. SUBCONTRACTORS</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate uses the following approved subcontractors: Amazon Web Services (hosting), SendGrid (email), and Daily.co (video). Each is bound by equivalent HIPAA obligations.</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>4. BREACH NOTIFICATION</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate shall report any breach of unsecured PHI without unreasonable delay and no later than 60 calendar days after discovery. Report breaches to: privacy@infusepro.app</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>5. TERM AND TERMINATION</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>This Agreement remains effective for the duration of the subscription. Upon termination, Business Associate shall return or destroy all PHI within 30 days.</Text>
+              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>6. GOVERNING LAW</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20 }}>This Agreement is governed by the laws of the State of Arizona and complies with HIPAA, HITECH, and their implementing regulations (45 CFR Parts 160 and 164).</Text>
+            </View>
+
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>YOUR INFORMATION</Text>
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff', marginBottom: 12 }}
+              placeholder="Full legal name *"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={baaSignerName}
+              onChangeText={setBaaSignerName}
+            />
+            <TextInput
+              style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 14, fontSize: 15, color: '#fff', marginBottom: 20 }}
+              placeholder="Title (e.g. Owner, CEO, Manager) *"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={baaSignerTitle}
+              onChangeText={setBaaSignerTitle}
+            />
+
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 24 }}
+              onPress={() => setBaaAgreed(!baaAgreed)}
+            >
+              <View style={{ width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: baaAgreed ? primaryColor : 'rgba(255,255,255,0.3)', backgroundColor: baaAgreed ? primaryColor : 'transparent', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+                {baaAgreed && <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '800' }}>✓</Text>}
+              </View>
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, flex: 1 }}>
+                I have read and agree to this Business Associate Agreement on behalf of my company. I understand this constitutes a legally binding electronic signature.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{ backgroundColor: baaAgreed && baaSignerName && baaSignerTitle ? primaryColor : 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 18, alignItems: 'center', marginBottom: 16, opacity: baaSigning ? 0.6 : 1 }}
+              disabled={!baaAgreed || !baaSignerName || !baaSignerTitle || baaSigning}
+              onPress={async () => {
+                setBaaSigning(true)
+                try {
+                  const res = await fetch(`https://api.infusepro.app/company/sign-baa`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ signerName: baaSignerName, signerTitle: baaSignerTitle })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    setBaaModal(false)
+                  } else {
+                    Alert.alert('Error', data.message || 'Could not save BAA')
+                  }
+                } catch (e) {
+                  Alert.alert('Error', 'Network error')
+                } finally {
+                  setBaaSigning(false)
+                }
+              }}
+            >
+              {baaSigning ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: baaAgreed && baaSignerName && baaSignerTitle ? secondaryColor : 'rgba(255,255,255,0.3)', fontSize: 16, fontWeight: '700' }}>I Agree — Sign BAA</Text>}
+            </TouchableOpacity>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, textAlign: 'center', marginBottom: 40 }}>Your signature, title, timestamp, and IP address will be recorded for compliance purposes.</Text>
+          </ScrollView>
+        </View>
+      </Modal>
         </View>
       </View>
 

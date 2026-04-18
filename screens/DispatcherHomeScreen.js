@@ -852,7 +852,7 @@ const submitSendIntake = async () => {
         <Text style={styles.statItem}>❌ {stats.cancelled_today} cancelled</Text>
       </View>
     </View>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={Platform.OS === 'web' ? {} : { flexGrow: 0 }} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       <TouchableOpacity
         onPress={() => setNewBookingModal(true)}
         style={{ backgroundColor: primaryColor, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8 }}
@@ -911,7 +911,23 @@ const submitSendIntake = async () => {
       >
         <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Log out</Text>
       </TouchableOpacity>
-    </View>
+      {user?.role === 'owner' && (
+        <>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('AdminHome', { token, user, company })}
+            style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}
+          >
+            <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>⚙️ Admin</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('TechHome', { token, user, company })}
+            style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 }}
+          >
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>🚗 Tech</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </ScrollView>
 </View>
 </View>
 <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="DispatcherHomeScreen" />

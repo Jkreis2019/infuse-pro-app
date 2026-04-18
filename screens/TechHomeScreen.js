@@ -1699,12 +1699,30 @@ if (data.call?.call_id) {
             <Text style={styles.headerTitle}>My Call</Text>
             <Text style={styles.headerSub}>{user?.firstName} · {user?.role?.toUpperCase()}</Text>
           </View>
-          <TouchableOpacity onPress={() => setBugReportModal(true)} style={{ marginTop: 8 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Report a Problem</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 8 }}>Log out</Text>
-          </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={Platform.OS === 'web' ? {} : { flexGrow: 0, marginTop: 8 }} contentContainerStyle={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <TouchableOpacity onPress={() => setBugReportModal(true)} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>Report a Problem</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })} style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Log out</Text>
+            </TouchableOpacity>
+            {user?.role === 'owner' && (
+              <>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('AdminHome', { token, user, company })}
+                  style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}
+                >
+                  <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>⚙️ Admin</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('DispatcherHome', { token, user, company })}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>📋 Dispatch</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </ScrollView>
           <BugReportModal visible={bugReportModal} onClose={() => setBugReportModal(false)} token={token} screen="TechHomeScreen" />
         </View>
       </View>
