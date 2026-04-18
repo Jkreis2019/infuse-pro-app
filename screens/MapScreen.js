@@ -213,9 +213,16 @@ export default function MapScreen({ route, navigation }) {
                   <Text style={{ color: selected.branding.primaryColor, fontSize: 12, fontWeight: '700' }}>🏷️ {selected.promoText}</Text>
                 </View>
               )}
-              <Text style={[styles.companyName, { color: selected.branding.primaryColor }]}>
-                {selected.name}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={[styles.companyName, { color: selected.branding.primaryColor, marginBottom: 0 }]}>
+                  {selected.name}
+                </Text>
+                {selected.mdVerified && selected.platformActive && (
+                  <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+                    <Text style={{ color: '#4CAF50', fontSize: 10, fontWeight: '700' }}>✓ VERIFIED</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.companyLocation}>{selected.location}</Text>
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
               {selected.website && ['growth', 'scale', 'legacy'].includes(selected.listingTier) ? (
