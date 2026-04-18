@@ -3586,7 +3586,6 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={[styles.actionBtnText, { color: primaryColor }]}>📍 Request Map Listing</Text>
             </TouchableOpacity>
             <TouchableOpacity
-            <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: ratingRequested ? 'rgba(76,175,80,0.15)' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: ratingRequested ? '#4CAF50' : 'rgba(255,255,255,0.15)', marginTop: 8 }]}
               onPress={async () => {
                 try {
@@ -3600,6 +3599,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             >
               <Text style={[styles.actionBtnText, { color: ratingRequested ? '#4CAF50' : 'rgba(255,255,255,0.5)' }]}>{ratingRequested ? 'Google Rating Request Sent' : 'Request Google Rating Link'}</Text>
             </TouchableOpacity>
+          </View>
           
           <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }]} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
