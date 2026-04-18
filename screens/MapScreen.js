@@ -24,6 +24,7 @@ export default function MapScreen({ route, navigation }) {
   const { token, user, company, bookingMode } = route.params || {}
   const [companies, setCompanies] = useState([])
   const [filteredCompanies, setFilteredCompanies] = useState([])
+  const [ageFilter, setAgeFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [region, setRegion] = useState(DEFAULT_REGION)
@@ -139,6 +140,33 @@ export default function MapScreen({ route, navigation }) {
         {filteredCompanies.length === 0 && !loading && citySearch.length > 0 && (
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginTop: 8 }}>No companies found in "{citySearch}"</Text>
         )}
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center' }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, paddingHorizontal: 12 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginRight: 6 }}>Minors:</Text>
+            <TextInput
+              style={{ flex: 1, color: '#fff', fontSize: 14, paddingVertical: 8 }}
+              placeholder="Enter age"
+              placeholderTextColor="rgba(255,255,255,0.3)"
+              value={ageFilter}
+              onChangeText={val => {
+                setAgeFilter(val)
+                const age = parseInt(val)
+                if (!isNaN(age) && age < 18) {
+                  setFilteredCompanies(companies.filter(c => c.accept_minors && c.minimum_minor_age <= age))
+                } else {
+                  setFilteredCompanies(companies)
+                }
+              }}
+              keyboardType="numeric"
+              maxLength={2}
+            />
+            {ageFilter.length > 0 && (
+              <TouchableOpacity onPress={() => { setAgeFilter(''); setFilteredCompanies(companies) }}>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
 
       {loading ? (
