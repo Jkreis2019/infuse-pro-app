@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Linking } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert, Linking, Modal, Platform, ActivityIndicator } from 'react-native'
+import * as DocumentPicker from 'expo-document-picker'
 
 const API_URL = 'https://api.infusepro.app'
 
@@ -11,6 +12,16 @@ export default function FreeListingScreen({ route, navigation }) {
   const [bio, setBio] = useState(company?.bio || '')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [upgradeModal, setUpgradeModal] = useState(false)
+  const [mdName, setMdName] = useState('')
+  const [mdNpi, setMdNpi] = useState('')
+  const [npiVerified, setNpiVerified] = useState(false)
+  const [npiData, setNpiData] = useState(null)
+  const [npiLoading, setNpiLoading] = useState(false)
+  const [npiError, setNpiError] = useState('')
+  const [mdAgreement, setMdAgreement] = useState(null)
+  const [coi, setCoi] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
   const [listingStatus, setListingStatus] = useState('pending')
 
   useEffect(() => {
@@ -35,6 +46,74 @@ export default function FreeListingScreen({ route, navigation }) {
       Alert.alert('Error', 'Network error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const verifyNPI = async (npi) => {
+    setMdNpi(npi)
+    setNpiVerified(false)
+    setNpiData(null)
+    setNpiError('')
+    if (npi.length !== 10) return
+    setNpiLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/verify-npi?npi=${npi}`)
+      const data = await res.json()
+      if (data.success) {
+        setNpiVerified(true)
+        setNpiData(data.provider)
+      } else {
+        setNpiError('NPI not found in registry')
+      }
+    } catch (e) {
+      setNpiError('Verification failed')
+    } finally {
+      setNpiLoading(false)
+    }
+  }
+
+  const pickDocument = async (setter) => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'] })
+      if (!result.canceled && result.assets?.[0]) setter(result.assets[0])
+    } catch (e) { Alert.alert('Error', 'Could not pick file') }
+  }
+
+  const submitUpgrade = async () => {
+    if (!mdName || !mdNpi) { Alert.alert('Required', 'Medical director name and NPI are required'); return }
+    if (!npiVerified) { Alert.alert('Required', 'Please wait for NPI verification'); return }
+    if (!mdAgreement) { Alert.alert('Required', 'Please upload your Medical Director Agreement'); return }
+    if (!coi) { Alert.alert('Required', 'Please upload your Certificate of Insurance'); return }
+    setSubmitting(true)
+    try {
+      const formData = new FormData()
+      formData.append('mdName', mdName)
+      formData.append('mdNpi', mdNpi)
+      formData.append('mdCredentials', npiData?.credentials || '')
+      formData.append('mdState', npiData?.state || '')
+      if (Platform.OS === 'web') {
+        formData.append('mdAgreement', mdAgreement.file, mdAgreement.name)
+        formData.append('coi', coi.file, coi.name)
+      } else {
+        formData.append('mdAgreement', { uri: mdAgreement.uri, name: mdAgreement.name, type: mdAgreement.mimeType || 'application/pdf' })
+        formData.append('coi', { uri: coi.uri, name: coi.name, type: coi.mimeType || 'application/pdf' })
+      }
+      const res = await fetch(`${API_URL}/company/upgrade-request`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      })
+      const data = await res.json()
+      if (data.success) {
+        setUpgradeModal(false)
+        Alert.alert('Application Submitted', 'We will review your documents and send you a link to complete your subscription within 1-2 business days.')
+      } else {
+        Alert.alert('Error', data.message || 'Could not submit')
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Network error')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -72,7 +151,7 @@ export default function FreeListingScreen({ route, navigation }) {
         <View style={styles.upgradeCard}>
           <Text style={styles.upgradeTitle}>Ready for Full Platform Access?</Text>
           <Text style={styles.upgradeSub}>Get dispatch, patient management, HIPAA-compliant charting, and more.</Text>
-          <TouchableOpacity style={styles.upgradeBtn} onPress={() => Linking.openURL('https://api.infusepro.app/get-started')}>
+          <TouchableOpacity style={styles.upgradeBtn} onPress={() => setUpgradeModal(true)}>
             <Text style={styles.upgradeBtnText}>Get Started →</Text>
           </TouchableOpacity>
         </View>
