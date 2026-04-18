@@ -183,7 +183,7 @@ export default function MapScreen({ route, navigation }) {
           >
             {filteredCompanies.map((company) => (
               <Marker
-                key={company.id}
+                key={company.isAdditionalLocation ? `loc-${company.locationId}` : `co-${company.id}`}
                 coordinate={company.latitude && company.longitude 
                   ? { latitude: company.latitude, longitude: company.longitude }
                   : { latitude: 33.4484, longitude: -112.0740 }}
