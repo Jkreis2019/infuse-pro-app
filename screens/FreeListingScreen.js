@@ -160,6 +160,53 @@ export default function FreeListingScreen({ route, navigation }) {
           <Text style={styles.logoutBtnText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+    <Modal visible={upgradeModal} animationType="slide" presentationStyle="fullScreen">
+      <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0a1540', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
+          <TouchableOpacity onPress={() => setUpgradeModal(false)}>
+            <Text style={{ color: '#C9A84C', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+          </TouchableOpacity>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Platform Upgrade</Text>
+          <View style={{ width: 60 }} />
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 22, marginBottom: 24 }}>Complete your application to unlock full platform access. We will review your documents within 1-2 business days and send you a subscription link.</Text>
+
+          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12 }}>MEDICAL DIRECTOR</Text>
+          <TextInput style={styles.input} placeholder="Medical Director Full Name *" placeholderTextColor="rgba(255,255,255,0.3)" value={mdName} onChangeText={setMdName} />
+          <TextInput style={styles.input} placeholder="NPI Number (10 digits) *" placeholderTextColor="rgba(255,255,255,0.3)" value={mdNpi} onChangeText={verifyNPI} keyboardType="numeric" maxLength={10} />
+          {npiLoading && <ActivityIndicator color="#C9A84C" style={{ marginBottom: 12 }} />}
+          {npiVerified && npiData && (
+            <View style={{ backgroundColor: 'rgba(76,175,80,0.1)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+              <Text style={{ color: '#4CAF50', fontWeight: '700', fontSize: 14 }}>✓ {npiData.name}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 2 }}>{npiData.credentials} — {npiData.specialty} — {npiData.state}</Text>
+            </View>
+          )}
+          {npiError.length > 0 && (
+            <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', borderWidth: 1, borderColor: '#f06060', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+              <Text style={{ color: '#f06060', fontSize: 13 }}>{npiError}</Text>
+            </View>
+          )}
+
+          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12, marginTop: 8 }}>REQUIRED DOCUMENTS</Text>
+          <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: mdAgreement ? '#4CAF50' : 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 16, alignItems: 'center', marginBottom: 12 }} onPress={() => pickDocument(setMdAgreement)}>
+            <Text style={{ color: mdAgreement ? '#4CAF50' : '#C9A84C', fontSize: 14, fontWeight: '600' }}>{mdAgreement ? '✓ ' + mdAgreement.name : 'Upload Medical Director Agreement *'}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>PDF, DOC, or image</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: coi ? '#4CAF50' : 'rgba(255,255,255,0.15)', borderRadius: 10, padding: 16, alignItems: 'center', marginBottom: 24 }} onPress={() => pickDocument(setCoi)}>
+            <Text style={{ color: coi ? '#4CAF50' : '#C9A84C', fontSize: 14, fontWeight: '600' }}>{coi ? '✓ ' + coi.name : 'Upload Certificate of Insurance *'}</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, marginTop: 4 }}>PDF, DOC, or image</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={{ backgroundColor: '#C9A84C', borderRadius: 12, padding: 18, alignItems: 'center', opacity: submitting ? 0.6 : 1 }} onPress={submitUpgrade} disabled={submitting}>
+            {submitting ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontSize: 16, fontWeight: '700' }}>Submit Application</Text>}
+          </TouchableOpacity>
+          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, textAlign: 'center', marginTop: 16, lineHeight: 18 }}>Your NPI, documents, and IP address will be recorded. We will contact you within 1-2 business days.</Text>
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </Modal>
     </View>
   )
 }
