@@ -2306,17 +2306,40 @@ const [showImportModal, setShowImportModal] = useState(false)
             {!billingStatus || billingStatus?.status === 'none' ? (
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
             ) : (
-              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>ACTIVE</Text>
-                <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
-                {billingStatus.currentPeriodEnd && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Renews {new Date(billingStatus.currentPeriodEnd).toLocaleDateString()}</Text>}
+              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <View>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{billingStatus.cancelAtPeriodEnd ? 'CANCELLING' : 'ACTIVE'}</Text>
+                    <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
+                  </View>
+                  <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '800' }}>
+                    {billingStatus.tier === 'solo' ? '$75' : billingStatus.tier === 'starter' ? '$125' : billingStatus.tier === 'growth' ? '$225' : billingStatus.tier === 'scale' ? '$375' : '—'}<Text style={{ fontSize: 13, fontWeight: '400' }}>/mo</Text>
+                  </Text>
+                </View>
+                <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.08)', marginBottom: 12 }} />
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <View>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 2 }}>BILLING PERIOD</Text>
+                    <Text style={{ color: '#fff', fontSize: 13 }}>{billingStatus.currentPeriodStart ? new Date(billingStatus.currentPeriodStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'} — {billingStatus.currentPeriodEnd ? new Date(billingStatus.currentPeriodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</Text>
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 2 }}>{billingStatus.cancelAtPeriodEnd ? 'ENDS ON' : 'NEXT BILL'}</Text>
+                    <Text style={{ color: billingStatus.cancelAtPeriodEnd ? '#f09090' : '#fff', fontSize: 13, fontWeight: '600' }}>{billingStatus.currentPeriodEnd ? new Date(billingStatus.currentPeriodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</Text>
+                  </View>
+                </View>
+                {billingStatus.cancelAtPeriodEnd && (
+                  <View style={{ marginTop: 12, backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 8, padding: 10, borderWidth: 1, borderColor: 'rgba(240,144,144,0.3)' }}>
+                    <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '600' }}>Your subscription will end on {new Date(billingStatus.currentPeriodEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. You will retain access until then.</Text>
+                  </View>
+                )}
               </View>
             )}
             <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
             {[
-              { tier: 'starter', price: '$99/mo', features: ['Full platform access', 'Up to 5 staff accounts', 'Dispatch console', 'Tech & patient app'] },
-              { tier: 'growth', price: '$199/mo', features: ['Everything in Starter', 'Unlimited staff', 'Announcements & banners', 'Referral & loyalty programs'] },
-              { tier: 'scale', price: '$349/mo', features: ['Everything in Growth', 'Analytics dashboard', 'White label branding', 'Multi-region support'] }
+              { tier: 'solo', price: '$75/mo', features: ['Solo operator mode', 'Dispatch + tech in one', 'Patient app', 'Up to 2 staff'] },
+              { tier: 'starter', price: '$125/mo', features: ['Full platform access', 'Up to 3 staff accounts', 'Dispatch console', 'Tech & patient app'] },
+              { tier: 'growth', price: '$225/mo', features: ['Everything in Starter', 'Unlimited staff', 'Announcements & banners', 'Referral & loyalty programs'] },
+              { tier: 'scale', price: '$375/mo', features: ['Everything in Growth', 'Analytics dashboard', 'White label branding', 'Multi-region support'] }
             ].map(plan => (
               <View key={plan.tier} style={{ borderWidth: 1, borderColor: billingStatus?.tier === plan.tier ? primaryColor : 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 16, marginBottom: 12, backgroundColor: billingStatus?.tier === plan.tier ? primaryColor + '10' : 'transparent' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
