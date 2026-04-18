@@ -2428,7 +2428,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
           </View>
 
-          {billingStatus?.status === 'active' && (
+          {(billingStatus?.status === 'active' || (company?.subscriptionTier && company?.subscriptionTier !== 'none' && company?.subscriptionTier !== 'legacy')) && (
             <TouchableOpacity style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => Alert.alert('Cancel Subscription', 'Your subscription will remain active until the end of the billing period.', [{ text: 'Keep Subscription', style: 'cancel' }, { text: 'Cancel', style: 'destructive', onPress: async () => { try { await fetch(`${API_URL}/billing/cancel`, { method: 'POST', headers }); fetchAll(); Alert.alert('Cancelled', 'Subscription will end at current billing period.') } catch (e) {} } }])}>
               <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '600' }}>Cancel Subscription</Text>
             </TouchableOpacity>
