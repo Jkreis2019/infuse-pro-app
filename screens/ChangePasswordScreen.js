@@ -53,10 +53,13 @@ export default function ChangePasswordScreen({ route, navigation }) {
         if (forced) {
           const role = user?.role
           if (role === 'admin' || role === 'owner') {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'AdminHome', params: { token, user, company } }]
-            })
+            if (!company?.platformActive && company?.subscriptionTier === 'none' && company?.listingTier === 'free') {
+              navigation.reset({ index: 0, routes: [{ name: 'FreeListing', params: { token, user, company } }] })
+            } else if (!company?.platformActive && role === 'owner') {
+              navigation.reset({ index: 0, routes: [{ name: 'PendingApproval', params: { token, user, company } }] })
+            } else {
+              navigation.reset({ index: 0, routes: [{ name: 'AdminHome', params: { token, user, company } }] })
+            }
           } else if (role === 'dispatcher') {
             navigation.reset({
               index: 0,
