@@ -230,23 +230,6 @@ export default function MapScreen({ route, navigation }) {
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>🌐 {selected.website.replace('https://','').replace('http://','')}</Text>
                 </TouchableOpacity>
               ) : null}
-              {!selected.googleRating && ['starter', 'solo', 'growth', 'scale', 'legacy'].includes(selected.listingTier) && (
-                <TouchableOpacity
-                  onPress={async () => {
-                    try {
-                      await fetch(`${API_URL}/map/request-rating`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ companyId: selected.id, companyName: selected.name })
-                      })
-                    } catch (err) {}
-                    Alert.alert('✅ Requested', 'We\'ll link your Google rating within 1-2 business days.')
-                  }}
-                  style={{ marginBottom: 8 }}
-                >
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>⭐ Request Google Rating Link</Text>
-                </TouchableOpacity>
-              )}
               {selected.googleRating && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <Text style={{ color: '#FFD700', fontSize: 16 }}>
