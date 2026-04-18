@@ -10,6 +10,7 @@ export default function FreeListingScreen({ route, navigation }) {
   const [website, setWebsite] = useState(company?.website || '')
   const [bio, setBio] = useState(company?.bio || '')
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [listingStatus, setListingStatus] = useState('pending')
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function FreeListingScreen({ route, navigation }) {
         body: JSON.stringify({ phone, website, bio })
       })
       const data = await res.json()
-      if (data.success) Alert.alert('Saved', 'Your listing has been updated.')
+      if (data.success) { setSaved(true); setTimeout(() => setSaved(false), 3000) }
       else Alert.alert('Error', data.message || 'Could not save')
     } catch (e) {
       Alert.alert('Error', 'Network error')
@@ -63,8 +64,8 @@ export default function FreeListingScreen({ route, navigation }) {
           <TextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://yourcompany.com" placeholderTextColor="rgba(255,255,255,0.3)" autoCapitalize="none" />
           <Text style={styles.fieldLabel}>About Your Company</Text>
           <TextInput style={[styles.input, { height: 100, textAlignVertical: 'top' }]} value={bio} onChangeText={setBio} placeholder="Tell patients about your services..." placeholderTextColor="rgba(255,255,255,0.3)" multiline />
-          <TouchableOpacity style={[styles.saveBtn, { opacity: saving ? 0.6 : 1 }]} onPress={save} disabled={saving}>
-            <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Changes'}</Text>
+          <TouchableOpacity style={[styles.saveBtn, { opacity: saving ? 0.6 : 1, backgroundColor: saved ? '#4CAF50' : '#C9A84C' }]} onPress={save} disabled={saving}>
+            <Text style={styles.saveBtnText}>{saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}</Text>
           </TouchableOpacity>
         </View>
 
