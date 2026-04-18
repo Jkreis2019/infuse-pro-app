@@ -2304,7 +2304,15 @@ const [showImportModal, setShowImportModal] = useState(false)
           <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Current Plan</Text>
             {!billingStatus || billingStatus?.status === 'none' ? (
-              <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
+              company?.subscriptionTier === 'legacy' ? (
+                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>LEGACY ACCESS</Text>
+                  <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800' }}>Lifetime</Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>Full platform access — no billing required</Text>
+                </View>
+              ) : (
+                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
+              )
             ) : (
               <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
