@@ -653,7 +653,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes, plansRaw, membersRaw] = await Promise.all([
+      const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes, plansRaw, membersRaw, locRaw] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
         fetch(`${API_URL}/admin/staff`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
@@ -662,12 +662,12 @@ const [showImportModal, setShowImportModal] = useState(false)
         fetch(`${API_URL}/admin/referral-settings`, { headers }),
         fetch(`${API_URL}/admin/loyalty`, { headers }),
         fetch(`${API_URL}/billing/status`, { headers }),
-        fetch(`${API_URL}/company/my-locations`, { headers }).then(r => r.json()).then(d => { if (d.success) setLocations(d.locations) }).catch(() => {}),
         fetch(`${API_URL}/memberships/plans`, { headers }),
-        fetch(`${API_URL}/memberships`, { headers })
+        fetch(`${API_URL}/memberships`, { headers }),
+        fetch(`${API_URL}/company/my-locations`, { headers })
       ])
-      const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData, plansRes, membersRes] = await Promise.all([
-        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json(), plansRaw.json(), membersRaw.json()
+      const [statsData, staffData, svcData, regData, anData, refData, loyData, bilData, plansRes, membersRes, locData] = await Promise.all([
+        statsRes.json(), staffRes.json(), svcRes.json(), regRes.json(), anRes.json(), refRes.json(), loyRes.json(), bilRes.json(), plansRaw.json(), membersRaw.json(), locRaw.json()
       ])
       if (statsData.stats) setStats(statsData.stats)
       if (staffData.staff) setStaff(staffData.staff)
@@ -689,6 +689,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       }
       if (bilData.subscription) setBillingStatus(bilData.subscription)
       if (plansRes.plans) setMembershipPlans(plansRes.plans)
+      if (locData?.success) setLocations(locData.locations)
       if (membersRes.memberships) setMemberships(membersRes.memberships)
       try {
         const connRes = await fetch(`${API_URL}/billing/connect/status`, { headers })
