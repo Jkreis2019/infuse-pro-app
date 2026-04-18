@@ -22,6 +22,7 @@ import EmailVerificationScreen from './screens/EmailVerificationScreen'
 import AppointmentDetailScreen from './screens/AppointmentDetailScreen'
 import DispatcherHomeScreen from './screens/DispatcherHomeScreen'
 import AdminHomeScreen from './screens/AdminHomeScreen'
+import PendingApprovalScreen from './screens/PendingApprovalScreen'
 import ChatScreen from './screens/ChatScreen'
 import ChatContactsScreen from './screens/ChatContactsScreen'
 import DispatcherMessagingScreen from './screens/DispatcherMessagingScreen'
@@ -259,6 +260,7 @@ export default function App() {
         <Stack.Screen name="Memberships" component={MembershipsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="DispatcherHome" component={DispatcherHomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AdminHome" component={AdminHomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PendingApproval" component={PendingApprovalScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChatContacts" component={ChatContactsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="DispatcherMessaging" component={DispatcherMessagingScreen} options={{ headerShown: false }} />
