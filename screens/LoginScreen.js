@@ -91,6 +91,11 @@ export default function LoginScreen({ route, navigation }) {
               index: 0,
               routes: [{ name: 'ChangePassword', params: { token: data.token, user: data.user, company, forced: true } }]
             })
+          } else if (role === 'owner' && !company?.platformActive && company?.subscriptionTier === 'none' && company?.listingTier === 'free') {
+            const { CommonActions } = require('@react-navigation/native')
+            navigation.dispatch(
+              CommonActions.reset({ index: 0, routes: [{ name: 'FreeListing', params: { token: data.token, user: data.user, company } }] })
+            )
           } else if (!company?.platformActive && role === 'owner') {
             const { CommonActions } = require('@react-navigation/native')
             navigation.dispatch(
