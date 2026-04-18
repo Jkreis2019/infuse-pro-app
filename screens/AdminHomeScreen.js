@@ -662,7 +662,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         fetch(`${API_URL}/admin/referral-settings`, { headers }),
         fetch(`${API_URL}/admin/loyalty`, { headers }),
         fetch(`${API_URL}/billing/status`, { headers }),
-        fetch(`${API_URL}/company/locations`, { headers }).then(r => r.json()).then(d => { if (d.success) setLocations(d.locations) }).catch(() => {}),
+        fetch(`${API_URL}/company/my-locations`, { headers }).then(r => r.json()).then(d => { if (d.success) setLocations(d.locations) }).catch(() => {}),
         fetch(`${API_URL}/memberships/plans`, { headers }),
         fetch(`${API_URL}/memberships`, { headers })
       ])
@@ -3682,7 +3682,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 if (!locCity || !locState) { Alert.alert('Required', 'City and state are required'); return }
                 setLocSubmitting(true)
                 try {
-                  const res = await fetch(`${API_URL}/company/locations`, {
+                  const res = await fetch(`${API_URL}/company/my-locations`, {
                     method: 'POST',
                     headers: { ...headers, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ city: locCity, state: locState.toUpperCase(), address: locAddress, serviceArea: locServiceArea })
