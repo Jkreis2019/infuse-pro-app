@@ -3586,23 +3586,20 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={[styles.actionBtnText, { color: primaryColor }]}>📍 Request Map Listing</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', marginTop: 8 }]}
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: ratingRequested ? 'rgba(76,175,80,0.15)' : 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: ratingRequested ? '#4CAF50' : 'rgba(255,255,255,0.15)', marginTop: 8 }]}
               onPress={async () => {
                 try {
-                  await fetch(`${API_URL}/map/request-rating`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ companyId: company?.id, companyName: company?.name })
-                  })
-                  Alert.alert('✅ Requested', 'We\'ll link your Google rating within 1-2 business days.')
+                  await fetch(`${API_URL}/map/request-rating`, { method: 'POST', headers })
+                  setRatingRequested(true)
+                  setTimeout(() => setRatingRequested(false), 3000)
                 } catch (err) {
                   Alert.alert('Error', 'Could not send request')
                 }
               }}
             >
-              <Text style={[styles.actionBtnText, { color: 'rgba(255,255,255,0.5)' }]}>⭐ Request Google Rating Link</Text>
+              <Text style={[styles.actionBtnText, { color: ratingRequested ? '#4CAF50' : 'rgba(255,255,255,0.5)' }]}>{ratingRequested ? 'Google Rating Request Sent' : 'Request Google Rating Link'}</Text>
             </TouchableOpacity>
-          </View>
           
           <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }]} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
