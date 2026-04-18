@@ -442,6 +442,7 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [brandingPrimary, setBrandingPrimary] = useState(company?.primaryColor || '#C9A84C')
   const [brandingSecondary, setBrandingSecondary] = useState(company?.secondaryColor || '#0D1B4B')
   const [savingBranding, setSavingBranding] = useState(false)
+  const [ratingRequested, setRatingRequested] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   // Settings
