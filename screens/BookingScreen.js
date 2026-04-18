@@ -150,7 +150,25 @@ useEffect(() => {
         setScheduleType('now')
         setSelectedSlot(null)
         setError('')
-       navigation.navigate('Home', { token, user, company })
+        // Navigate home with user's actual linked company, not the booking company
+        try {
+          const linkedRes = await fetch(`${API_URL}/auth/my-companies`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          const linkedData = await linkedRes.json()
+          const linkedCompany = linkedData.companies?.[0]
+          const homeCompany = linkedCompany ? {
+            id: linkedCompany.id,
+            name: linkedCompany.name,
+            code: linkedCompany.code,
+            primaryColor: linkedCompany.primary_color || linkedCompany.branding?.primaryColor || company?.primaryColor,
+            secondaryColor: linkedCompany.secondary_color || linkedCompany.branding?.secondaryColor || company?.secondaryColor,
+            logoUrl: linkedCompany.logo_url || linkedCompany.logoUrl || null,
+          } : company
+          navigation.navigate('Home', { token, user, company: homeCompany })
+        } catch {
+          navigation.navigate('Home', { token, user, company })
+        }
       } else {
         setError(data.message || 'Something went wrong')
       }
