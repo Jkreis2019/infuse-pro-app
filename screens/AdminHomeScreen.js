@@ -2430,7 +2430,18 @@ const [showImportModal, setShowImportModal] = useState(false)
           </View>
 
           {(billingStatus?.status === 'active' || (company?.subscriptionTier && company?.subscriptionTier !== 'none' && company?.subscriptionTier !== 'legacy')) && (
-            <TouchableOpacity style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => Alert.alert('Cancel Subscription', 'Your subscription will remain active until the end of the billing period.', [{ text: 'Keep Subscription', style: 'cancel' }, { text: 'Cancel', style: 'destructive', onPress: async () => { try { await fetch(`${API_URL}/billing/cancel`, { method: 'POST', headers }); fetchAll(); Alert.alert('Cancelled', 'Subscription will end at current billing period.') } catch (e) {} } }])}>
+            <TouchableOpacity style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={async () => {
+                const confirm = typeof window !== 'undefined' 
+                  ? window.confirm('Your subscription will remain active until the end of the billing period. Cancel subscription?')
+                  : await new Promise(resolve => Alert.alert('Cancel Subscription', 'Your subscription will remain active until end of billing period.', [{ text: 'Keep', style: 'cancel', onPress: () => resolve(false) }, { text: 'Cancel', style: 'destructive', onPress: () => resolve(true) }]))
+                if (!confirm) return
+                try { 
+                  await fetch(`${API_URL}/billing/cancel`, { method: 'POST', headers })
+                  fetchAll()
+                  if (typeof window !== 'undefined') window.alert('Subscription will end at current billing period.')
+                  else Alert.alert('Cancelled', 'Subscription will end at current billing period.')
+                } catch (e) {}
+              }}>
               <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '600' }}>Cancel Subscription</Text>
             </TouchableOpacity>
           )}
