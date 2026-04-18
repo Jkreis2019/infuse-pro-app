@@ -2313,25 +2313,6 @@ const [showImportModal, setShowImportModal] = useState(false)
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
           <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Current Plan</Text>
-             {company?.subscriptionTier === 'legacy' ? (
-               <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
-                 <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>LEGACY ACCESS</Text>
-                 <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800' }}>Lifetime</Text>
-                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>Full platform access — no billing required</Text>
-               </View>
-             ) : company?.subscriptionTier && company?.subscriptionTier !== 'none' ? (
-               <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
-                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>ACTIVE PLAN</Text>
-                   <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '800' }}>
-                     {company.subscriptionTier === 'solo' ? '$75' : company.subscriptionTier === 'starter' ? '$125' : company.subscriptionTier === 'growth' ? '$225' : company.subscriptionTier === 'scale' ? '$375' : ''}<Text style={{ fontSize: 13, fontWeight: '400' }}>/mo</Text>
-                   </Text>
-                 </View>
-                 <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', textTransform: 'capitalize', marginTop: 4 }}>{company.subscriptionTier}</Text>
-               </View>
-             ) : (
-               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
-             )}
              {billingStatus && billingStatus.status !== 'none' && (
               <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
