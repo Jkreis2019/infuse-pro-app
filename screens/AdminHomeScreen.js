@@ -443,6 +443,12 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [brandingSecondary, setBrandingSecondary] = useState(company?.secondaryColor || '#0D1B4B')
   const [savingBranding, setSavingBranding] = useState(false)
   const [ratingRequested, setRatingRequested] = useState(false)
+  const [locations, setLocations] = useState([])
+  const [locationModal, setLocationModal] = useState(false)
+  const [locCity, setLocCity] = useState('')
+  const [locState, setLocState] = useState('')
+  const [locServiceArea, setLocServiceArea] = useState('')
+  const [locSubmitting, setLocSubmitting] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
 
   // Settings
@@ -655,6 +661,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         fetch(`${API_URL}/admin/referral-settings`, { headers }),
         fetch(`${API_URL}/admin/loyalty`, { headers }),
         fetch(`${API_URL}/billing/status`, { headers }),
+        fetch(`${API_URL}/company/locations`, { headers }).then(r => r.json()).then(d => { if (d.success) setLocations(d.locations) }).catch(() => {}),
         fetch(`${API_URL}/memberships/plans`, { headers }),
         fetch(`${API_URL}/memberships`, { headers })
       ])
@@ -3601,6 +3608,27 @@ const [showImportModal, setShowImportModal] = useState(false)
             </TouchableOpacity>
           </View>
           
+          {['scale', 'legacy'].includes(company?.subscriptionTier) && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={styles.sectionTitle}>SERVICE LOCATIONS</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Add additional map pins for other cities or states you serve.</Text>
+              {locations.map((loc, i) => (
+                <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: 12, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+                  <View>
+                    <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{loc.city}, {loc.state}</Text>
+                    {loc.service_area ? <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>{loc.service_area}</Text> : null}
+                  </View>
+                  <View style={{ backgroundColor: loc.approved ? 'rgba(76,175,80,0.15)' : loc.denied ? 'rgba(240,144,144,0.15)' : 'rgba(255,152,0,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800' }}>
+                    <Text style={{ color: loc.approved ? '#4CAF50' : loc.denied ? '#f09090' : '#FF9800', fontSize: 11, fontWeight: '700' }}>{loc.approved ? 'APPROVED' : loc.denied ? 'DENIED' : 'PENDING'}</Text>
+                  </View>
+                </View>
+              ))}
+              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', marginTop: 4 }]} onPress={() => setLocationModal(true)}>
+                <Text style={[styles.actionBtnText, { color: '#C9A84C' }]}>+ Request New Location</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <Text style={styles.sectionTitle}>Account</Text>
           <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(229,62,62,0.15)', borderWidth: 1, borderColor: 'rgba(229,62,62,0.3)' }]} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })}>
             <Text style={[styles.actionBtnText, { color: '#f09090' }]}>Log out</Text>
@@ -3609,7 +3637,58 @@ const [showImportModal, setShowImportModal] = useState(false)
         </ScrollView>
       )}
 
-      {/* ── DOCUMENT UPLOAD MODAL ── */}
+      {/* ── LOCATION REQUEST MODAL ── */}
+      <Modal visible={locationModal} animationType="slide" presentationStyle="fullScreen">
+        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0a1540', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
+            <TouchableOpacity onPress={() => setLocationModal(false)}>
+              <Text style={{ color: '#C9A84C', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Request New Location</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
+            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 22, marginBottom: 24 }}>Submit a request to add a new service location pin on the map. We will review and approve within 1-2 business days.</Text>
+            <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12 }}>LOCATION DETAILS</Text>
+            <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="City *" placeholderTextColor="rgba(255,255,255,0.3)" value={locCity} onChangeText={setLocCity} />
+            <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="State (e.g. AZ) *" placeholderTextColor="rgba(255,255,255,0.3)" value={locState} onChangeText={setLocState} maxLength={2} autoCapitalize="characters" />
+            <TextInput style={[styles.input, { marginBottom: 24, height: 80, textAlignVertical: 'top' }]} placeholder="Service area description (optional)" placeholderTextColor="rgba(255,255,255,0.3)" value={locServiceArea} onChangeText={setLocServiceArea} multiline />
+            <TouchableOpacity
+              style={{ backgroundColor: '#C9A84C', borderRadius: 12, padding: 18, alignItems: 'center', opacity: locSubmitting ? 0.6 : 1 }}
+              disabled={locSubmitting}
+              onPress={async () => {
+                if (!locCity || !locState) { Alert.alert('Required', 'City and state are required'); return }
+                setLocSubmitting(true)
+                try {
+                  const res = await fetch(`${API_URL}/company/locations`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ city: locCity, state: locState.toUpperCase(), serviceArea: locServiceArea })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    setLocationModal(false)
+                    setLocCity(''); setLocState(''); setLocServiceArea('')
+                    Alert.alert('Submitted', 'Your location request has been submitted. We will review and approve within 1-2 business days.')
+                    fetchAll()
+                  } else {
+                    Alert.alert('Error', data.message || 'Could not submit')
+                  }
+                } catch (e) {
+                  Alert.alert('Error', 'Network error')
+                } finally {
+                  setLocSubmitting(false)
+                }
+              }}
+            >
+              <Text style={{ color: '#0D1B4B', fontSize: 16, fontWeight: '700' }}>{locSubmitting ? 'Submitting...' : 'Submit Request'}</Text>
+            </TouchableOpacity>
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* ── DOCUMENT UPLOAD MODAL ── */}}
       <Modal visible={docModal} animationType="slide" presentationStyle="fullScreen">
         <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
