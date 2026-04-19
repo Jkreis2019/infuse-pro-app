@@ -119,7 +119,7 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[rStyles.header, { backgroundColor: secondaryColor }]}>
           <TouchableOpacity onPress={onClose}>
             <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
@@ -528,7 +528,7 @@ function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) 
 
 const rStyles = StyleSheet.create({
   header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  section: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, marginBottom: 12, padding: 16 },
+  section: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, marginBottom: 12, padding: 16 },
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   infoLabel: { fontSize: 13, color: 'rgba(255,255,255,0.4)', fontWeight: '600' },
@@ -1030,7 +1030,7 @@ export default function NPHomeScreen({ route, navigation }) {
 
       {/* NP Full Chart Modal */}
       <Modal visible={npChartModal} animationType="slide" presentationStyle="fullScreen">
-        <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
             <TouchableOpacity onPress={() => setNpChartModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
@@ -1114,8 +1114,8 @@ export default function NPHomeScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
+  centered: { flex: 1, backgroundColor: '#0F2020', alignItems: 'center', justifyContent: 'center' },
   header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
@@ -1124,7 +1124,7 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 16 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 8 },
   emptySub: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
-  card: { marginHorizontal: 16, marginTop: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16 },
+  card: { marginHorizontal: 16, marginTop: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, padding: 16 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   patientName: { fontSize: 18, fontWeight: '700', color: '#fff' },
   badge: { borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },

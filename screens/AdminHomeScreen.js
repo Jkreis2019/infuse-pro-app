@@ -1084,7 +1084,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* BAA Modal */}
       <Modal visible={baaModal} animationType="slide" presentationStyle="fullScreen">
-        <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ paddingTop: 60, paddingBottom: 20, paddingHorizontal: 24, backgroundColor: secondaryColor, alignItems: 'center' }}>
             <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>HIPAA COMPLIANCE</Text>
             <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: 4 }}>Business Associate Agreement</Text>
@@ -1248,7 +1248,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       )}
 
       <Modal visible={showImportModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
             <TouchableOpacity onPress={() => { setShowImportModal(false); setImportFileName(''); setImportPatients([]); setImportResult(null) }}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Cancel</Text>
@@ -2295,10 +2295,10 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <Text style={{ color: '#f09090', fontSize: 12, fontWeight: '600' }}>Cancel Membership</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: 'rgba(201,168,76,0.2)' }}
+                    style={{ backgroundColor: 'rgba(10,186,181,0.1)', borderRadius: 8, padding: 8, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)' }}
                     onPress={() => { setAdjustMembership(m); setAdjustValue(m.redemptions_this_cycle); setAdjustModal(true) }}
                   >
-                    <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>Adjust Visit Count</Text>
+                    <Text style={{ color: '#0ABAB5', fontSize: 12, fontWeight: '600' }}>Adjust Visit Count</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -2314,7 +2314,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 20, marginBottom: 16 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Current Plan</Text>
              {billingStatus && billingStatus.status !== 'none' && (
-              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}>
+              <View style={{ backgroundColor: 'rgba(10,186,181,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <View>
                     <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{billingStatus.cancelAtPeriodEnd ? 'CANCELLING' : 'ACTIVE'}</Text>
@@ -2434,7 +2434,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* Cancel Fee Modal */}
       {cancelFeeModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#162260', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
+          <View style={{ backgroundColor: '#0F2020', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>Amount to charge ($)</Text>
@@ -2459,11 +2459,11 @@ const [showImportModal, setShowImportModal] = useState(false)
       )}
 
       <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
 
           {/* Full Chart Detail Modal */}
           <Modal visible={psChartModal} animationType="slide" presentationStyle="fullScreen">
-            <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+            <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
               <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
                 <TouchableOpacity onPress={() => setPsChartModal(false)}>
                   <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>← Back</Text>
@@ -2932,7 +2932,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     <View key={b.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10, borderLeftWidth: 3, borderLeftColor: b.status === 'completed' ? '#4CAF50' : b.status === 'cancelled' ? '#f09090' : primaryColor }}>
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
                         <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15, flex: 1 }}>{b.service}</Text>
-                        <View style={{ backgroundColor: b.status === 'completed' ? 'rgba(76,175,80,0.2)' : b.status === 'cancelled' ? 'rgba(240,144,144,0.2)' : 'rgba(201,168,76,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                        <View style={{ backgroundColor: b.status === 'completed' ? 'rgba(76,175,80,0.2)' : b.status === 'cancelled' ? 'rgba(240,144,144,0.2)' : 'rgba(10,186,181,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
                           <Text style={{ color: b.status === 'completed' ? '#4CAF50' : b.status === 'cancelled' ? '#f09090' : primaryColor, fontSize: 10, fontWeight: '700' }}>{b.status?.toUpperCase()}</Text>
                         </View>
                       </View>
@@ -3295,8 +3295,8 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* Upgrade Required Modal */}
       {upgradeModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
-            <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(10,186,181,0.1)', padding: 24, borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.2)', alignItems: 'center' }}>
               <Text style={{ fontSize: 36, marginBottom: 12 }}>⭐</Text>
               <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>UPGRADE REQUIRED</Text>
               <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800', textTransform: 'capitalize' }}>{upgradeRequired} Plan</Text>
@@ -3320,9 +3320,9 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* Adjust Visits Modal */}
       {adjustModal && adjustMembership && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
-            <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
-              <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>ADJUST VISITS</Text>
+          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', overflow: 'hidden' }}>
+            <View style={{ backgroundColor: 'rgba(10,186,181,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.2)' }}>
+              <Text style={{ color: '#0ABAB5', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>ADJUST VISITS</Text>
               <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{adjustMembership.first_name} {adjustMembership.last_name}</Text>
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{adjustMembership.plan_name} · Currently {adjustMembership.redemptions_this_cycle} of {adjustMembership.max_redemptions_per_cycle} used</Text>
             </View>
@@ -3330,7 +3330,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>SET VISITS USED TO</Text>
               <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
                 {Array.from({ length: adjustMembership.max_redemptions_per_cycle + 1 }, (_, i) => i).map(n => (
-                  <TouchableOpacity key={n} style={{ width: 52, height: 52, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: adjustValue === n ? '#C9A84C' : 'rgba(255,255,255,0.15)', backgroundColor: adjustValue === n ? 'rgba(201,168,76,0.2)' : 'transparent' }} onPress={() => setAdjustValue(n)}>
+                  <TouchableOpacity key={n} style={{ width: 52, height: 52, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: adjustValue === n ? '#C9A84C' : 'rgba(255,255,255,0.15)', backgroundColor: adjustValue === n ? 'rgba(10,186,181,0.2)' : 'transparent' }} onPress={() => setAdjustValue(n)}>
                     <Text style={{ color: adjustValue === n ? '#C9A84C' : 'rgba(255,255,255,0.4)', fontSize: 20, fontWeight: '700' }}>{n}</Text>
                   </TouchableOpacity>
                 ))}
@@ -3340,7 +3340,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={{ flex: 2, backgroundColor: '#C9A84C', borderRadius: 12, padding: 14, alignItems: 'center' }}
+                  style={{ flex: 2, backgroundColor: '#0ABAB5', borderRadius: 12, padding: 14, alignItems: 'center' }}
                   onPress={async () => {
                     try {
                       const res = await fetch(`${API_URL}/memberships/${adjustMembership.id}/adjust`, {
@@ -3577,7 +3577,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             <TextInput style={styles.input} value={companyPromoText} onChangeText={setCompanyPromoText} placeholder="e.g. 20% off all drips this weekend!" placeholderTextColor="#444" maxLength={80} />
             <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 8 }}>{companyPromoText.length}/80</Text>
             {companyPromoText.length > 0 && (
-              <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(201,168,76,0.2)' }}>
+              <View style={{ backgroundColor: 'rgba(10,186,181,0.1)', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)' }}>
                 <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>CURRENT SAVED PROMO</Text>
                 <Text style={{ color: primaryColor, fontSize: 13 }}>🏷️ {companyPromoText}</Text>
               </View>
@@ -3646,8 +3646,8 @@ const [showImportModal, setShowImportModal] = useState(false)
                   )}
                 </View>
               ))}
-              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', marginTop: 4 }]} onPress={() => setLocationModal(true)}>
-                <Text style={[styles.actionBtnText, { color: '#C9A84C' }]}>+ Request New Location</Text>
+              <TouchableOpacity style={[styles.actionBtn, { backgroundColor: 'rgba(10,186,181,0.1)', borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', marginTop: 4 }]} onPress={() => setLocationModal(true)}>
+                <Text style={[styles.actionBtnText, { color: '#0ABAB5' }]}>+ Request New Location</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -3662,23 +3662,23 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── LOCATION REQUEST MODAL ── */}
       <Modal visible={locationModal} animationType="slide" presentationStyle="fullScreen">
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
-          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0a1540', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
+          <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0a1540', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.2)' }}>
             <TouchableOpacity onPress={() => setLocationModal(false)}>
-              <Text style={{ color: '#C9A84C', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+              <Text style={{ color: '#0ABAB5', fontSize: 16, fontWeight: '600' }}>Cancel</Text>
             </TouchableOpacity>
             <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Request New Location</Text>
             <View style={{ width: 60 }} />
           </View>
           <ScrollView contentContainerStyle={{ padding: 24 }} keyboardShouldPersistTaps="handled">
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 22, marginBottom: 24 }}>Submit a request to add a new service location pin on the map. We will review and approve within 1-2 business days.</Text>
-            <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12 }}>LOCATION DETAILS</Text>
+            <Text style={{ color: 'rgba(10,186,181,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, marginBottom: 12 }}>LOCATION DETAILS</Text>
             <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="Street Address (optional)" placeholderTextColor="rgba(255,255,255,0.3)" value={locAddress} onChangeText={setLocAddress} />
             <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="City *" placeholderTextColor="rgba(255,255,255,0.3)" value={locCity} onChangeText={setLocCity} />
             <TextInput style={[styles.input, { marginBottom: 12 }]} placeholder="State (e.g. AZ) *" placeholderTextColor="rgba(255,255,255,0.3)" value={locState} onChangeText={setLocState} maxLength={2} autoCapitalize="characters" />
             <TextInput style={[styles.input, { marginBottom: 24, height: 80, textAlignVertical: 'top' }]} placeholder="Service area description (optional)" placeholderTextColor="rgba(255,255,255,0.3)" value={locServiceArea} onChangeText={setLocServiceArea} multiline />
             <TouchableOpacity
-              style={{ backgroundColor: '#C9A84C', borderRadius: 12, padding: 18, alignItems: 'center', opacity: locSubmitting ? 0.6 : 1 }}
+              style={{ backgroundColor: '#0ABAB5', borderRadius: 12, padding: 18, alignItems: 'center', opacity: locSubmitting ? 0.6 : 1 }}
               disabled={locSubmitting}
               onPress={async () => {
                 if (!locCity || !locState) { Alert.alert('Required', 'City and state are required'); return }
@@ -3714,7 +3714,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── DOCUMENT UPLOAD MODAL ── */}
       <Modal visible={docModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
             <TouchableOpacity onPress={() => setDocModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3766,7 +3766,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── ANNOUNCEMENT MODAL ── */}
       <Modal visible={announcementModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
             <TouchableOpacity onPress={() => setAnnouncementModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3853,7 +3853,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── REGION MODAL ── */}
       <Modal visible={newRegionModal || editRegionModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <TouchableOpacity onPress={() => { setNewRegionModal(false); setEditRegionModal(false) }}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3879,7 +3879,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── NEW STAFF MODAL ── */}
       <Modal visible={newStaffModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <TouchableOpacity onPress={() => setNewStaffModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3914,7 +3914,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── NEW SERVICE MODAL ── */}
       <Modal visible={newServiceModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <TouchableOpacity onPress={() => setNewServiceModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -4004,7 +4004,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── TEMPLATE BUILDER MODAL ── */}
       <Modal visible={templateModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           {/* Header */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingTemplate ? 'Edit Template' : 'New Template'}</Text>
@@ -4149,7 +4149,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
             {/* ── RIGHT / PREVIEW PANEL ── */}
             {(Platform.OS === 'web' || templateBuilderTab === 'Preview') && (
-              <View style={{ flex: Platform.OS === 'web' ? 1 : undefined, backgroundColor: '#0a0a1a', borderLeftWidth: Platform.OS === 'web' ? 1 : 0, borderLeftColor: 'rgba(255,255,255,0.08)' }}>
+              <View style={{ flex: Platform.OS === 'web' ? 1 : undefined, backgroundColor: '#0F2020', borderLeftWidth: Platform.OS === 'web' ? 1 : 0, borderLeftColor: 'rgba(255,255,255,0.08)' }}>
                 <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 1, textAlign: 'center' }}>PATIENT CHART PREVIEW</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.2)', fontSize: 10, textAlign: 'center', marginTop: 2 }}>How techs will see this chart</Text>
@@ -4305,7 +4305,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── FIELD CONFIG MODAL ── */}
       <Modal visible={fieldConfigModal} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Configure Field</Text>
             <TouchableOpacity onPress={() => setFieldConfigModal(false)}>
@@ -4494,7 +4494,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
       {/* ── FORMULARY MODAL ── */}
       <Modal visible={formularyModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingFormularyItem ? 'Edit Item' : 'Add to Formulary'}</Text>
             <TouchableOpacity onPress={() => setFormularyModalVisible(false)}>
@@ -4646,15 +4646,15 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
+  centered: { flex: 1, backgroundColor: '#0F2020', alignItems: 'center', justifyContent: 'center' },
   header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.5)' },
   scroll: { flex: 1, padding: 16 },
-  sectionTitle: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginTop: 8 },
-  card: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: 'rgba(10,186,181,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12, marginTop: 8 },
+  card: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, padding: 16, marginBottom: 12 },
   cardName: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 4 },
   cardSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 2 },
   roleBadge: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
@@ -4667,6 +4667,6 @@ const styles = StyleSheet.create({
   emptySub: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
   addButton: { borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 },
   addButtonText: { fontSize: 15, fontWeight: '700' },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(10,186,181,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
   input: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 8 },
 })
