@@ -224,13 +224,13 @@ export default function TechMessagingScreen({ route, navigation }) {
         <>
           <View style={[styles.chatHeader, { backgroundColor: secondaryColor }]}>
             <TouchableOpacity onPress={isWeb ? () => navigation.goBack() : goBack} style={{ marginRight: 12 }}>
-              <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
+              <Text style={{ color: '#0ABAB5', fontSize: 14, fontWeight: '600' }}>← Back</Text>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: '#1A2E2E', fontSize: 16, fontWeight: '700' }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
                 {selectedRegion ? `📍 ${selectedRegion.name}` : `${selectedContact.first_name} ${selectedContact.last_name}`}
               </Text>
-              <Text style={{ color: '#9BB5B4', fontSize: 12 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
                 {selectedRegion ? 'Region Channel' : selectedContact.role?.toUpperCase()}
               </Text>
             </View>
@@ -286,7 +286,7 @@ export default function TechMessagingScreen({ route, navigation }) {
     <View style={styles.leftPane}>
       <View style={[styles.leftHeader, { backgroundColor: secondaryColor }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
-          <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
+          <Text style={{ color: '#0ABAB5', fontSize: 14, fontWeight: '600' }}>← Back</Text>
         </TouchableOpacity>
         <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Messages</Text>
       </View>

@@ -510,10 +510,10 @@ export default function DispatcherMessagingScreen({ route, navigation }) {
                 </TouchableOpacity>
               )}
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#1A2E2E', fontSize: 16, fontWeight: '700' }}>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
                   {selectedRegion ? `📍 ${selectedRegion.name}` : selectedContact ? `${selectedContact.first_name} ${selectedContact.last_name}` : selectedPatient?.patient_name}
                 </Text>
-                <Text style={{ color: '#9BB5B4', fontSize: 12 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
                   {selectedRegion ? 'Region Channel' : selectedContact ? `${selectedContact.role?.toUpperCase()} · ${selectedContact.region_name || ''}` : selectedPatient?.service}
                 </Text>
               </View>
