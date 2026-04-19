@@ -205,7 +205,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
     const prefillResponses = {}
     tmpl.fields?.forEach(field => {
       if (field.type === 'text' && field.label?.toLowerCase().includes('allerg')) {
-        prefillResponses[field.id] = prefillData.allergies?.join(', ') || ''
+        prefillResponses[field.id] = Array.isArray(prefillData.allergies) ? prefillData.allergies.join(', ') : (prefillData.allergies || '')
       }
       if (field.type === 'textarea' && field.label?.toLowerCase().includes('medication')) {
         prefillResponses[field.id] = prefillData.medications || ''
