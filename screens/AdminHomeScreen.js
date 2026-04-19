@@ -410,6 +410,15 @@ const [showImportModal, setShowImportModal] = useState(false)
             data.charts = merged
           }
         } catch (e) {}
+        // Fetch payment history
+        setPsPaymentsLoading(true)
+        try {
+          const payRes = await fetch(`${API_URL}/patients/${patient.id}/payments`, { headers })
+          const payData = await payRes.json()
+          if (payData.success) setPsPayments(payData.payments || [])
+          else setPsPayments([])
+        } catch (e) { setPsPayments([]) }
+        finally { setPsPaymentsLoading(false) }
         setPsProfileData(data)
         setPsEditPhone(data.patient?.phone || '')
         setPsEditAddress(data.patient?.home_address || '')
