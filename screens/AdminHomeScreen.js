@@ -300,6 +300,12 @@ const [showImportModal, setShowImportModal] = useState(false)
   const [psSelectedChart, setPsSelectedChart] = useState(null)
   const [psChartModal, setPsChartModal] = useState(false)
   const [psEditing, setPsEditing] = useState(false)
+  const [psPayments, setPsPayments] = useState([])
+  const [psPaymentsLoading, setPsPaymentsLoading] = useState(false)
+  const [psChargingFee, setPsChargingFee] = useState(false)
+  const [psCancelFeeAmount, setPsCancelFeeAmount] = useState('50')
+  const [psCancelFeeReason, setPsCancelFeeReason] = useState('')
+  const [psRefunding, setPsRefunding] = useState(null)
   const [psEditPhone, setPsEditPhone] = useState('')
   const [psEditAddress, setPsEditAddress] = useState('')
   const [psEditCity, setPsEditCity] = useState('')
@@ -2770,10 +2776,10 @@ const [showImportModal, setShowImportModal] = useState(false)
 
             {/* Tabs */}
             <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
-              {['overview', 'appointments', 'charts', 'intake', 'gfe', 'perks'].map(tab => (
+              {['overview', 'appointments', 'charts', 'intake', 'gfe', 'perks', 'payments'].map(tab => (
                 <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => { setPsActiveTab(tab); setPsEditing(false) }}>
                   <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700' }}>
-                    {tab === 'overview' ? '👤' : tab === 'appointments' ? '📅' : tab === 'charts' ? '📋' : tab === 'intake' ? '🏥' : tab === 'gfe' ? '🩺' : '🎁'}
+                    {tab === 'overview' ? '👤' : tab === 'appointments' ? '📅' : tab === 'charts' ? '📋' : tab === 'intake' ? '🏥' : tab === 'gfe' ? '🩺' : tab === 'payments' ? '💳' : '🎁'}
                   </Text>
                   <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 9, fontWeight: '600', marginTop: 2 }}>{tab.toUpperCase()}</Text>
                 </TouchableOpacity>
@@ -3067,6 +3073,125 @@ const [showImportModal, setShowImportModal] = useState(false)
               )}
 
               {/* Perks Tab */}
+              {psActiveTab === 'payments' && (
+                <View>
+                  {/* Charge Cancel Fee */}
+                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CANCEL FEE</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Amount ($)</Text>
+                    <TextInput
+                      style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 15, color: '#fff', marginBottom: 10 }}
+                      value={psCancelFeeAmount}
+                      onChangeText={setPsCancelFeeAmount}
+                      keyboardType="numeric"
+                      placeholder="50"
+                      placeholderTextColor="#666"
+                    />
+                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Reason</Text>
+                    <TextInput
+                      style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 15, color: '#fff', marginBottom: 12 }}
+                      value={psCancelFeeReason}
+                      onChangeText={setPsCancelFeeReason}
+                      placeholder="e.g. Late cancellation"
+                      placeholderTextColor="#666"
+                    />
+                    <TouchableOpacity
+                      style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center', opacity: psChargingFee ? 0.6 : 1 }}
+                      disabled={psChargingFee}
+                      onPress={() => {
+                        if (!psCancelFeeAmount || isNaN(parseFloat(psCancelFeeAmount))) {
+                          Alert.alert('Invalid', 'Please enter a valid amount')
+                          return
+                        }
+                        Alert.alert('Charge Cancel Fee', `Charge $${psCancelFeeAmount} to ${psSelectedPatient?.first_name}?`, [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Charge', style: 'destructive', onPress: async () => {
+                            setPsChargingFee(true)
+                            try {
+                              const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
+                                method: 'POST',
+                                headers: { ...headers, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ amount: parseFloat(psCancelFeeAmount), reason: psCancelFeeReason || 'Cancel fee' })
+                              })
+                              const data = await res.json()
+                              if (data.success) {
+                                Alert.alert('✅ Charged', `$${psCancelFeeAmount} charged successfully`)
+                                setPsCancelFeeReason('')
+                                // Refresh payments
+                                const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+                                const pd = await pr.json()
+                                if (pd.success) setPsPayments(pd.payments || [])
+                              } else {
+                                Alert.alert('Error', data.error || 'Could not charge')
+                              }
+                            } catch (err) {
+                              Alert.alert('Error', 'Network error')
+                            } finally {
+                              setPsChargingFee(false)
+                            }
+                          }}
+                        ])
+                      }}
+                    >
+                      <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>{psChargingFee ? 'Charging...' : `💳 Charge $${psCancelFeeAmount}`}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Payment History */}
+                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>PAYMENT HISTORY</Text>
+                  {psPaymentsLoading ? (
+                    <ActivityIndicator color={primaryColor} />
+                  ) : psPayments.length === 0 ? (
+                    <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginTop: 20 }}>No payments on record</Text>
+                  ) : psPayments.map(p => (
+                    <View key={p.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: p.refunded ? '#aaa' : p.status === 'succeeded' ? '#4CAF50' : '#f09090' }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>${p.amount.toFixed(2)}</Text>
+                        <View style={{ backgroundColor: p.refunded ? 'rgba(170,170,170,0.2)' : p.status === 'succeeded' ? 'rgba(76,175,80,0.2)' : 'rgba(240,144,144,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                          <Text style={{ color: p.refunded ? '#aaa' : p.status === 'succeeded' ? '#4CAF50' : '#f09090', fontSize: 10, fontWeight: '700' }}>{p.refunded ? 'REFUNDED' : p.status.toUpperCase()}</Text>
+                        </View>
+                      </View>
+                      {p.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>{p.description}</Text>}
+                      <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 8 }}>{new Date(p.created).toLocaleString()} · •••• {p.last4}</Text>
+                      {!p.refunded && p.status === 'succeeded' && (
+                        <TouchableOpacity
+                          style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 8, padding: 10, alignItems: 'center', opacity: psRefunding === p.id ? 0.6 : 1 }}
+                          disabled={psRefunding === p.id}
+                          onPress={() => Alert.alert('Refund', `Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`, [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Refund', style: 'destructive', onPress: async () => {
+                              setPsRefunding(p.id)
+                              try {
+                                const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/refund`, {
+                                  method: 'POST',
+                                  headers: { ...headers, 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ chargeId: p.id, reason: 'Requested by patient' })
+                                })
+                                const data = await res.json()
+                                if (data.success) {
+                                  Alert.alert('✅ Refunded', `$${p.amount.toFixed(2)} refunded successfully`)
+                                  const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+                                  const pd = await pr.json()
+                                  if (pd.success) setPsPayments(pd.payments || [])
+                                } else {
+                                  Alert.alert('Error', data.error || 'Could not refund')
+                                }
+                              } catch (err) {
+                                Alert.alert('Error', 'Network error')
+                              } finally {
+                                setPsRefunding(null)
+                              }
+                            }}
+                          ])}
+                        >
+                          <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>↩ Refund</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              )}
+
               {psActiveTab === 'perks' && (
                 <>
                   {/* Membership */}
