@@ -218,7 +218,7 @@ const fetchChatSession = async () => {
           <Text style={{ color: booking.cancellation_reason === 'Booking merged' ? '#2196F3' : '#f09090', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>
             {booking.cancellation_reason === 'Booking merged' ? '🔀 Booking Merged' : '❌ Appointment Cancelled'}
           </Text>
-          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
+          <Text style={{ color: '#9BB5B4', fontSize: 13 }}>
             {booking.cancellation_reason === 'Booking merged'
               ? 'Your booking has been merged with another appointment. Your tech is still on the way!'
               : 'This appointment has been cancelled.'}
@@ -228,7 +228,7 @@ const fetchChatSession = async () => {
       {isPast && (
         <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderWidth: 1, borderColor: '#f09090', borderRadius: 12, padding: 16, marginBottom: 16 }}>
           <Text style={{ color: '#f09090', fontWeight: '700', fontSize: 15, marginBottom: 4 }}>⚠️ Appointment Not Completed</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>This appointment passed without being completed. Please contact the company to reschedule.</Text>
+          <Text style={{ color: '#9BB5B4', fontSize: 13 }}>This appointment passed without being completed. Please contact the company to reschedule.</Text>
         </View>
       )}
 
@@ -247,7 +247,7 @@ const fetchChatSession = async () => {
                   styles.stepDot,
                   isCompleted && { backgroundColor: '#4CAF50' },
                   isCurrent && { backgroundColor: primaryColor },
-                  isPending && { backgroundColor: 'rgba(255,255,255,0.15)' }
+                  isPending && { backgroundColor: 'rgba(10,186,181,0.08)' }
                 ]}>
                   <Text style={styles.stepDotText}>
                     {isCompleted ? '✓' : STATUS_ICONS[step]}
@@ -264,7 +264,7 @@ const fetchChatSession = async () => {
                 <Text style={[
                   styles.stepLabel,
                   isCurrent && { color: primaryColor, fontWeight: '700' },
-                  isPending && { color: 'rgba(255,255,255,0.3)' }
+                  isPending && { color: '#9BB5B4' }
                 ]}>
                   {STATUS_LABELS[step]}
                 </Text>
@@ -321,7 +321,7 @@ const fetchChatSession = async () => {
       {booking.status === 'en_route' && techLocation && (
         <View style={styles.detailCard}>
           <Text style={styles.cardTitle}>Tech En Route</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 12 }}>
+          <Text style={{ color: '#9BB5B4', fontSize: 13, marginBottom: 12 }}>
             {booking.tech_first} is on the way · Updated {new Date(techLocation.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </Text>
           <MapComponent lat={techLocation.lat} lng={techLocation.lng} techFirst={booking.tech_first} techLast={booking.tech_last} />
@@ -339,7 +339,7 @@ const fetchChatSession = async () => {
                 style={{ width: 64, height: 64, borderRadius: 32, marginRight: 16, borderWidth: 2, borderColor: primaryColor }}
               />
             ) : (
-              <View style={{ width: 64, height: 64, borderRadius: 32, marginRight: 16, borderWidth: 2, borderColor: primaryColor, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, marginRight: 16, borderWidth: 2, borderColor: primaryColor, backgroundColor: '#F7FBFB', alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '700' }}>
                   {booking.tech_first?.[0]}{booking.tech_last?.[0]}
                 </Text>
@@ -348,7 +348,7 @@ const fetchChatSession = async () => {
             <View>
               <Text style={styles.techName}>{booking.tech_first} {booking.tech_last}</Text>
               {booking.tech_phone && <Text style={styles.techPhone}>📞 {booking.tech_phone}</Text>}
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>Your IV Therapy Tech</Text>
+              <Text style={{ color: '#9BB5B4', fontSize: 12, marginTop: 4 }}>Your IV Therapy Tech</Text>
             </View>
           </View>
         </View>
@@ -452,30 +452,33 @@ const fetchChatSession = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D1B4B'
+    backgroundColor: '#FFFFFF'
   },
   content: {
     padding: 20,
-    paddingBottom: 48
+    paddingBottom: 48,
+    backgroundColor: '#FFFFFF'
   },
   centered: {
     flex: 1,
-    backgroundColor: '#0D1B4B',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center'
   },
   errorText: {
-    color: '#fff',
+    color: '#1A2E2E',
     fontSize: 16
   },
   stepperCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#F7FBFB',
     borderRadius: 14,
     padding: 20,
-    marginBottom: 16
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(10,186,181,0.12)'
   },
   stepperTitle: {
-    color: '#fff',
+    color: '#1A2E2E',
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 20
@@ -503,7 +506,7 @@ const styles = StyleSheet.create({
   stepLine: {
     width: 2,
     height: 24,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(10,186,181,0.15)',
     marginTop: 2
   },
   stepRight: {
@@ -513,22 +516,24 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     fontSize: 15,
-    color: '#fff',
+    color: '#1A2E2E',
     fontWeight: '500'
   },
   stepCurrent: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: '#9BB5B4',
     marginTop: 2
   },
   detailCard: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#F7FBFB',
     borderRadius: 14,
     padding: 20,
-    marginBottom: 16
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(10,186,181,0.12)'
   },
   cardTitle: {
-    color: 'rgba(201,168,76,0.8)',
+    color: '#0ABAB5',
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -536,29 +541,29 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   service: {
-    color: '#fff',
+    color: '#1A2E2E',
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 16
   },
   label: {
-    color: 'rgba(255,255,255,0.5)',
+    color: '#9BB5B4',
     fontSize: 12,
     marginTop: 10,
     marginBottom: 4
   },
   value: {
-    color: '#fff',
+    color: '#1A2E2E',
     fontSize: 15
   },
   techName: {
-    color: '#fff',
+    color: '#1A2E2E',
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 6
   },
   techPhone: {
-    color: 'rgba(255,255,255,0.6)',
+    color: '#9BB5B4',
     fontSize: 14
   },
   messageButton: {
