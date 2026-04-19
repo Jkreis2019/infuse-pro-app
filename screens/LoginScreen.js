@@ -166,7 +166,7 @@ export default function LoginScreen({ route, navigation }) {
           <Text style={styles.logoMark}>IP</Text>
         </View>
         <Text style={styles.logoText}>Infuse Pro</Text>
-        <Text style={styles.tagline}>Mobile IV Operations Platform</Text>
+        <Text style={styles.tagline}>Drip Smarter</Text>
       </View>
 
       {message ? (
