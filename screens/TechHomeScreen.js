@@ -136,7 +136,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
   const [templatePickerVisible, setTemplatePickerVisible] = useState(false)
   const [availableTemplates, setAvailableTemplates] = useState([])
 
-  const isLocked = status === 'submitted' && template?.submit_behavior === 'lock'
+  const isLocked = (status === 'submitted' || status === 'amended') && template?.submit_behavior === 'lock'
 
   useEffect(() => {
     if (visible && call?.call_id) {
@@ -255,7 +255,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
           body: JSON.stringify({
             callId: call.call_id,
             bookingId: call.id,
-            templateId: template.id,
+            templateId: template.id === 'default' ? null : template.id,
             chartType: 'tech',
             patientName: patientName || call?.patient_name,
             patientDob: patientDob || call?.patient_dob,
