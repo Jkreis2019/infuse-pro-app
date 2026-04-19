@@ -118,8 +118,8 @@ const cStyles = StyleSheet.create({
 
 // ─── DYNAMIC CHART MODAL ─────────────────────────────────────────────────────
 function DynamicChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#0ABAB5'
-  const secondaryColor = company?.secondaryColor || '#0F2020'
+  const primaryColor = '#0ABAB5'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [loading, setLoading] = useState(true)
@@ -913,8 +913,8 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 }
 
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#0ABAB5'
-  const secondaryColor = company?.secondaryColor || '#0F2020'
+  const primaryColor = '#0ABAB5'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [saving, setSaving] = useState(false)
@@ -1428,8 +1428,8 @@ const [showServicePicker, setShowServicePicker] = useState(false)
 
 export default function TechHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#0ABAB5'
-  const secondaryColor = company?.secondaryColor || '#0F2020'
+  const primaryColor = '#0ABAB5'
+  const secondaryColor = '#0F2020'
 
   const [activeTab, setActiveTab] = useState('call')
   const [techDocs, setTechDocs] = useState([])

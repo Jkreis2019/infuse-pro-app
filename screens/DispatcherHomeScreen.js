@@ -49,10 +49,10 @@ function formatTime(seconds) {
 
 export default function DispatcherHomeScreen({ route, navigation }) {
   const { token, user, company, solo } = route.params || {}
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
 
   const [activeTab, setActiveTab] = useState('queue')
   const [queue, setQueue] = useState([])

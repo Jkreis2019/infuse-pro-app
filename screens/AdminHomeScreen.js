@@ -155,10 +155,10 @@ function IntakeCard({ intake, index, primaryColor }) {
 
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   // Store token in ref so it's always accessible in closures
@@ -2061,18 +2061,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               </>
             )}
           </TouchableOpacity>
-          <Text style={styles.sectionTitle}>Brand Colors</Text>
-          <View style={styles.card}>
-            <Text style={styles.fieldLabel}>Primary Color</Text>
-            <TextInput style={[styles.input, { borderColor: brandingPrimary }]} value={brandingPrimary} onChangeText={setBrandingPrimary} placeholder="#C9A84C" placeholderTextColor="#444" autoCapitalize="characters" />
-            <View style={{ height: 40, borderRadius: 8, backgroundColor: brandingPrimary, marginBottom: 16 }} />
-            <Text style={styles.fieldLabel}>Secondary Color</Text>
-            <TextInput style={[styles.input, { borderColor: brandingSecondary }]} value={brandingSecondary} onChangeText={setBrandingSecondary} placeholder="#0D1B4B" placeholderTextColor="#444" autoCapitalize="characters" />
-            <View style={{ height: 40, borderRadius: 8, backgroundColor: brandingSecondary, marginBottom: 16 }} />
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor }, savingBranding && { opacity: 0.6 }]} onPress={saveBranding} disabled={savingBranding}>
-              {savingBranding ? <ActivityIndicator color={secondaryColor} /> : <Text style={[styles.actionBtnText, { color: secondaryColor }]}>Save Colors</Text>}
-            </TouchableOpacity>
-          </View>
+
           <View style={{ height: 40 }} />
         </ScrollView>
       )}

@@ -124,10 +124,10 @@ const cStyles = StyleSheet.create({
 
 // ─── DYNAMIC CHART MODAL ─────────────────────────────────────────────────────
 function DynamicChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [loading, setLoading] = useState(true)
@@ -916,10 +916,10 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 }
 
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [saving, setSaving] = useState(false)
@@ -3747,10 +3747,10 @@ function SoloMembershipsSection({ token, primaryColor, secondaryColor, headers }
 
 export default function SoloHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
   const [activeTab, setActiveTab] = useState('dispatch')
   const [bugReportModal, setBugReportModal] = useState(false)

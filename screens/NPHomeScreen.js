@@ -9,10 +9,10 @@ import {
 const API_URL = 'https://api.infusepro.app'
 
 function GFEReviewModal({ visible, onClose, gfe, token, company, onSubmitted }) {
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [decision, setDecision] = useState('approved')
@@ -551,10 +551,10 @@ const rStyles = StyleSheet.create({
 
 export default function NPHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryColor = '#0ABAB5'
   const primaryOnDark = getPrimaryOnDark(primaryColor)
   const buttonTextColor = getTextColor(primaryColor)
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const secondaryColor = '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [queue, setQueue] = useState([])

@@ -191,7 +191,7 @@ export default function TechMessagingScreen({ route, navigation }) {
             )}
           </View>
         )}
-        <View style={[styles.bubble, isMe ? { backgroundColor: primaryColor } : { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
+        <View style={[styles.bubble, isMe ? { backgroundColor: primaryColor } : { backgroundColor: '#F0F8F8' }]}>
           {!isMe && (
             <Text style={[styles.senderName, { color: primaryColor }]}>
               {item.sender_first} {item.sender_last}
@@ -217,7 +217,7 @@ export default function TechMessagingScreen({ route, navigation }) {
       {!selectedContact && !selectedRegion ? (
         <View style={styles.emptyChat}>
           <Text style={{ fontSize: 48, marginBottom: 16 }}>💬</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>Select a conversation</Text>
+          <Text style={{ color: '#9BB5B4', fontSize: 16 }}>Select a conversation</Text>
         </View>
       ) : (
         <>
@@ -226,10 +226,10 @@ export default function TechMessagingScreen({ route, navigation }) {
               <Text style={{ color: primaryColor, fontSize: 14, fontWeight: '600' }}>← Back</Text>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+              <Text style={{ color: '#1A2E2E', fontSize: 16, fontWeight: '700' }}>
                 {selectedRegion ? `📍 ${selectedRegion.name}` : `${selectedContact.first_name} ${selectedContact.last_name}`}
               </Text>
-              <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+              <Text style={{ color: '#9BB5B4', fontSize: 12 }}>
                 {selectedRegion ? 'Region Channel' : selectedContact.role?.toUpperCase()}
               </Text>
             </View>
@@ -246,7 +246,7 @@ export default function TechMessagingScreen({ route, navigation }) {
               contentContainerStyle={styles.messageList}
               ListEmptyComponent={
                 <View style={styles.emptyChat}>
-                  <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>No messages yet — say hi!</Text>
+                  <Text style={{ color: '#9BB5B4', fontSize: 14 }}>No messages yet — say hi!</Text>
                 </View>
               }
               onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
@@ -391,32 +391,32 @@ export default function TechMessagingScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', flex: Platform.OS === 'web' ? undefined : 1, borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)', backgroundColor: '#0a1540' },
-  rightPane: { flex: 1, backgroundColor: '#0D1B4B' },
+  container: { flex: 1, backgroundColor: '#F7FBFB' },
+  leftPane: { width: Platform.OS === 'web' ? 320 : '100%', flex: Platform.OS === 'web' ? undefined : 1, borderRightWidth: 1, borderRightColor: 'rgba(10,186,181,0.15)', backgroundColor: '#0F2020' },
+  rightPane: { flex: 1, backgroundColor: '#FFFFFF' },
   leftHeader: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
-  contactRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  contactAvatar: { position: 'relative', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  contactRow: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  contactAvatar: { position: 'relative', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' },
   avatarImg: { width: 44, height: 44, borderRadius: 22 },
   avatarText: { fontSize: 16, fontWeight: '700' },
-  onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#0a1540' },
+  onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#0F2020' },
   contactName: { fontSize: 15, fontWeight: '600', color: '#fff', marginBottom: 2 },
   contactSub: { fontSize: 11, color: 'rgba(255,255,255,0.4)', marginBottom: 2 },
   lastMessage: { fontSize: 12, color: 'rgba(255,255,255,0.35)' },
   badge: { borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   badgeText: { fontSize: 11, fontWeight: '700' },
-  chatHeader: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center' },
-  emptyChat: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  messageList: { padding: 16, paddingBottom: 8 },
+  chatHeader: { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.15)' },
+  emptyChat: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
+  messageList: { padding: 16, paddingBottom: 8, backgroundColor: '#FFFFFF' },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12 },
   messageRowMe: { flexDirection: 'row-reverse' },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(10,186,181,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
   bubble: { maxWidth: '75%', borderRadius: 16, padding: 12, paddingBottom: 8 },
   senderName: { fontSize: 11, fontWeight: '700', marginBottom: 4 },
-  messageText: { color: '#fff', fontSize: 15, lineHeight: 20 },
-  messageTime: { color: 'rgba(255,255,255,0.4)', fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
-  inputBar: { flexDirection: 'row', padding: 12, gap: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' },
-  input: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, color: '#fff', fontSize: 15, maxHeight: 100 },
+  messageText: { color: '#1A2E2E', fontSize: 15, lineHeight: 20 },
+  messageTime: { color: '#9BB5B4', fontSize: 10, marginTop: 4, alignSelf: 'flex-end' },
+  inputBar: { flexDirection: 'row', padding: 12, gap: 10, alignItems: 'flex-end', borderTopWidth: 1, borderTopColor: 'rgba(10,186,181,0.15)', backgroundColor: '#FFFFFF' },
+  input: { flex: 1, backgroundColor: '#F7FBFB', borderRadius: 20, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', paddingHorizontal: 16, paddingVertical: 10, color: '#1A2E2E', fontSize: 15, maxHeight: 100 },
   sendBtn: { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10 },
   sendBtnText: { fontSize: 14, fontWeight: '700' },
 })
