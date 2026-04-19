@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Platform } from 'react-native'
 import { useState } from 'react'
+import { useFonts, CormorantGaramond_600SemiBold } from '@expo-google-fonts/cormorant-garamond'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 
@@ -14,6 +15,7 @@ const DEFAULT_COMPANY = {
 
 export default function LoginScreen({ route, navigation }) {
   const message = route.params?.message || ''
+  const [fontsLoaded] = useFonts({ CormorantGaramond_600SemiBold })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -159,57 +161,89 @@ export default function LoginScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>Infuse Pro</Text>
+      <View style={styles.logoContainer}>
+        <View style={styles.logoBox}>
+          <Text style={styles.logoMark}>IP</Text>
+        </View>
+        <Text style={styles.logoText}>Infuse Pro</Text>
+        <Text style={styles.tagline}>Mobile IV Operations Platform</Text>
+      </View>
+
       {message ? (
         <View style={styles.successBanner}>
           <Text style={styles.successText}>{message}</Text>
         </View>
       ) : null}
-      <Text style={styles.title}>Welcome back</Text>
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="you@email.com"
-        placeholderTextColor="#666"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Your password"
-        placeholderTextColor="#666"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TouchableOpacity style={styles.button} onPress={login} disabled={loading}>
-        {loading ? <ActivityIndicator color="#0D1B4B" /> : <Text style={styles.buttonText}>Log in</Text>}
-      </TouchableOpacity>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="you@email.com"
+          placeholderTextColor="rgba(10,186,181,0.35)"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Your password"
+          placeholderTextColor="rgba(10,186,181,0.35)"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <TouchableOpacity style={styles.button} onPress={login} disabled={loading}>
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign In</Text>}
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.signupLink} onPress={() => navigation.navigate('Signup')}>
-        <Text style={styles.signupLinkText}>Don't have an account? Sign up</Text>
+        <Text style={styles.signupLinkText}>Don't have an account? <Text style={styles.signupLinkAccent}>Sign up</Text></Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.signupLink} onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.signupLinkText}>Forgot your password?</Text>
+        <Text style={styles.signupLinkText}>Forgot your password? <Text style={styles.signupLinkAccent}>Reset it</Text></Text>
       </TouchableOpacity>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B', paddingHorizontal: 24, paddingTop: 60 },
-  logo: { fontSize: 28, fontWeight: '600', color: '#C9A84C', letterSpacing: 3, marginBottom: 32, textAlign: 'center' },
-  successBanner: { backgroundColor: 'rgba(100,180,80,0.15)', borderWidth: 1, borderColor: 'rgba(100,180,80,0.3)', borderRadius: 8, padding: 12, marginBottom: 20 },
-  successText: { color: '#8fda74', fontSize: 13, textAlign: 'center' },
-  title: { fontSize: 26, fontWeight: '600', color: '#fff', marginBottom: 24 },
-  label: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
-  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff' },
-  error: { color: '#f09090', fontSize: 13, marginTop: 12, marginBottom: 4 },
-  button: { backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
-  buttonText: { color: '#0D1B4B', fontSize: 15, fontWeight: '600', letterSpacing: 0.5 },
-  signupLink: { padding: 16, alignItems: 'center' },
-  signupLinkText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },
+  container: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 24, paddingTop: 60 },
+  logoContainer: { alignItems: 'center', marginBottom: 36, marginTop: 20 },
+  logoBox: {
+    width: 64, height: 64, borderRadius: 18, backgroundColor: '#0ABAB5',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+    shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3, shadowRadius: 16, elevation: 10,
+  },
+  logoMark: { fontSize: 24, fontWeight: '800', color: '#fff' },
+  logoText: { fontSize: 26, fontFamily: 'CormorantGaramond_600SemiBold', color: '#1A2E2E', letterSpacing: 0.5, marginBottom: 4 },
+  tagline: { fontSize: 11, color: '#C4876A', letterSpacing: 1, textTransform: 'uppercase' },
+  successBanner: { backgroundColor: 'rgba(46,204,143,0.1)', borderWidth: 1, borderColor: 'rgba(46,204,143,0.3)', borderRadius: 10, padding: 12, marginBottom: 16 },
+  successText: { color: '#2ECC8F', fontSize: 13, textAlign: 'center' },
+  card: {
+    backgroundColor: '#F7FBFB', borderRadius: 20, padding: 20,
+    borderWidth: 1.5, borderColor: 'rgba(10,186,181,0.15)',
+    shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08, shadowRadius: 16, elevation: 4,
+  },
+  label: { fontSize: 10, fontWeight: '700', color: '#0ABAB5', letterSpacing: 1.5, marginBottom: 8, marginTop: 14, textTransform: 'uppercase' },
+  input: {
+    backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: 'rgba(10,186,181,0.2)',
+    borderRadius: 12, padding: 14, fontSize: 14, color: '#1A2E2E',
+  },
+  error: { color: '#E05A5A', fontSize: 13, marginTop: 12, marginBottom: 4 },
+  button: {
+    backgroundColor: '#0ABAB5', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 20,
+    shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35, shadowRadius: 12, elevation: 8,
+  },
+  buttonText: { color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.5 },
+  signupLink: { padding: 14, alignItems: 'center' },
+  signupLinkText: { color: '#9BB5B4', fontSize: 13 },
+  signupLinkAccent: { color: '#C4876A', fontWeight: '600' },
 })

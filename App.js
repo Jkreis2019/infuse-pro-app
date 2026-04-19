@@ -245,14 +245,15 @@ export default function App() {
       <Stack.Navigator
         initialRouteName="Welcome"
         screenOptions={{
-          headerStyle: { backgroundColor: '#0D1B4B' },
-          headerTintColor: '#C9A84C',
-          headerTitleStyle: { fontWeight: '600' },
-          contentStyle: { backgroundColor: '#0D1B4B' },
+          headerStyle: { backgroundColor: '#FFFFFF', shadowColor: 'transparent', elevation: 0, borderBottomWidth: 0, shadowOpacity: 0 },
+          headerTintColor: '#0ABAB5',
+          headerTitleStyle: { fontWeight: '700', color: '#1A2E2E', fontSize: 17 },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: '#FFFFFF' },
         }}
       >
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Log in' }} />
+        <Stack.Screen name="Login" component={LoginScreen} options={{ title: '' }} />
         <Stack.Screen name="Signup" component={SignupScreen} options={{ title: 'Create account' }} />
         <Stack.Screen name="EmailVerification" component={EmailVerificationScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AppointmentDetail" component={AppointmentDetailScreen} options={{ title: 'Appointment', headerShown: true }} />
