@@ -234,8 +234,8 @@ export default function App() {
     })
 
     return () => {
-      Notifications.removeNotificationSubscription(notificationListener.current)
-      Notifications.removeNotificationSubscription(responseListener.current)
+      if (notificationListener.current?.remove) notificationListener.current.remove()
+      if (responseListener.current?.remove) responseListener.current.remove()
     }
   }, [])
 
@@ -299,16 +299,16 @@ export default function App() {
 
     {/* Lock Screen */}
     {isLocked && (
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 99999 }}>
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#0F2020', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 99999 }}>
         <View style={{ alignItems: 'center', width: '100%', maxWidth: 380 }}>
           {lockCompany?.logoUrl ? (
             <Image source={{ uri: lockCompany.logoUrl }} style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 16 }} />
           ) : (
-            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(201,168,76,0.2)', borderWidth: 2, borderColor: '#C9A84C', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-              <Text style={{ color: '#C9A84C', fontSize: 32 }}>🔒</Text>
+            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(10,186,181,0.2)', borderWidth: 2, borderColor: '#0ABAB5', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <Text style={{ color: '#0ABAB5', fontSize: 32 }}>🔒</Text>
             </View>
           )}
-          <Text style={{ color: '#C9A84C', fontSize: 13, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>SCREEN LOCKED</Text>
+          <Text style={{ color: '#0ABAB5', fontSize: 13, fontWeight: '700', letterSpacing: 2, marginBottom: 8 }}>SCREEN LOCKED</Text>
           <Text style={{ color: '#fff', fontSize: 28, fontWeight: '800', marginBottom: 4 }}>{lockCompany?.name || 'Infuse Pro'}</Text>
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 40 }}>
             Locked at {lockTime ? lockTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
@@ -324,7 +324,7 @@ export default function App() {
           />
           {lockError ? <Text style={{ color: '#e53e3e', fontSize: 13, marginBottom: 8, alignSelf: 'flex-start' }}>{lockError}</Text> : null}
           <TouchableOpacity
-            style={{ width: '100%', backgroundColor: '#C9A84C', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: unlocking ? 0.6 : 1 }}
+            style={{ width: '100%', backgroundColor: '#0ABAB5', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: unlocking ? 0.6 : 1 }}
             disabled={unlocking}
             onPress={async () => {
               if (!lockPassword) return setLockError('Please enter your password')
@@ -351,7 +351,7 @@ export default function App() {
               }
             }}
           >
-            {unlocking ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 16 }}>Unlock</Text>}
+            {unlocking ? <ActivityIndicator color="#0F2020" /> : <Text style={{ color: '#0F2020', fontWeight: '700', fontSize: 16 }}>Unlock</Text>}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => { setIsLocked(false); if (navigationRef.current) navigationRef.current.reset({ index: 0, routes: [{ name: 'Login' }] }) }}>
             <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Sign out instead</Text>
