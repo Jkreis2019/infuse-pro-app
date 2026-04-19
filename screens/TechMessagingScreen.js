@@ -30,7 +30,8 @@ export default function TechMessagingScreen({ route, navigation }) {
   useEffect(() => {
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]))
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')
+        const payload = JSON.parse(global.atob ? global.atob(base64) : Buffer.from(base64, 'base64').toString('utf8'))
         setUserId(payload.userId)
       } catch (e) {}
     }
