@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Image } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, Image, StatusBar, Platform } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 
 const API_URL = 'https://api.infusepro.app'
@@ -127,7 +127,8 @@ export default function HomeScreen({ route, navigation }) {
 
   return (
     <>
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <StatusBar barStyle="light-content" backgroundColor={company?.secondaryColor || '#1A3A3A'} />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={[styles.header, { backgroundColor: company.secondaryColor }]}>
         {company.logoUrl ? (
           <View style={{ alignItems: 'center', marginBottom: 12, width: '100%' }}>
@@ -402,7 +403,7 @@ export default function HomeScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F7FBFB' },
   content: { paddingBottom: 48, backgroundColor: '#F7FBFB' },
-  header: { padding: 28, paddingTop: 48, marginBottom: 20 },
+  header: { padding: 28, paddingTop: 60, marginBottom: 20 },
   companyName: { fontSize: 22, fontWeight: '600', letterSpacing: 1, marginBottom: 8 },
   greeting: { fontSize: 28, fontWeight: '600', color: '#fff', marginBottom: 4 },
   location: { fontSize: 13, color: 'rgba(255,255,255,0.5)' },
