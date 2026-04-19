@@ -3038,7 +3038,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                           {psProfileData.intake.medications && (
                             <View style={{ marginTop: 12 }}>
                               <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>💊 MEDICATIONS</Text>
-                              <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.medications}</Text>
+                              <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.medications_text || psProfileData.intake.medications}</Text>
                             </View>
                           )}
                           {psProfileData.intake.allergies_detail?.length > 0 && (

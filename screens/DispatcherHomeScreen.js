@@ -1913,7 +1913,7 @@ const submitSendIntake = async () => {
                     {psProfileData.intake.medications && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
                         <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>💊 MEDICATIONS</Text>
-                        <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.intake.medications}</Text>
+                        <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{psProfileData.intake.medications_text || psProfileData.intake.medications}</Text>
                       </View>
                     )}
                     {psProfileData.intake.allergies_detail?.length > 0 && (
@@ -1935,7 +1935,7 @@ const submitSendIntake = async () => {
                     {psProfileData.intake.supplements && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
                         <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 8 }}>🌿 SUPPLEMENTS</Text>
-                        <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.supplements}</Text>
+                        <Text style={{ color: '#fff', fontSize: 13 }}>{psProfileData.intake.supplements_text || psProfileData.intake.supplements}</Text>
                       </View>
                     )}
                     {psProfileData.intake.current_symptoms && (
