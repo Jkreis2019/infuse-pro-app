@@ -1,56 +1,61 @@
-import { StyleSheet, Text, View, TouchableOpacity, Pressable } from 'react-native'
+import { StyleSheet, Text, View, Pressable } from 'react-native'
+import { useFonts, CormorantGaramond_600SemiBold } from '@expo-google-fonts/cormorant-garamond'
 
 export default function WelcomeScreen({ navigation }) {
+  const [fontsLoaded] = useFonts({ CormorantGaramond_600SemiBold })
+
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
+        <View style={styles.logoBox}>
+          <Text style={styles.logoMark}>IP</Text>
+        </View>
         <Text style={styles.logo}>Infuse Pro</Text>
         <Text style={styles.tagline}>Premium mobile IV therapy,{'\n'}delivered to you</Text>
+        <View style={styles.badges}>
+          <View style={styles.badge}><Text style={styles.badgeText}>🔒 HIPAA</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>🔐 Encrypted</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>⚡ Real-time</Text></View>
+        </View>
       </View>
 
       <View style={styles.actions}>
-        <Pressable
-          style={styles.primaryButton}
-          onPress={() => {
-            navigation.navigate('Login', {})
-          }}
-        >
-          <Text style={styles.primaryButtonText}>Log in</Text>
+        <Pressable style={styles.primaryButton} onPress={() => navigation.navigate('Login', {})}>
+          <Text style={styles.primaryButtonText}>Sign In</Text>
         </Pressable>
 
-        <Pressable
-          style={styles.secondaryButton}
-          onPress={() => {
-            navigation.navigate('Signup')
-          }}
-        >
+        <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('Signup')}>
           <Text style={styles.secondaryButtonText}>Create account</Text>
         </Pressable>
 
-        <Pressable
-          style={styles.mapButton}
-          onPress={() => navigation.navigate('Map')}
-        >
-          <Text style={styles.mapButtonText}>Browse companies near me</Text>
+        <Pressable style={styles.mapButton} onPress={() => navigation.navigate('Map')}>
+          <Text style={styles.mapButtonText}>Browse companies near me →</Text>
         </Pressable>
       </View>
-
-      <Text style={styles.footer}>Secure · HIPAA compliant · Encrypted</Text>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B', paddingHorizontal: 28, paddingTop: 100, paddingBottom: 48, justifyContent: 'space-between' },
+  container: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 28, paddingTop: 80, paddingBottom: 48, justifyContent: 'space-between' },
   hero: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  logo: { fontSize: 48, fontWeight: '600', color: '#C9A84C', letterSpacing: 4, marginBottom: 16 },
-  tagline: { fontSize: 16, color: 'rgba(255,255,255,0.6)', textAlign: 'center', lineHeight: 24, fontWeight: '300' },
-  actions: { marginBottom: 16 },
-  primaryButton: { backgroundColor: '#C9A84C', borderRadius: 12, padding: 18, alignItems: 'center', marginBottom: 10 },
-  primaryButtonText: { color: '#0D1B4B', fontSize: 15, fontWeight: '600' },
-  secondaryButton: { backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 12, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', marginBottom: 10 },
-  secondaryButtonText: { color: '#C9A84C', fontSize: 15, fontWeight: '500' },
+  logoBox: {
+    width: 80, height: 80, borderRadius: 22, backgroundColor: '#0ABAB5',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+    shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3, shadowRadius: 20, elevation: 12,
+  },
+  logoMark: { fontSize: 32, fontWeight: '800', color: '#fff' },
+  logo: { fontSize: 48, fontFamily: 'CormorantGaramond_600SemiBold', color: '#1A2E2E', letterSpacing: 1, marginBottom: 12 },
+  tagline: { fontSize: 16, color: '#9BB5B4', textAlign: 'center', lineHeight: 26, fontWeight: '300', marginBottom: 28 },
+  badges: { flexDirection: 'row', gap: 8 },
+  badge: { backgroundColor: '#F7FBFB', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(10,186,181,0.15)' },
+  badgeText: { fontSize: 11, color: '#0ABAB5', fontWeight: '600' },
+  actions: { marginBottom: 8 },
+  primaryButton: { backgroundColor: '#0ABAB5', borderRadius: 14, padding: 18, alignItems: 'center', marginBottom: 10, shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
+  primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
+  secondaryButton: { backgroundColor: '#F7FBFB', borderRadius: 14, padding: 18, alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(10,186,181,0.2)', marginBottom: 10 },
+  secondaryButtonText: { color: '#0ABAB5', fontSize: 16, fontWeight: '600' },
   mapButton: { padding: 14, alignItems: 'center' },
-  mapButtonText: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
-  footer: { color: 'rgba(255,255,255,0.2)', fontSize: 11, textAlign: 'center', letterSpacing: 1, marginTop: 8 },
+  mapButtonText: { color: '#C4876A', fontSize: 13, fontWeight: '500' },
 })
