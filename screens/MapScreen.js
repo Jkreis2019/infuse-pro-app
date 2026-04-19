@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, TextInput, Alert , StatusBar} from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, ActivityIndicator, Linking, TextInput, Alert } from 'react-native'
 import { useState, useEffect } from 'react'
 import { Platform } from 'react-native'
 import * as Location from 'expo-location'
@@ -24,7 +24,6 @@ export default function MapScreen({ route, navigation }) {
   const { token, user, company, bookingMode } = route.params || {}
   const [companies, setCompanies] = useState([])
   const [filteredCompanies, setFilteredCompanies] = useState([])
-  const [ageFilter, setAgeFilter] = useState('')
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [region, setRegion] = useState(DEFAULT_REGION)
@@ -93,10 +92,9 @@ export default function MapScreen({ route, navigation }) {
   }
 
   const handleBook = (company) => {
-    setSelected(null)
+    setSelected(null) // clear selection so back-nav doesn't leak state
     navigation.navigate('Booking', {
-      token,
-      user,
+      token, user,
       company: {
         id: company.id,
         name: company.name,
@@ -140,33 +138,6 @@ export default function MapScreen({ route, navigation }) {
         {filteredCompanies.length === 0 && !loading && citySearch.length > 0 && (
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginTop: 8 }}>No companies found in "{citySearch}"</Text>
         )}
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 8, alignItems: 'center' }}>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, paddingHorizontal: 12 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginRight: 6 }}>Minors:</Text>
-            <TextInput
-              style={{ flex: 1, color: '#fff', fontSize: 14, paddingVertical: 8 }}
-              placeholder="Enter age"
-              placeholderTextColor="rgba(255,255,255,0.3)"
-              value={ageFilter}
-              onChangeText={val => {
-                setAgeFilter(val)
-                const age = parseInt(val)
-                if (!isNaN(age) && age < 18) {
-                  setFilteredCompanies(companies.filter(c => c.accept_minors && c.minimum_minor_age <= age))
-                } else {
-                  setFilteredCompanies(companies)
-                }
-              }}
-              keyboardType="numeric"
-              maxLength={2}
-            />
-            {ageFilter.length > 0 && (
-              <TouchableOpacity onPress={() => { setAgeFilter(''); setFilteredCompanies(companies) }}>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16 }}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
       </View>
 
       {loading ? (
@@ -183,7 +154,7 @@ export default function MapScreen({ route, navigation }) {
           >
             {filteredCompanies.map((company) => (
               <Marker
-                key={company.isAdditionalLocation ? `loc-${company.locationId}` : `co-${company.id}`}
+                key={`${company.id}-${company.latitude}-${company.longitude}`}
                 coordinate={company.latitude && company.longitude 
                   ? { latitude: company.latitude, longitude: company.longitude }
                   : { latitude: 33.4484, longitude: -112.0740 }}
@@ -213,16 +184,9 @@ export default function MapScreen({ route, navigation }) {
                   <Text style={{ color: selected.branding.primaryColor, fontSize: 12, fontWeight: '700' }}>🏷️ {selected.promoText}</Text>
                 </View>
               )}
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <Text style={[styles.companyName, { color: selected.branding.primaryColor, marginBottom: 0 }]}>
-                  {selected.name}
-                </Text>
-                {selected.mdVerified && selected.platformActive && (
-                  <View style={{ backgroundColor: 'rgba(76,175,80,0.15)', borderWidth: 1, borderColor: '#4CAF50', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ color: '#4CAF50', fontSize: 10, fontWeight: '700' }}>✓ VERIFIED</Text>
-                  </View>
-                )}
-              </View>
+              <Text style={[styles.companyName, { color: selected.branding.primaryColor }]}>
+                {selected.name}
+              </Text>
               <Text style={styles.companyLocation}>{selected.location}</Text>
               {selected.phone ? <Text style={styles.companyPhone}>📞 {selected.phone}</Text> : null}
               {selected.website && ['growth', 'scale', 'legacy'].includes(selected.listingTier) ? (
@@ -230,6 +194,7 @@ export default function MapScreen({ route, navigation }) {
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 8 }}>🌐 {selected.website.replace('https://','').replace('http://','')}</Text>
                 </TouchableOpacity>
               ) : null}
+              
               {selected.googleRating && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                   <Text style={{ color: '#FFD700', fontSize: 16 }}>
@@ -296,7 +261,7 @@ export default function MapScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D1B4B' },
   map: { flex: 1 },
-  bookingBanner: { backgroundColor: '#0D1B4B', paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
+  bookingBanner: { backgroundColor: '#0D1B4B', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
   bookingBannerText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   loadingText: { color: 'rgba(255,255,255,0.5)', fontSize: 14 },

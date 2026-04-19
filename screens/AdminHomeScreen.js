@@ -3712,7 +3712,7 @@ const [showImportModal, setShowImportModal] = useState(false)
         </View>
       </Modal>
 
-      {/* ── DOCUMENT UPLOAD MODAL ── */}}
+      {/* ── DOCUMENT UPLOAD MODAL ── */}
       <Modal visible={docModal} animationType="slide" presentationStyle="fullScreen">
         <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)', backgroundColor: secondaryColor }}>
