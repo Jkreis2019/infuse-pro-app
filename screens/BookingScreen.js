@@ -200,21 +200,21 @@ useEffect(() => {
         <View style={{ marginBottom: 20 }}>
           <Text style={styles.sectionLabel}>Who is this IV for?</Text>
           <TouchableOpacity
-            style={{ backgroundColor: !selectedFamilyMember ? company.primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: !selectedFamilyMember ? company.primaryColor : 'rgba(255,255,255,0.15)' }}
+            style={{ backgroundColor: !selectedFamilyMember ? company.primaryColor : '#F7FBFB', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: !selectedFamilyMember ? company.primaryColor : 'rgba(10,186,181,0.2)' }}
             onPress={() => setSelectedFamilyMember(null)}
           >
-            <Text style={{ color: !selectedFamilyMember ? company.secondaryColor : 'rgba(255,255,255,0.7)', fontWeight: '700', fontSize: 15 }}>👤 Myself — {user.firstName} {user.lastName}</Text>
+            <Text style={{ color: !selectedFamilyMember ? company.secondaryColor : '#1A2E2E', fontWeight: '700', fontSize: 15 }}>👤 Myself — {user.firstName} {user.lastName}</Text>
           </TouchableOpacity>
-          {familyMembers.map(fm => {
+          {familyMembers.filter(fm => fm.first_name || fm.last_name).map(fm => {
             const age = Math.floor((new Date() - new Date(fm.dob)) / (365.25 * 24 * 60 * 60 * 1000))
             const isMinor = age < 18
             return (
               <TouchableOpacity
                 key={fm.id}
-                style={{ backgroundColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : 'rgba(255,255,255,0.15)' }}
+                style={{ backgroundColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : '#F7FBFB', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: selectedFamilyMember?.id === fm.id ? company.primaryColor : 'rgba(10,186,181,0.2)' }}
                 onPress={() => setSelectedFamilyMember(fm)}
               >
-                <Text style={{ color: selectedFamilyMember?.id === fm.id ? company.secondaryColor : 'rgba(255,255,255,0.7)', fontWeight: '700', fontSize: 15 }}>👤 {fm.first_name} {fm.last_name} {isMinor ? '· Minor' : ''}</Text>
+                <Text style={{ color: selectedFamilyMember?.id === fm.id ? company.secondaryColor : '#1A2E2E', fontWeight: '700', fontSize: 15 }}>👤 {fm.first_name} {fm.last_name} {isMinor ? '· Minor' : ''}</Text>
                 {isMinor && selectedFamilyMember?.id === fm.id && (
                   <Text style={{ color: selectedFamilyMember?.id === fm.id ? company.secondaryColor : '#FF9800', fontSize: 12, marginTop: 4 }}>⚠️ A guardian must be present during treatment</Text>
                 )}
@@ -403,23 +403,23 @@ useEffect(() => {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 48 },
-  title: { fontSize: 26, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  subtitle: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 24, fontWeight: '300' },
-  sectionLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10, marginTop: 20 },
-  serviceCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 10, padding: 14, marginBottom: 8 },
+  title: { fontSize: 26, fontWeight: '600', color: '#1A2E2E', marginBottom: 4 },
+  subtitle: { fontSize: 13, color: '#9BB5B4', marginBottom: 24, fontWeight: '300' },
+  sectionLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(10,186,181,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10, marginTop: 20 },
+  serviceCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F7FBFB', borderWidth: 1, borderColor: 'rgba(10,186,181,0.15)', borderRadius: 10, padding: 14, marginBottom: 8 },
   serviceInfo: { flex: 1 },
-  serviceName: { fontSize: 14, fontWeight: '500', color: '#fff', marginBottom: 2 },
-  serviceDuration: { fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: '300' },
-  servicePrice: { fontSize: 16, fontWeight: '600', color: 'rgba(255,255,255,0.7)' },
+  serviceName: { fontSize: 14, fontWeight: '500', color: '#1A2E2E', marginBottom: 2 },
+  serviceDuration: { fontSize: 11, color: '#9BB5B4', fontWeight: '300' },
+  servicePrice: { fontSize: 16, fontWeight: '600', color: '#1A2E2E' },
   scheduleRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  scheduleBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 14, alignItems: 'center' },
-  scheduleBtnText: { fontSize: 15, fontWeight: '600', color: '#fff' },
+  scheduleBtn: { flex: 1, borderWidth: 1, borderColor: 'rgba(10,186,181,0.3)', borderRadius: 10, padding: 14, alignItems: 'center' },
+  scheduleBtnText: { fontSize: 15, fontWeight: '600', color: '#1A2E2E' },
   dateTimeRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   dateTimeBtn: { flex: 1, backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, alignItems: 'center' },
   dateTimeBtnText: { color: '#fff', fontSize: 14 },
-  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff', marginBottom: 10 },
+  input: { backgroundColor: '#F7FBFB', borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', borderRadius: 8, padding: 14, fontSize: 14, color: '#1A2E2E', marginBottom: 10 },
   textarea: { height: 80, textAlignVertical: 'top' },
   error: { color: '#f09090', fontSize: 13, marginTop: 8, marginBottom: 4 },
   button: { borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16 },
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   dateChipDate: { fontSize: 13, color: '#fff', fontWeight: '600' },
   slotBtn: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 14 },
   slotBtnText: { fontSize: 13, color: '#fff', fontWeight: '500' },
-  slotRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, marginBottom: 8, backgroundColor: 'rgba(255,255,255,0.04)' },
-  slotRowTime: { fontSize: 15, color: '#fff', fontWeight: '600' },
-  slotRowStatus: { fontSize: 12, color: 'rgba(255,255,255,0.4)' },
+  slotRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(10,186,181,0.15)', borderRadius: 8, padding: 14, marginBottom: 8, backgroundColor: '#F7FBFB' },
+  slotRowTime: { fontSize: 15, color: '#1A2E2E', fontWeight: '600' },
+  slotRowStatus: { fontSize: 12, color: '#9BB5B4' },
 })
