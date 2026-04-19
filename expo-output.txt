@@ -1,0 +1,7 @@
+Starting project at /Users/joshuakreisman/Downloads/infuse-pro-app
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Unable to run simctl:
+Error: xcrun simctl help exited with non-zero code: 72
+Waiting on http://localhost:8081
+Logs for your project will appear below.

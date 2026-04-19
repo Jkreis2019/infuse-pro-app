@@ -2,6 +2,7 @@
   "expo": {
     "name": "Infuse Pro",
     "slug": "infuse-pro-app",
+    "scheme": "infusepro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
