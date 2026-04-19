@@ -266,7 +266,7 @@ export default function HomeScreen({ route, navigation }) {
       {hasPendingIntake && (
         <TouchableOpacity
           style={styles.intakeBanner}
-          onPress={() => intakeUrl && Linking.openURL(intakeUrl)}
+          onPress={() => intakeUrl ? Linking.openURL(intakeUrl) : Alert.alert('Intake Required', 'Please contact us to complete your intake form before your appointment.')}
         >
           <Text style={styles.intakeBannerIcon}>⚠️</Text>
           <View style={styles.intakeBannerText}>

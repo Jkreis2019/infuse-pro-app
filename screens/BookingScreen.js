@@ -176,9 +176,20 @@ useEffect(() => {
             secondaryColor: linkedCompany.secondary_color || linkedCompany.branding?.secondaryColor || company?.secondaryColor,
             logoUrl: linkedCompany.logo_url || linkedCompany.logoUrl || null,
           } : company
-          navigation.navigate('Home', { token, user, company: homeCompany })
+          const finalCompany = linkedCompany ? homeCompany : {
+            id: null,
+            name: 'Infuse Pro',
+            code: null,
+            primaryColor: '#0ABAB5',
+            secondaryColor: '#1A3A3A',
+            logoUrl: null,
+          }
+          navigation.navigate('Home', { token, user, company: finalCompany })
         } catch {
-          navigation.navigate('Home', { token, user, company })
+          navigation.navigate('Home', { token, user, company: {
+            id: null, name: 'Infuse Pro', code: null,
+            primaryColor: '#0ABAB5', secondaryColor: '#1A3A3A', logoUrl: null
+          } })
         }
       } else {
         setError(data.message || 'Something went wrong')

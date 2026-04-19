@@ -165,15 +165,15 @@ export default function ChangePasswordScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B', paddingHorizontal: 24, paddingTop: 60 },
+  container: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 24, paddingTop: 60 },
   company: { fontSize: 14, fontWeight: '600', letterSpacing: 1, marginBottom: 8, textAlign: 'center' },
-  title: { fontSize: 26, fontWeight: '700', color: '#fff', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.5)', textAlign: 'center', marginBottom: 24 },
-  label: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
-  input: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff' },
+  title: { fontSize: 26, fontWeight: '700', color: '#1A2E2E', marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#9BB5B4', textAlign: 'center', marginBottom: 24 },
+  label: { fontSize: 11, fontWeight: '600', color: 'rgba(10,186,181,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
+  input: { backgroundColor: '#F7FBFB', borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', borderRadius: 8, padding: 14, fontSize: 14, color: '#1A2E2E' },
   error: { color: '#f09090', fontSize: 13, marginTop: 12, marginBottom: 4 },
   button: { borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 24 },
   buttonText: { fontSize: 15, fontWeight: '600', letterSpacing: 0.5 },
   cancelButton: { padding: 16, alignItems: 'center' },
-  cancelText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 }
+  cancelText: { color: '#9BB5B4', fontSize: 13 }
 })
