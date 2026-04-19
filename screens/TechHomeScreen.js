@@ -178,6 +178,10 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
         if (existingChart.template_id) {
           const t = tmplData.templates?.find(t => t.id === existingChart.template_id)
           if (t) setTemplate(t)
+          else if (tmplData.templates?.length > 0) setTemplate(tmplData.templates[0])
+        } else {
+          // No template_id — use first available (includes system default)
+          if (tmplData.templates?.length > 0) setTemplate(tmplData.templates[0])
         }
       } else {
         // New chart — find best template
@@ -259,7 +263,8 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
             chartType: 'tech',
             patientName: patientName || call?.patient_name,
             patientDob: patientDob || call?.patient_dob,
-            responses
+            responses,
+            status: submit ? 'submitted' : 'open'
           })
         })
       }
