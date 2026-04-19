@@ -748,7 +748,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
 
         {/* Header */}
         <View style={[cStyles.header, { backgroundColor: secondaryColor }]}>
@@ -880,7 +880,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 
         {/* NP Chart View Modal */}
         <Modal visible={npChartModalVisible} animationType="slide" presentationStyle="pageSheet">
-          <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
               <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>NP Chart</Text>
               <TouchableOpacity onPress={() => setNpChartModalVisible(false)}>
@@ -1160,7 +1160,7 @@ console.log('Status sent:', submit ? 'submitted' : 'open')
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0a0a1a' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={[cStyles.header, { backgroundColor: secondaryColor }]}>
           <TouchableOpacity onPress={() => { if (!isLocked) saveChart(false); onClose() }}>
             <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>{isLocked ? '← Back' : '← Save & Back'}</Text>
@@ -1292,7 +1292,7 @@ console.log('Status sent:', submit ? 'submitted' : 'open')
 
           <Modal visible={showServicePicker} transparent animationType="slide">
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
-              <View style={{ backgroundColor: '#0D1B4B', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
+              <View style={{ backgroundColor: '#0F2020', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
                 <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Select Service</Text>
                 <ScrollView>
                   {companyServices.length === 0 ? (
@@ -1992,7 +1992,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                 <Text style={sStyles.fieldLabel}>Search Patient</Text>
                 <TextInput style={sStyles.input} placeholder="Search by name or phone..." placeholderTextColor="#666" value={nbSearchQuery} onChangeText={searchPatients} />
                 {nbSearchResults.length > 0 && (
-                  <View style={{ backgroundColor: '#1a1a2e', borderRadius: 8, marginBottom: 8 }}>
+                  <View style={{ backgroundColor: '#132828', borderRadius: 8, marginBottom: 8 }}>
                     {nbSearchResults.slice(0, 5).map(p => (
                       <TouchableOpacity key={p.id} style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#333' }} onPress={() => selectPatient(p)}>
                         <Text style={{ color: '#fff', fontWeight: '600' }}>{p.first_name} {p.last_name}</Text>
@@ -2010,7 +2010,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                   <Text style={{ color: nbService ? '#fff' : '#666' }}>{nbService || 'Select a service...'}</Text>
                 </TouchableOpacity>
                 {showServiceList && (
-                  <View style={{ backgroundColor: '#1a1a2e', borderRadius: 8, marginBottom: 8 }}>
+                  <View style={{ backgroundColor: '#132828', borderRadius: 8, marginBottom: 8 }}>
                     {companyServices.map(svc => (
                       <TouchableOpacity key={svc.id} style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#333', flexDirection: 'row', justifyContent: 'space-between' }} onPress={() => { setNbService(svc.name); setShowServiceList(false) }}>
                         <Text style={{ color: '#fff' }}>{svc.name}</Text>
@@ -2051,7 +2051,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                 <Text style={{ color: '#666' }}>{showDispositionDropdown ? '▲' : '▼'}</Text>
               </TouchableOpacity>
               {showDispositionDropdown && (
-                <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10 }}>
+                <View style={{ backgroundColor: '#0F2020', borderRadius: 8, marginBottom: 10 }}>
                   {DISPOSITIONS.map(opt => (
                     <TouchableOpacity key={opt} style={{ padding: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }} onPress={() => { setCancelDisposition(opt); setShowDispositionDropdown(false) }}>
                       <Text style={{ color: cancelDisposition === opt ? primaryColor : '#fff', fontSize: 14 }}>{cancelDisposition === opt ? '✓ ' : ''}{opt}</Text>
@@ -2846,7 +2846,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
           {/* Patient Profile Modal */}
           <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
-            <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+            <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
               <View style={{ paddingTop: 56, paddingBottom: 0, backgroundColor: secondaryColor }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 }}>
                   <TouchableOpacity onPress={() => { setPsProfileModal(false); setPsProfileData(null) }}>
@@ -3052,7 +3052,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
             {/* Chart Detail Modal */}
             <Modal visible={psChartModal} animationType="slide" presentationStyle="fullScreen">
-              <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+              <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
                 <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
                   <TouchableOpacity onPress={() => setPsChartModal(false)}>
                     <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Back</Text>
@@ -3209,7 +3209,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           <View style={{ height: 40 }} />
 
           <Modal visible={newServiceModal} animationType="slide" presentationStyle="fullScreen">
-            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
               <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
                 <TouchableOpacity onPress={() => setNewServiceModal(false)}>
                   <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3288,7 +3288,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           )}
 
           <Modal visible={anModal} animationType="slide" presentationStyle="fullScreen">
-            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
               <View style={{ paddingTop: 56, paddingBottom: 16, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: secondaryColor }}>
                 <TouchableOpacity onPress={() => setAnModal(false)}>
                   <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -3361,7 +3361,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       {/* Schedule */}
       {adminTab === 'schedule' && (
         <ScrollView style={{ flex: 1, padding: 16 }} refreshControl={<RefreshControl refreshing={scheduleLoading} onRefresh={fetchSchedule} tintColor={primaryColor} />}>
-          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Business Hours</Text>
+          <Text style={{ color: 'rgba(10,186,181,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Business Hours</Text>
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 16 }}>Set when patients can schedule appointments.</Text>
           {scheduleLoading ? (
             <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
@@ -3408,7 +3408,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
             {scheduleSaving ? <ActivityIndicator color={secondaryColor} /> : <Text style={[sStyles.primaryBtnText, { color: secondaryColor }]}>Save Hours</Text>}
           </TouchableOpacity>
 
-          <Text style={{ color: 'rgba(201,168,76,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Blackout Dates</Text>
+          <Text style={{ color: 'rgba(10,186,181,0.7)', fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>Blackout Dates</Text>
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Block specific dates from scheduling.</Text>
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
             <TextInput style={[sStyles.input, { flex: 1, marginBottom: 0, fontSize: 14, padding: 12 }]} value={blackoutDate} onChangeText={setBlackoutDate} placeholder="YYYY-MM-DD" placeholderTextColor="#666" />
@@ -3989,7 +3989,7 @@ export default function SoloHomeScreen({ route, navigation }) {
       {/* DELETE TEMPLATE CONFIRM */}
       {deleteConfirmTemplate && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+          <View style={{ backgroundColor: '#0F2020', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
             <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
               <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>DELETE TEMPLATE</Text>
               <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmTemplate.name}</Text>
@@ -4019,7 +4019,7 @@ export default function SoloHomeScreen({ route, navigation }) {
       {/* DELETE FORMULARY CONFIRM */}
       {deleteConfirmFormulary && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
-          <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
+          <View style={{ backgroundColor: '#0F2020', borderRadius: 20, width: '100%', maxWidth: 380, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(240,100,100,0.3)' }}>
             <View style={{ backgroundColor: 'rgba(240,100,100,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(240,100,100,0.2)' }}>
               <Text style={{ color: '#f06060', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REMOVE FROM FORMULARY</Text>
               <Text style={{ color: '#fff', fontSize: 18, fontWeight: '800' }}>{deleteConfirmFormulary.name}</Text>
@@ -4048,7 +4048,7 @@ export default function SoloHomeScreen({ route, navigation }) {
 
       {/* TEMPLATE BUILDER MODAL */}
       <Modal visible={templateModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingTemplate ? 'Edit Template' : 'New Template'}</Text>
             <TouchableOpacity onPress={() => setTemplateModalVisible(false)}>
@@ -4145,7 +4145,7 @@ export default function SoloHomeScreen({ route, navigation }) {
               </ScrollView>
             )}
             {(Platform.OS === 'web' || templateBuilderTab === 'Preview') && (
-              <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+              <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
                 <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)', backgroundColor: 'rgba(255,255,255,0.03)' }}>
                   <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 1, textAlign: 'center' }}>CHART PREVIEW</Text>
                 </View>
@@ -4280,7 +4280,7 @@ export default function SoloHomeScreen({ route, navigation }) {
 
       {/* FIELD CONFIG MODAL */}
       <Modal visible={fieldConfigModal} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Configure Field</Text>
             <TouchableOpacity onPress={() => setFieldConfigModal(false)}>
@@ -4345,7 +4345,7 @@ export default function SoloHomeScreen({ route, navigation }) {
 
       {/* FORMULARY MODAL */}
       <Modal visible={formularyModalVisible} animationType="slide" presentationStyle={Platform.OS === "ios" ? "pageSheet" : "fullScreen"}>
-        <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+        <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
             <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>{editingFormularyItem ? 'Edit Item' : 'Add to Formulary'}</Text>
             <TouchableOpacity onPress={() => setFormularyModalVisible(false)}>
@@ -4407,20 +4407,20 @@ export default function SoloHomeScreen({ route, navigation }) {
 
 const sStyles = StyleSheet.create({
   card: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 },
-  fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(10,186,181,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, marginTop: 16 },
   input: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 8 },
   primaryBtn: { borderRadius: 14, padding: 18, alignItems: 'center', marginTop: 8 },
   primaryBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   cancelBtn: { padding: 16, alignItems: 'center', marginTop: 4 },
   cancelBtnText: { color: 'rgba(255,255,255,0.4)', fontSize: 14 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: '#162260', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalCard: { backgroundColor: '#0F2020', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 6 },
   modalSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 16 },
 })
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a1a' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
   header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 16, paddingHorizontal: 20 },
   bottomBar: {
     flexDirection: 'row',
