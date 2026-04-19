@@ -8,8 +8,8 @@ const API_URL = 'https://api.infusepro.app'
 
 const DEFAULT_COMPANY = {
   name: 'Infuse Pro',
-  primaryColor: '#C9A84C',
-  secondaryColor: '#0D1B4B',
+  primaryColor: '#0ABAB5',
+  secondaryColor: '#FFFFFF',
   location: ''
 }
 

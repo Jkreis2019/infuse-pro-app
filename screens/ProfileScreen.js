@@ -331,10 +331,10 @@ const saveProfile = async () => {
         )}
         {/* Memberships with unlinked companies */}
         {memberships.filter(m => !linkedCompanies.find(c => c.id === m.company_id)).map(m => (
-          <View key={m.id} style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(201,168,76,0.25)' }}>
-            <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>🏅 ACTIVE MEMBERSHIP</Text>
-            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{m.plan_name} — {m.company_name}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · Renews {new Date(m.current_cycle_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
+          <View key={m.id} style={{ backgroundColor: '#FFF8F0', borderRadius: 12, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(196,135,106,0.3)' }}>
+            <Text style={{ color: '#C4876A', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>🏅 ACTIVE MEMBERSHIP</Text>
+            <Text style={{ color: '#1A2E2E', fontSize: 15, fontWeight: '700' }}>{m.plan_name} — {m.company_name}</Text>
+            <Text style={{ color: '#9BB5B4', fontSize: 12, marginTop: 4 }}>{m.redemptions_this_cycle} of {m.max_redemptions_per_cycle === 999 ? '∞' : m.max_redemptions_per_cycle} visits used · Renews {new Date(m.current_cycle_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
             <Text style={{ color: '#FF9800', fontSize: 12, marginTop: 6 }}>⚠️ You are no longer linked to {m.company_name} but still have an active subscription</Text>
           </View>
         ))}
@@ -377,15 +377,15 @@ const saveProfile = async () => {
           </TouchableOpacity>
         </View>
         {familyMembers.length === 0 ? (
-          <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>No family members added yet</Text>
+          <Text style={{ color: '#9BB5B4', fontSize: 13 }}>No family members added yet</Text>
         ) : familyMembers.map(fm => {
           const age = Math.floor((new Date() - new Date(fm.dob)) / (365.25 * 24 * 60 * 60 * 1000))
           const isMinor = age < 18
           return (
-            <View key={fm.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, padding: 14, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View key={fm.id} style={{ backgroundColor: '#F7FBFB', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(10,186,181,0.1)', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <View>
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>{fm.first_name} {fm.last_name}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{fm.relationship} · Age {age}{isMinor ? ' · Minor' : ''}</Text>
+                <Text style={{ color: '#1A2E2E', fontWeight: '700', fontSize: 15 }}>{fm.first_name} {fm.last_name}</Text>
+                <Text style={{ color: '#9BB5B4', fontSize: 12, marginTop: 2 }}>{fm.relationship} · Age {age}{isMinor ? ' · Minor' : ''}</Text>
               </View>
               <TouchableOpacity onPress={async () => { try { await fetch(`${API_URL}/family-members/${fm.id}`, { method: 'DELETE', headers }); fetchLinkedCompanies() } catch(e) {} }}>
                 <Text style={{ color: '#f09090', fontSize: 12 }}>Remove</Text>
@@ -405,13 +405,13 @@ const saveProfile = async () => {
           <>
             {/* Loyalty Progress */}
             {perks.loyaltyProgress && (
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+              <View style={{ backgroundColor: '#F7FBFB', borderRadius: 12, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(10,186,181,0.12)' }}>
                 <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>LOYALTY PROGRESS</Text>
-                <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 6 }}>
+                <Text style={{ color: '#1A2E2E', fontSize: 15, fontWeight: '600', marginBottom: 6 }}>
                   {perks.loyaltyProgress.punch_count} of {perks.loyaltyProgress.threshold} IVs completed
                 </Text>
                 {/* Progress bar */}
-                <View style={{ height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4, marginBottom: 8 }}>
+                <View style={{ height: 8, backgroundColor: 'rgba(10,186,181,0.1)', borderRadius: 4, marginBottom: 8 }}>
                   <View style={{
                     height: 8,
                     backgroundColor: primaryColor,
@@ -443,9 +443,9 @@ const saveProfile = async () => {
 
             {/* Active Referral Perks */}
             {perks.referralPerks.map(perk => (
-              <View key={perk.id} style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: primaryColor, borderRadius: 12, padding: 16, marginBottom: 10 }}>
-                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6 }}>⭐ REFERRAL PERK</Text>
-                <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>
+              <View key={perk.id} style={{ backgroundColor: '#F7FBFB', borderWidth: 1.5, borderColor: '#0ABAB5', borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 6, color: '#0ABAB5' }}>⭐ REFERRAL PERK</Text>
+                <Text style={{ color: '#1A2E2E', fontSize: 18, fontWeight: '700' }}>
                   {perk.perk_type === 'fixed' ? `$${perk.perk_amount} off` : `${perk.perk_amount}% off`}
                 </Text>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Show this to your tech to redeem</Text>
@@ -453,15 +453,15 @@ const saveProfile = async () => {
             ))}
 
             {perks.referralPerks.length === 0 && perks.loyaltyRewards.length === 0 && !perks.loyaltyProgress && (
-              <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, textAlign: 'center', paddingVertical: 12 }}>No active perks yet</Text>
+              <Text style={{ color: '#9BB5B4', fontSize: 13, textAlign: 'center', paddingVertical: 12 }}>No active perks yet</Text>
             )}
 
             {/* Referral Code */}
             {referralCode && (
-              <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginTop: 8 }}>
+              <View style={{ backgroundColor: '#F7FBFB', borderRadius: 12, padding: 16, marginTop: 8, borderWidth: 1, borderColor: 'rgba(10,186,181,0.12)' }}>
                 <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>YOUR REFERRAL CODE</Text>
-                <Text style={{ color: '#fff', fontSize: 32, fontWeight: '800', letterSpacing: 6, marginBottom: 8 }}>{referralCode}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 12 }}>Share this code with friends. When they complete their first booking you earn a perk!</Text>
+                <Text style={{ color: '#1A2E2E', fontSize: 32, fontWeight: '800', letterSpacing: 6, marginBottom: 8 }}>{referralCode}</Text>
+                <Text style={{ color: '#9BB5B4', fontSize: 12, marginBottom: 12 }}>Share this code with friends. When they complete their first booking you earn a perk!</Text>
                 <TouchableOpacity
                   style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}
                   onPress={() => {
@@ -472,7 +472,7 @@ const saveProfile = async () => {
                     }
                   }}
                 >
-                  <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 14 }}>📤 Share My Code</Text>
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>📤 Share My Code</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -484,13 +484,13 @@ const saveProfile = async () => {
         <Text style={styles.logoutText}>Log out</Text>
       </TouchableOpacity>
       <Modal visible={editModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#FFFFFF' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           {/* Header */}
-          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.1)' }}>
             <TouchableOpacity onPress={() => setEditModal(false)}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Edit Profile</Text>
+            <Text style={{ color: '#1A2E2E', fontSize: 18, fontWeight: '700' }}>Edit Profile</Text>
             <TouchableOpacity onPress={saveProfile} disabled={savingProfile}>
               {savingProfile ? <ActivityIndicator color={primaryColor} size="small" /> : <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '700' }}>Save</Text>}
             </TouchableOpacity>
@@ -571,17 +571,17 @@ const saveProfile = async () => {
         </KeyboardAvoidingView>
       </Modal>
       <Modal visible={changePasswordModal} animationType="slide" presentationStyle="fullScreen">
-        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#FFFFFF' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.1)' }}>
             <TouchableOpacity onPress={() => { setChangePasswordModal(false); setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}>
               <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>Change Password</Text>
+            <Text style={{ color: '#1A2E2E', fontSize: 18, fontWeight: '700' }}>Change Password</Text>
             <View style={{ width: 60 }} />
           </View>
 
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 32, textAlign: 'center' }}>
+            <Text style={{ color: '#9BB5B4', fontSize: 14, marginBottom: 32, textAlign: 'center' }}>
               For your security, please enter your current password before setting a new one.
             </Text>
 
@@ -638,7 +638,7 @@ const saveProfile = async () => {
       <Modal visible={addFamilyModal} transparent animationType="fade">
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 400, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+            <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.1)' }}>
               <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>FAMILY MEMBER</Text>
               <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>Add Family Member</Text>
             </View>
@@ -701,38 +701,38 @@ const saveProfile = async () => {
 }
 
 const editStyles = StyleSheet.create({
-  label: { fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
-  input: { backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', borderRadius: 12, padding: 16, fontSize: 16, color: '#fff', marginBottom: 20 },
+  label: { fontSize: 11, fontWeight: '700', color: '#0ABAB5', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  input: { backgroundColor: '#F7FBFB', borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)', borderRadius: 12, padding: 16, fontSize: 16, color: '#1A2E2E', marginBottom: 20 },
 })
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  content: { paddingHorizontal: 24, paddingTop: 40, paddingBottom: 48, alignItems: 'center' },
-  avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingHorizontal: 24, paddingTop: 40, paddingBottom: 48, alignItems: 'center', backgroundColor: '#FFFFFF' },
+  avatar: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, backgroundColor: '#F7FBFB', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   avatarText: { fontSize: 24, fontWeight: '600' },
-  name: { fontSize: 22, fontWeight: '600', color: '#fff', marginBottom: 4 },
-  email: { fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 20, fontWeight: '300' },
+  name: { fontSize: 22, fontWeight: '600', color: '#1A2E2E', marginBottom: 4 },
+  email: { fontSize: 13, color: '#9BB5B4', marginBottom: 20, fontWeight: '300' },
   section: { width: '100%', marginBottom: 20 },
-  sectionTitle: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.6)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
-  rowLabel: { fontSize: 14, color: '#fff', fontWeight: '400' },
-  rowArrow: { fontSize: 20, color: 'rgba(255,255,255,0.25)' },
-  companyCard: { borderWidth: 1, borderRadius: 10, padding: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.04)' },
+  sectionTitle: { fontSize: 11, fontWeight: '600', color: '#0ABAB5', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.1)' },
+  rowLabel: { fontSize: 14, color: '#1A2E2E', fontWeight: '400' },
+  rowArrow: { fontSize: 20, color: '#9BB5B4' },
+  companyCard: { borderWidth: 1, borderRadius: 10, padding: 14, marginBottom: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7FBFB' },
   companyName: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  companyDetail: { fontSize: 12, color: 'rgba(255,255,255,0.45)', marginBottom: 2 },
+  companyDetail: { fontSize: 12, color: '#9BB5B4', marginBottom: 2 },
   unlinkText: { color: '#f09090', fontSize: 13, fontWeight: '600' },
-  noCompanies: { color: 'rgba(255,255,255,0.35)', fontSize: 13, marginVertical: 12, textAlign: 'center' },
+  noCompanies: { color: '#9BB5B4', fontSize: 13, marginVertical: 12, textAlign: 'center' },
   addCompanyBtn: { borderWidth: 1, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8, borderStyle: 'dashed' },
   addCompanyText: { fontSize: 14, fontWeight: '600' },
   codeInputContainer: { marginTop: 8 },
-  codeInput: { borderWidth: 1, borderRadius: 10, padding: 14, color: '#fff', fontSize: 16, marginBottom: 10, letterSpacing: 2 },
+  codeInput: { borderWidth: 1, borderRadius: 10, padding: 14, color: '#1A2E2E', fontSize: 16, marginBottom: 10, letterSpacing: 2 },
   linkBtn: { borderRadius: 10, padding: 14, alignItems: 'center', marginBottom: 8 },
   linkBtnText: { fontSize: 15, fontWeight: '700' },
-  cancelLink: { color: 'rgba(255,255,255,0.35)', fontSize: 13, textAlign: 'center', paddingVertical: 8 },
+  cancelLink: { color: '#9BB5B4', fontSize: 13, textAlign: 'center', paddingVertical: 8 },
   logoutButton: { marginTop: 16, width: '100%', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(220,80,80,0.3)', alignItems: 'center', backgroundColor: 'rgba(220,80,80,0.08)' },
   logoutText: { color: '#f09090', fontSize: 15, fontWeight: '500' },
-  infoCard: { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 16 },
-  infoCardLabel: { fontSize: 10, fontWeight: '700', color: 'rgba(201,168,76,0.6)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 },
-  infoCardValue: { fontSize: 15, color: '#fff', fontWeight: '500' },
-  infoCardSub: { fontSize: 13, color: 'rgba(255,255,255,0.45)', marginTop: 3 },
+  infoCard: { width: '100%', backgroundColor: '#F7FBFB', borderWidth: 1, borderColor: 'rgba(10,186,181,0.12)', borderRadius: 12, padding: 16 },
+  infoCardLabel: { fontSize: 10, fontWeight: '700', color: '#0ABAB5', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 },
+  infoCardValue: { fontSize: 15, color: '#1A2E2E', fontWeight: '500' },
+  infoCardSub: { fontSize: 13, color: '#9BB5B4', marginTop: 3 },
 })

@@ -90,7 +90,7 @@ function MainTabs({ route }) {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#162260', borderTopColor: 'rgba(201,168,76,0.2)' },
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: 'rgba(10,186,181,0.15)' },
         tabBarActiveTintColor: params?.company?.primaryColor || '#C9A84C',
         tabBarInactiveTintColor: 'rgba(255,255,255,0.35)',
       }}

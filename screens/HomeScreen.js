@@ -236,15 +236,15 @@ export default function HomeScreen({ route, navigation }) {
       {/* Active Membership Badge */}
       {activeMembership && (
         <TouchableOpacity
-          style={{ marginHorizontal: 16, marginBottom: 12, backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}
+          style={{ marginHorizontal: 16, marginBottom: 12, backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: 'rgba(196,135,106,0.2)', shadowColor: '#C4876A', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}
           onPress={() => navigation.navigate('Memberships', { token, user, company, membershipPlans, activeMembership })}
         >
           <View>
-            <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>🏅 ACTIVE MEMBER</Text>
-            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{activeMembership.plan_name}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 2 }}>{activeMembership.redemptions_this_cycle} of {activeMembership.max_redemptions_per_cycle === 999 ? '∞' : activeMembership.max_redemptions_per_cycle} visits used this month</Text>
+            <Text style={{ color: '#C4876A', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 2 }}>🏅 ACTIVE MEMBER</Text>
+            <Text style={{ color: '#1A2E2E', fontSize: 15, fontWeight: '700' }}>{activeMembership.plan_name}</Text>
+            <Text style={{ color: '#9BB5B4', fontSize: 12, marginTop: 2 }}>{activeMembership.redemptions_this_cycle} of {activeMembership.max_redemptions_per_cycle === 999 ? '∞' : activeMembership.max_redemptions_per_cycle} visits used this month</Text>
           </View>
-          <Text style={{ color: '#C9A84C', fontSize: 20 }}>›</Text>
+          <Text style={{ color: '#C4876A', fontSize: 20 }}>›</Text>
         </TouchableOpacity>
       )}
 
@@ -299,7 +299,7 @@ export default function HomeScreen({ route, navigation }) {
         style={{ marginHorizontal: 24, marginTop: -16, marginBottom: 28, alignItems: 'center', padding: 10 }}
         onPress={() => navigation.navigate('Map', { token, user, company, bookingMode: true })}
       >
-        <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>🗺 Guest Booking Map</Text>
+        <Text style={{ color: '#9BB5B4', fontSize: 12 }}>🗺 Guest Booking Map</Text>
       </TouchableOpacity>
 
       <View style={styles.section}>
@@ -400,8 +400,8 @@ export default function HomeScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  content: { paddingBottom: 48 },
+  container: { flex: 1, backgroundColor: '#F7FBFB' },
+  content: { paddingBottom: 48, backgroundColor: '#F7FBFB' },
   header: { padding: 28, paddingTop: 48, marginBottom: 20 },
   companyName: { fontSize: 22, fontWeight: '600', letterSpacing: 1, marginBottom: 8 },
   greeting: { fontSize: 28, fontWeight: '600', color: '#fff', marginBottom: 4 },
@@ -409,9 +409,9 @@ const styles = StyleSheet.create({
   intakeBanner: { 
     marginHorizontal: 24, 
     marginBottom: 16,
-    backgroundColor: 'rgba(226,201,126,0.15)', 
+    backgroundColor: 'rgba(196,135,106,0.08)', 
     borderWidth: 1, 
-    borderColor: '#E2C97E', 
+    borderColor: 'rgba(196,135,106,0.4)', 
     borderRadius: 12, 
     padding: 16,
     flexDirection: 'row',
@@ -420,23 +420,23 @@ const styles = StyleSheet.create({
   },
   intakeBannerIcon: { fontSize: 24 },
   intakeBannerText: { flex: 1 },
-  intakeBannerTitle: { color: '#E2C97E', fontSize: 14, fontWeight: '700', marginBottom: 2 },
-  intakeBannerSub: { color: 'rgba(226,201,126,0.7)', fontSize: 12 },
-  intakeBannerArrow: { color: '#E2C97E', fontSize: 18, fontWeight: '700' },
-  successBanner: { marginHorizontal: 24, backgroundColor: 'rgba(100,180,80,0.15)', borderWidth: 1, borderColor: 'rgba(100,180,80,0.3)', borderRadius: 8, padding: 12, marginBottom: 16 },
-  successText: { color: '#8fda74', fontSize: 13, textAlign: 'center' },
+  intakeBannerTitle: { color: '#C4876A', fontSize: 14, fontWeight: '700', marginBottom: 2 },
+  intakeBannerSub: { color: 'rgba(196,135,106,0.7)', fontSize: 12 },
+  intakeBannerArrow: { color: '#C4876A', fontSize: 18, fontWeight: '700' },
+  successBanner: { marginHorizontal: 24, backgroundColor: 'rgba(46,204,143,0.1)', borderWidth: 1, borderColor: 'rgba(46,204,143,0.3)', borderRadius: 10, padding: 12, marginBottom: 16 },
+  successText: { color: '#2ECC8F', fontSize: 13, textAlign: 'center' },
   bookButton: { marginHorizontal: 24, borderRadius: 12, padding: 18, alignItems: 'center', marginBottom: 28 },
   bookButtonText: { fontSize: 15, fontWeight: '600', letterSpacing: 0.5 },
   section: { paddingHorizontal: 24 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 14, letterSpacing: 0.3 },
-  emptyState: { backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 28, alignItems: 'center' },
-  emptyText: { color: 'rgba(255,255,255,0.5)', fontSize: 14, fontWeight: '500', marginBottom: 6 },
-  emptySubtext: { color: 'rgba(255,255,255,0.3)', fontSize: 12, fontWeight: '300' },
-  bookingCard: { backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', borderRadius: 12, padding: 16, marginBottom: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#1A2E2E', marginBottom: 14, letterSpacing: 0.3 },
+  emptyState: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(10,186,181,0.12)', borderRadius: 12, padding: 28, alignItems: 'center' },
+  emptyText: { color: '#9BB5B4', fontSize: 14, fontWeight: '500', marginBottom: 6 },
+  emptySubtext: { color: '#9BB5B4', fontSize: 12, fontWeight: '300' },
+  bookingCard: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(10,186,181,0.12)', borderRadius: 12, padding: 16, marginBottom: 10, shadowColor: '#0ABAB5', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
   bookingTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  bookingService: { fontSize: 15, fontWeight: '500', color: '#fff' },
+  bookingService: { fontSize: 15, fontWeight: '600', color: '#1A2E2E' },
   statusPill: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
   statusText: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  bookingAddress: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 },
-  bookingDate: { fontSize: 11, color: 'rgba(255,255,255,0.3)' },
+  bookingAddress: { fontSize: 12, color: '#9BB5B4', marginBottom: 4 },
+  bookingDate: { fontSize: 11, color: '#9BB5B4' },
 })
