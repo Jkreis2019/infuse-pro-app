@@ -339,7 +339,11 @@ const [showImportModal, setShowImportModal] = useState(false)
 
   const chargeCancelFee = async () => {
     const amount = parseFloat(cancelFeeAmount)
-    if (!amount || amount <= 0) return Alert.alert('Invalid', 'Please enter a valid amount')
+    if (!amount || amount <= 0) {
+      if (Platform.OS === 'web') window.alert('Please enter a valid amount')
+      else Alert.alert('Invalid', 'Please enter a valid amount')
+      return
+    }
     setChargingFee(true)
     try {
       const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
@@ -349,17 +353,38 @@ const [showImportModal, setShowImportModal] = useState(false)
       })
       const data = await res.json()
       if (data.success) {
-        Alert.alert('Charged', `$${amount.toFixed(2)} cancel fee charged successfully.`)
+        const newPiId = data.paymentIntentId
+        // Poll Stripe up to 10 times (every 1.5s = 15s max) until new charge appears
+        let found = false
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 1500))
+          try {
+            const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+            const pd = await pr.json()
+            if (pd.success) {
+              setPsPayments(pd.payments || [])
+              if ((pd.payments || []).some(p => p.paymentIntentId === newPiId)) {
+                found = true
+                break
+              }
+            }
+          } catch (e) {}
+        }
         setCancelFeeModal(false)
         setCancelFeeAmount('')
+        if (Platform.OS === 'web') window.alert(found ? `✅ $${amount.toFixed(2)} charged successfully` : `✅ $${amount.toFixed(2)} charged. (May take a moment to appear in history.)`)
+        else Alert.alert('Charged', `$${amount.toFixed(2)} cancel fee charged successfully.`)
       } else if (data.error === 'Stripe not connected') {
-        Alert.alert('Stripe Not Connected', 'Go to Billing → Connect Stripe to enable cancel fee charging.')
         setCancelFeeModal(false)
+        if (Platform.OS === 'web') window.alert('Stripe not connected. Go to Billing → Connect Stripe to enable cancel fee charging.')
+        else Alert.alert('Stripe Not Connected', 'Go to Billing → Connect Stripe to enable cancel fee charging.')
       } else {
-        Alert.alert('Error', data.error || 'Charge failed')
+        if (Platform.OS === 'web') window.alert(data.error || 'Charge failed')
+        else Alert.alert('Error', data.error || 'Charge failed')
       }
     } catch (e) {
-      Alert.alert('Error', 'Network error')
+      if (Platform.OS === 'web') window.alert('Network error')
+      else Alert.alert('Error', 'Network error')
     } finally {
       setChargingFee(false)
     }
@@ -3085,66 +3110,26 @@ const [showImportModal, setShowImportModal] = useState(false)
               {psActiveTab === 'payments' && (
                 <View>
                   {/* Charge Card on File */}
-                  <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
-                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Amount ($)</Text>
-                    <TextInput
-                      style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 15, color: '#fff', marginBottom: 10 }}
-                      value={psCancelFeeAmount}
-                      onChangeText={setPsCancelFeeAmount}
-                      keyboardType="numeric"
-                      placeholder="50"
-                      placeholderTextColor="#666"
-                    />
-                    <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Reason</Text>
-                    <TextInput
-                      style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 15, color: '#fff', marginBottom: 12 }}
-                      value={psCancelFeeReason}
-                      onChangeText={setPsCancelFeeReason}
-                      placeholder="e.g. Late cancellation"
-                      placeholderTextColor="#666"
-                    />
-                    <TouchableOpacity
-                      style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center', opacity: psChargingFee ? 0.6 : 1 }}
-                      disabled={psChargingFee}
-                      onPress={() => {
-                        if (!psCancelFeeAmount || isNaN(parseFloat(psCancelFeeAmount))) {
-                          Alert.alert('Invalid', 'Please enter a valid amount')
-                          return
-                        }
-                        Alert.alert('Charge Card on File', `Charge $${psCancelFeeAmount} to ${psSelectedPatient?.first_name}?`, [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Charge', style: 'destructive', onPress: async () => {
-                            setPsChargingFee(true)
-                            try {
-                              const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
-                                method: 'POST',
-                                headers: { ...headers, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ amount: parseFloat(psCancelFeeAmount), reason: psCancelFeeReason || 'Card on file charge' })
-                              })
-                              const data = await res.json()
-                              if (data.success) {
-                                Alert.alert('✅ Charged', `$${psCancelFeeAmount} charged successfully`)
-                                setPsCancelFeeReason('')
-                                // Refresh payments
-                                const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
-                                const pd = await pr.json()
-                                if (pd.success) setPsPayments(pd.payments || [])
-                              } else {
-                                Alert.alert('Error', data.error || 'Could not charge')
-                              }
-                            } catch (err) {
-                              Alert.alert('Error', 'Network error')
-                            } finally {
-                              setPsChargingFee(false)
-                            }
-                          }}
-                        ])
-                      }}
-                    >
-                      <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>{psChargingFee ? 'Charging...' : `💳 Charge $${psCancelFeeAmount}`}</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {psProfileData?.hasCardOnFile ? (
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Card on File</Text>
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Stripe saved payment method</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={{ backgroundColor: 'rgba(240,144,144,0.15)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f09090' }}
+                        onPress={() => { setCancelFeeAmount(''); setCancelFeeModal(true) }}
+                      >
+                        <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>💳 Charge Card on File</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHARGE CARD ON FILE</Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No card on file</Text>
+                    </View>
+                  )}
 
                   {/* Payment History */}
                   <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>PAYMENT HISTORY</Text>
@@ -3166,32 +3151,41 @@ const [showImportModal, setShowImportModal] = useState(false)
                         <TouchableOpacity
                           style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 8, padding: 10, alignItems: 'center', opacity: psRefunding === p.id ? 0.6 : 1 }}
                           disabled={psRefunding === p.id}
-                          onPress={() => Alert.alert('Refund', `Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`, [
-                            { text: 'Cancel', style: 'cancel' },
-                            { text: 'Refund', style: 'destructive', onPress: async () => {
-                              setPsRefunding(p.id)
-                              try {
-                                const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/refund`, {
-                                  method: 'POST',
-                                  headers: { ...headers, 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ chargeId: p.id, reason: 'Requested by patient' })
-                                })
-                                const data = await res.json()
-                                if (data.success) {
-                                  Alert.alert('✅ Refunded', `$${p.amount.toFixed(2)} refunded successfully`)
-                                  const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
-                                  const pd = await pr.json()
-                                  if (pd.success) setPsPayments(pd.payments || [])
-                                } else {
-                                  Alert.alert('Error', data.error || 'Could not refund')
-                                }
-                              } catch (err) {
-                                Alert.alert('Error', 'Network error')
-                              } finally {
-                                setPsRefunding(null)
+                          onPress={async () => {
+                            const confirmed = Platform.OS === 'web'
+                              ? window.confirm(`Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`)
+                              : await new Promise(resolve => Alert.alert('Refund', `Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`, [
+                                  { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+                                  { text: 'Refund', style: 'destructive', onPress: () => resolve(true) }
+                                ]))
+                            if (!confirmed) return
+                            setPsRefunding(p.id)
+                            try {
+                              const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/refund`, {
+                                method: 'POST',
+                                headers: { ...headers, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ chargeId: p.id, reason: 'Requested by patient' })
+                              })
+                              const data = await res.json()
+                              if (data.success) {
+                                // Wait briefly for Stripe to update, then refetch BEFORE showing alert
+                                await new Promise(r => setTimeout(r, 800))
+                                const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+                                const pd = await pr.json()
+                                if (pd.success) setPsPayments(pd.payments || [])
+                                if (Platform.OS === 'web') window.alert(`✅ $${p.amount.toFixed(2)} refunded successfully`)
+                                else Alert.alert('✅ Refunded', `$${p.amount.toFixed(2)} refunded successfully`)
+                              } else {
+                                if (Platform.OS === 'web') window.alert(data.error || 'Could not refund')
+                                else Alert.alert('Error', data.error || 'Could not refund')
                               }
-                            }}
-                          ])}
+                            } catch (err) {
+                              if (Platform.OS === 'web') window.alert('Network error')
+                              else Alert.alert('Error', 'Network error')
+                            } finally {
+                              setPsRefunding(null)
+                            }
+                          }}
                         >
                           <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>↩ Refund</Text>
                         </TouchableOpacity>
