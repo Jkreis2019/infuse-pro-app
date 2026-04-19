@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView } from 'react-native'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useLayoutEffect } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import { Calendar } from 'react-native-calendars'
 
 const API_URL = 'https://api.infusepro.app'
@@ -8,6 +9,16 @@ export default function BookingScreen({ route, navigation }) {
   const { token, user, company } = route.params
 
   const [companyServices, setCompanyServices] = useState([])
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => (
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+          <Text style={{ color: company?.primaryColor || '#0ABAB5', fontSize: 16 }}>‹ Back</Text>
+        </TouchableOpacity>
+      )
+    })
+  }, [navigation])
   const [loadingServices, setLoadingServices] = useState(true)
   const [selectedService, setSelectedService] = useState(null)
   const [address, setAddress] = useState('')
