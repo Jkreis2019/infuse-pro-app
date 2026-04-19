@@ -345,7 +345,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
         method: 'POST',
         headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, description: 'Cancel fee' })
+        body: JSON.stringify({ amount, description: 'Card on file charge' })
       })
       const data = await res.json()
       if (data.success) {
@@ -2441,7 +2441,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       {cancelFeeModal && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 9999 }}>
           <View style={{ backgroundColor: '#0F2020', borderRadius: 16, padding: 24, width: '100%', maxWidth: 400 }}>
-            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Cancel Fee</Text>
+            <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 4 }}>Charge Card on File</Text>
             <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 20 }}>{psSelectedPatient?.first_name} {psSelectedPatient?.last_name}</Text>
             <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginBottom: 8 }}>Amount to charge ($)</Text>
             <TextInput
@@ -2900,7 +2900,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     </View>
                   </View>
 
-                  {/* Card on File + Charge Cancel Fee */}
+                  {/* Card on File + Charge Card on File */}
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                     <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>PAYMENT</Text>
                     {psProfileData?.hasCardOnFile ? (
@@ -2913,7 +2913,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           style={{ backgroundColor: 'rgba(240,144,144,0.15)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f09090' }}
                           onPress={() => { setCancelFeeAmount(''); setCancelFeeModal(true) }}
                         >
-                          <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>Charge Cancel Fee</Text>
+                          <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>Charge Card on File</Text>
                         </TouchableOpacity>
                       </>
                     ) : (
@@ -3075,9 +3075,9 @@ const [showImportModal, setShowImportModal] = useState(false)
               {/* Perks Tab */}
               {psActiveTab === 'payments' && (
                 <View>
-                  {/* Charge Cancel Fee */}
+                  {/* Charge Card on File */}
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CANCEL FEE</Text>
+                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Amount ($)</Text>
                     <TextInput
                       style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 12, fontSize: 15, color: '#fff', marginBottom: 10 }}
@@ -3103,7 +3103,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           Alert.alert('Invalid', 'Please enter a valid amount')
                           return
                         }
-                        Alert.alert('Charge Cancel Fee', `Charge $${psCancelFeeAmount} to ${psSelectedPatient?.first_name}?`, [
+                        Alert.alert('Charge Card on File', `Charge $${psCancelFeeAmount} to ${psSelectedPatient?.first_name}?`, [
                           { text: 'Cancel', style: 'cancel' },
                           { text: 'Charge', style: 'destructive', onPress: async () => {
                             setPsChargingFee(true)
@@ -3111,7 +3111,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                               const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
                                 method: 'POST',
                                 headers: { ...headers, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ amount: parseFloat(psCancelFeeAmount), reason: psCancelFeeReason || 'Cancel fee' })
+                                body: JSON.stringify({ amount: parseFloat(psCancelFeeAmount), reason: psCancelFeeReason || 'Card on file charge' })
                               })
                               const data = await res.json()
                               if (data.success) {
