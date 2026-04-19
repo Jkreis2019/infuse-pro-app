@@ -1,4 +1,5 @@
 import BugReportModal from '../components/BugReportModal'
+import { getPrimaryOnDark, getTextColor } from '../utils/colorUtils'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, ActivityIndicator, RefreshControl, Alert, KeyboardAvoidingView, Platform, Keyboard, Image , StatusBar} from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -48,7 +49,9 @@ function formatTime(seconds) {
 
 export default function DispatcherHomeScreen({ route, navigation }) {
   const { token, user, company, solo } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
+  const buttonTextColor = getTextColor(primaryColor)
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
 
   const [activeTab, setActiveTab] = useState('queue')
@@ -1637,7 +1640,7 @@ const submitSendIntake = async () => {
               <>
                 <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
                     <TouchableOpacity onPress={() => setPsEditing(!psEditing)}>
                       <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>{psEditing ? 'Cancel' : '✏️ Edit'}</Text>
                     </TouchableOpacity>
@@ -1708,7 +1711,7 @@ const submitSendIntake = async () => {
                 </View>
 
                 <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                  <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
                   <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>NAME</Text>
                     {psEditing ? (
@@ -1737,7 +1740,7 @@ const submitSendIntake = async () => {
 
                 {psProfileData?.intake && (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
                     {psProfileData.intake.allergies_detail?.length > 0 && (
                       <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                         <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ ALLERGIES</Text>
@@ -1768,7 +1771,7 @@ const submitSendIntake = async () => {
                   </View>
                 )}
               <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
+                  <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
                   <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                     <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
                     {psEditing ? (
@@ -1809,7 +1812,7 @@ const submitSendIntake = async () => {
                     onPress={savePsProfile}
                     disabled={psSavingProfile}
                   >
-                    {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
+                    {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
                   </TouchableOpacity>
                 )}
               </>
@@ -1993,7 +1996,7 @@ const submitSendIntake = async () => {
               <>
                 {psProfileData?.loyalty && psProfileData.loyalty.threshold && (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏆 LOYALTY PROGRESS</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏆 LOYALTY PROGRESS</Text>
                     <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 8 }}>
                       {psProfileData.loyalty.punches} of {psProfileData.loyalty.threshold} IVs
                     </Text>
@@ -2385,7 +2388,7 @@ const submitSendIntake = async () => {
                 }
               }}
             >
-              <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>
+              <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>
                 Confirm {confirmedTime.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} →
               </Text>
             </TouchableOpacity>

@@ -1,4 +1,5 @@
 import BugReportModal from '../components/BugReportModal'
+import { getPrimaryOnDark, getTextColor } from '../utils/colorUtils'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,

@@ -1,4 +1,5 @@
 import BugReportModal from '../components/BugReportModal'
+import { getPrimaryOnDark, getTextColor, isLightColor } from '../utils/colorUtils'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -154,7 +155,9 @@ function IntakeCard({ intake, index, primaryColor }) {
 
 export default function AdminHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
+  const buttonTextColor = getTextColor(primaryColor)
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -1132,19 +1135,19 @@ const [showImportModal, setShowImportModal] = useState(false)
           </View>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24 }}>
             <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BUSINESS ASSOCIATE AGREEMENT</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BUSINESS ASSOCIATE AGREEMENT</Text>
               <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, lineHeight: 22, marginBottom: 12 }}>This Business Associate Agreement ("BAA") is entered into between Infuse Pro LLC, an Arizona limited liability company ("Business Associate"), and your company ("Covered Entity"), effective upon electronic acceptance.</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>1. PERMITTED USES AND DISCLOSURES</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>1. PERMITTED USES AND DISCLOSURES</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate agrees to not use or disclose Protected Health Information (PHI) other than as permitted by this Agreement or as Required By Law, including to perform platform services, for proper management and administration, and for data aggregation services relating to health care operations.</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>2. SAFEGUARDS</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>2. SAFEGUARDS</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate agrees to implement appropriate administrative, physical, and technical safeguards, including SSL/TLS encryption in transit, role-based access controls, and HIPAA audit logging.</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>3. SUBCONTRACTORS</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>3. SUBCONTRACTORS</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate uses the following approved subcontractors: Amazon Web Services (hosting), SendGrid (email), and Daily.co (video). Each is bound by equivalent HIPAA obligations.</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>4. BREACH NOTIFICATION</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>4. BREACH NOTIFICATION</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>Business Associate shall report any breach of unsecured PHI without unreasonable delay and no later than 60 calendar days after discovery. Report breaches to: privacy@infusepro.app</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>5. TERM AND TERMINATION</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>5. TERM AND TERMINATION</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20, marginBottom: 12 }}>This Agreement remains effective for the duration of the subscription. Upon termination, Business Associate shall return or destroy all PHI within 30 days.</Text>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>6. GOVERNING LAW</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>6. GOVERNING LAW</Text>
               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, lineHeight: 20 }}>This Agreement is governed by the laws of the State of Arizona and complies with HIPAA, HITECH, and their implementing regulations (45 CFR Parts 160 and 164).</Text>
             </View>
 
@@ -1341,7 +1344,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   Linking.openURL('https://docs.google.com/spreadsheets/d/1DUUy8lnUlm857FMfQXWjSuf-DV3y0JT6ggBR1e3qimM/copy')
                 }}
               >
-                <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>📊 Get Template</Text>
+                <Text style={{ color: buttonTextColor, fontSize: 14, fontWeight: '700' }}>📊 Get Template</Text>
               </TouchableOpacity>
             </View>
 
@@ -1434,7 +1437,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 }
               }}
             >
-              {importing ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Import {importPatients.length > 0 ? `${importPatients.length} Patients` : 'Patients'}</Text>}
+              {importing ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Import {importPatients.length > 0 ? `${importPatients.length} Patients` : 'Patients'}</Text>}
             </TouchableOpacity>
 
           </ScrollView>
@@ -1456,7 +1459,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center', marginTop: 10, flexDirection: 'row', justifyContent: 'center', gap: 8 }}
               onPress={() => setShowImportModal(true)}
             >
-              <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>⬆️ Import Patients from CSV</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 14, fontWeight: '700' }}>⬆️ Import Patients from CSV</Text>
             </TouchableOpacity>
           </View>
           <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
@@ -1737,7 +1740,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   setTemplateSubmitBehavior('lock')
                   setTemplateModalVisible(true)
                 }}>
-                <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
+                <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
               </TouchableOpacity>
 
               {/* Tech Templates */}
@@ -2011,7 +2014,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20 }}
               onPress={() => { setDocTitle(''); setDocDescription(''); setDocCategory2('Protocol'); setDocModal(true) }}
             >
-              <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Upload Document</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ Upload Document</Text>
             </TouchableOpacity>
             {docLoading ? (
               <ActivityIndicator color={primaryColor} style={{ marginTop: 40 }} />
@@ -2024,7 +2027,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             ) : documents.filter(d => docCategory === 'All' || d.category === docCategory).map(doc => (
               <View key={doc.id} style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12, borderLeftWidth: 3, borderLeftColor: doc.category === 'Protocol' ? primaryColor : doc.category === 'Standing Order' ? '#2196F3' : doc.category === 'IV Recipe' ? '#4CAF50' : '#9C27B0' }}>
                 <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>📄 {doc.title}</Text>
-                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{doc.category.toUpperCase()}</Text>
+                <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{doc.category.toUpperCase()}</Text>
                 {doc.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 4 }}>{doc.description}</Text>}
                 <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 12 }}>
                   Uploaded by {doc.uploaded_by_first} {doc.uploaded_by_last} · {new Date(doc.created_at).toLocaleDateString()}
@@ -2162,7 +2165,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 else { Alert.alert('✅ Saved', 'Referral settings updated!'); fetchAll() }
               } catch (err) { Alert.alert('Error', 'Could not save') } finally { setSavingReferral(false) }
             }} disabled={savingReferral}>
-              {savingReferral ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Referral Settings</Text>}
+              {savingReferral ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Referral Settings</Text>}
             </TouchableOpacity>
           </View>
           <View style={{ height: 40 }} />
@@ -2213,7 +2216,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 else { Alert.alert('✅ Saved', 'Loyalty program updated!'); fetchAll() }
               } catch (err) { Alert.alert('Error', 'Could not save') } finally { setSavingLoyalty(false) }
             }} disabled={savingLoyalty}>
-              {savingLoyalty ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Loyalty Program</Text>}
+              {savingLoyalty ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Loyalty Program</Text>}
             </TouchableOpacity>
           </View>
           <View style={{ height: 40 }} />
@@ -2282,7 +2285,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     } catch (e) { Alert.alert('Error', 'Network error') } finally { setSavingPlan(false) }
                   }}
                 >
-                  {savingPlan ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Create Plan</Text>}
+                  {savingPlan ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Create Plan</Text>}
                 </TouchableOpacity>
               </View>
 
@@ -2314,7 +2317,7 @@ const [showImportModal, setShowImportModal] = useState(false)
           {membershipTab === 'members' && (
             <>
               <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16 }} onPress={() => { setEnrollModal(true); setEnrollPatientQuery(''); setEnrollPatientResults([]); setEnrollSelectedPatient(null); setEnrollSelectedPlan(null) }}>
-                <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Manually Enroll Patient</Text>
+                <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ Manually Enroll Patient</Text>
               </TouchableOpacity>
               {memberships.length === 0 ? (
                 <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 24, alignItems: 'center' }}>
@@ -2357,7 +2360,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               <View style={{ backgroundColor: 'rgba(10,186,181,0.1)', borderRadius: 10, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(10,186,181,0.2)' }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <View>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{billingStatus.cancelAtPeriodEnd ? 'CANCELLING' : 'ACTIVE'}</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>{billingStatus.cancelAtPeriodEnd ? 'CANCELLING' : 'ACTIVE'}</Text>
                     <Text style={{ color: '#fff', fontSize: 22, fontWeight: '800', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
                   </View>
                   <Text style={{ color: primaryColor, fontSize: 22, fontWeight: '800' }}>
@@ -2382,7 +2385,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 )}
               </View>
             )}
-            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
+            <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
             {[
               { tier: 'solo', price: '$75/mo', features: ['Solo operator mode', 'Dispatch + tech in one', 'Patient app', 'Up to 2 staff'] },
               { tier: 'starter', price: '$125/mo', features: ['Full platform access', 'Up to 3 staff accounts', 'Dispatch console', 'Tech & patient app'] },
@@ -2533,7 +2536,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) return null
                           if (field.type === 'heading') return (
                             <View key={field.id} style={{ marginBottom: 8, marginTop: 12 }}>
-                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
                               <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
                             </View>
                           )
@@ -2547,7 +2550,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           // vitals
                           if (field.type === 'vitals' && Array.isArray(val)) return (
                             <View key={field.id} style={{ marginBottom: 12 }}>
-                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
                               {val.map((v, i) => (
                                 <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6 }}>
                                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -2565,7 +2568,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           // med_row / vitamin_row
                           if ((field.type === 'med_row' || field.type === 'vitamin_row') && Array.isArray(val)) return (
                             <View key={field.id} style={{ marginBottom: 12 }}>
-                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
                               {val.map((item, i) => (
                                 <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{item.name || item.dose}</Text>
@@ -2581,7 +2584,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                           // iv_details
                           if (field.type === 'iv_details' && typeof val === 'object' && !Array.isArray(val)) return (
                             <View key={field.id} style={{ marginBottom: 12 }}>
-                              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
                               <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10 }}>
                                 {Object.entries(val).filter(([k,v]) => v).map(([k,v]) => (
                                   <View key={k} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' }}>
@@ -2646,7 +2649,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     ) : (
                       <>
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INITIAL VITALS</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INITIAL VITALS</Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                         {psSelectedChart.blood_pressure && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.blood_pressure}</Text></View>}
                         {psSelectedChart.heart_rate && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.heart_rate}</Text></View>}
@@ -2655,16 +2658,16 @@ const [showImportModal, setShowImportModal] = useState(false)
 {psSelectedChart.pain_scale && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>PAIN</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.pain_scale}/10</Text></View>}
                       </View>
                     </View>
-                    {psSelectedChart.chief_complaint && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.chief_complaint}</Text></View>}
+                    {psSelectedChart.chief_complaint && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHIEF COMPLAINT</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.chief_complaint}</Text></View>}
 {(psSelectedChart.medical_history_changes || psSelectedChart.allergies_detail) && (
   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>NURSING ASSESSMENT</Text>
+    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>NURSING ASSESSMENT</Text>
     {psSelectedChart.medical_history_changes && <View style={{ marginBottom: 10 }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>HISTORY/MED CHANGES</Text><Text style={{ color: '#fff', fontSize: 14 }}>{psSelectedChart.medical_history_changes}</Text></View>}
     {psSelectedChart.allergies_detail && <View><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>ALLERGIES & REACTIONS</Text><Text style={{ color: '#fff', fontSize: 14 }}>{psSelectedChart.allergies_detail}</Text></View>}
   </View>
 )}
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV DETAILS</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV DETAILS</Text>
                       {psSelectedChart.iv_insertion_site && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Site</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_insertion_site}</Text></View>}
                       {psSelectedChart.iv_catheter_size && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Catheter</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_catheter_size}</Text></View>}
                       {psSelectedChart.iv_attempts && <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}><Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Attempts</Text><Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{psSelectedChart.iv_attempts}</Text></View>}
@@ -2674,13 +2677,13 @@ const [showImportModal, setShowImportModal] = useState(false)
                     </View>
                     {psSelectedChart.iv_site_photo && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>📷 IV SITE PHOTO</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>📷 IV SITE PHOTO</Text>
                         <Image source={{ uri: psSelectedChart.iv_site_photo }} style={{ width: 280, height: 200, borderRadius: 10, alignSelf: 'center' }} resizeMode="cover" />
                       </View>
                     )}
                     {psSelectedChart.iv_fluids_used?.length > 0 && (
   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>FLUIDS USED</Text>
+    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>FLUIDS USED</Text>
     {psSelectedChart.iv_fluids_used.map((fluid, i) => (
       <View key={i} style={{ paddingVertical: 6, borderBottomWidth: i < psSelectedChart.iv_fluids_used.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
         <Text style={{ color: '#fff', fontSize: 13 }}>• {fluid}</Text>
@@ -2690,7 +2693,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 )}
                     {psSelectedChart.prn_iv_medications && Object.keys(psSelectedChart.prn_iv_medications).filter(k => psSelectedChart.prn_iv_medications[k]).length > 0 && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV MEDICATIONS</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IV MEDICATIONS</Text>
                         {Object.entries(psSelectedChart.prn_iv_medications).filter(([k, v]) => v).map(([key, val]) => (
                           <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                             <Text style={{ color: '#fff', fontSize: 13, flex: 1 }}>{key.replace(/_/g, ' ')}</Text>
@@ -2701,7 +2704,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     )}
                     {psSelectedChart.prn_bag_addons && Object.keys(psSelectedChart.prn_bag_addons).filter(k => psSelectedChart.prn_bag_addons[k]).length > 0 && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BAG ADD-ONS</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>BAG ADD-ONS</Text>
                         {Object.entries(psSelectedChart.prn_bag_addons).filter(([k, v]) => v).map(([key, val]) => (
                           <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                             <Text style={{ color: '#fff', fontSize: 13, flex: 1 }}>{key.replace(/_/g, ' ')}</Text>
@@ -2712,7 +2715,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     )}
                     {psSelectedChart.prn_im_injections && Object.keys(psSelectedChart.prn_im_injections).filter(k => psSelectedChart.prn_im_injections[k]).length > 0 && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IM INJECTIONS</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>IM INJECTIONS</Text>
                         {Object.entries(psSelectedChart.prn_im_injections).filter(([k, v]) => v).map(([key, val]) => (
                           <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                             <Text style={{ color: '#fff', fontSize: 13, flex: 1 }}>{key.replace(/_/g, ' ')}</Text>
@@ -2723,7 +2726,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     )}
                     {psSelectedChart.vitals_post && (psSelectedChart.vitals_post.bp || psSelectedChart.vitals_post.hr) && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>POST INFUSION VITALS</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>POST INFUSION VITALS</Text>
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                           {psSelectedChart.vitals_post.bp && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>BP</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.vitals_post.bp}</Text></View>}
                           {psSelectedChart.vitals_post.hr && <View style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 10, alignItems: 'center', minWidth: 70 }}><Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>HR</Text><Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>{psSelectedChart.vitals_post.hr}</Text></View>}
@@ -2739,7 +2742,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                     )}
                     {psSelectedChart.chartServices?.length > 0 && (
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>SERVICES ADMINISTERED</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>SERVICES ADMINISTERED</Text>
                         {psSelectedChart.chartServices.map((svc, i) => (
                           <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderBottomWidth: i < psSelectedChart.chartServices.length - 1 ? 1 : 0, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                             <Text style={{ color: '#fff', fontSize: 13 }}>{svc.service_name}</Text>
@@ -2748,7 +2751,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                         ))}
                       </View>
                     )}
-                    {psSelectedChart.tech_notes && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.tech_notes}</Text></View>}
+                    {psSelectedChart.tech_notes && <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}><Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>TECH NOTES</Text><Text style={{ color: '#fff', fontSize: 14, lineHeight: 20 }}>{psSelectedChart.tech_notes}</Text></View>}
                     {psSelectedChart.amendment_notes && (
                       <View style={{ backgroundColor: 'rgba(255,152,0,0.08)', borderWidth: 1, borderColor: '#FF9800', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                         <Text style={{ color: '#FF9800', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>📝 AMENDMENT</Text>
@@ -2831,7 +2834,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 <>
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
                       <TouchableOpacity onPress={() => setPsEditing(!psEditing)}>
                         <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>{psEditing ? 'Cancel' : 'Edit'}</Text>
                       </TouchableOpacity>
@@ -2881,7 +2884,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   </View>
 
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
                     <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                       <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>NAME</Text>
                       {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyContact} onChangeText={setPsEditEmergencyContact} placeholder="Emergency contact name" placeholderTextColor="#666" /> : <Text style={{ color: psEditEmergencyContact ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyContact || 'Not on file'}</Text>}
@@ -2898,7 +2901,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
                   {psProfileData?.intake && (
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
                       {psProfileData.intake.allergies_detail?.length > 0 && (
                         <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                           <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ ALLERGIES</Text>
@@ -2915,7 +2918,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   )}
 
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
                     <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                       <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
                       {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceProvider} onChangeText={setPsEditInsuranceProvider} placeholder="e.g. Blue Cross" placeholderTextColor="#666" /> : <Text style={{ color: psEditInsuranceProvider ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceProvider || 'Not on file'}</Text>}
@@ -2936,7 +2939,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
                   {/* Card on File + Charge Card on File */}
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                    <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>PAYMENT</Text>
+                    <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>PAYMENT</Text>
                     {psProfileData?.hasCardOnFile ? (
                       <>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
@@ -2957,7 +2960,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
                   {psEditing && (
                     <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }} onPress={savePsProfile} disabled={psSavingProfile}>
-                      {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
+                      {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
                     </TouchableOpacity>
                   )}
                 </>
@@ -3112,7 +3115,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   {/* Charge Card on File */}
                   {psProfileData?.hasCardOnFile ? (
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                         <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Card on File</Text>
                         <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Stripe saved payment method</Text>
@@ -3126,13 +3129,13 @@ const [showImportModal, setShowImportModal] = useState(false)
                     </View>
                   ) : (
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHARGE CARD ON FILE</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHARGE CARD ON FILE</Text>
                       <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No card on file</Text>
                     </View>
                   )}
 
                   {/* Payment History */}
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>PAYMENT HISTORY</Text>
+                  <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>PAYMENT HISTORY</Text>
                   {psPaymentsLoading ? (
                     <ActivityIndicator color={primaryColor} />
                   ) : psPayments.length === 0 ? (
@@ -3210,7 +3213,7 @@ const [showImportModal, setShowImportModal] = useState(false)
 
                   {psProfileData?.loyalty?.threshold && (
                     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏆 LOYALTY PROGRESS</Text>
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏆 LOYALTY PROGRESS</Text>
                       <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 8 }}>{psProfileData.loyalty.punches} of {psProfileData.loyalty.threshold} IVs</Text>
                       <View style={{ height: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 4, marginBottom: 8 }}>
                         <View style={{ height: 8, backgroundColor: primaryColor, borderRadius: 4, width: `${Math.min((psProfileData.loyalty.punches / psProfileData.loyalty.threshold) * 100, 100)}%` }} />
@@ -3581,7 +3584,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             onPress={saveSchedule}
             disabled={scheduleSaving}
           >
-            {scheduleSaving ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Hours</Text>}
+            {scheduleSaving ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Hours</Text>}
           </TouchableOpacity>
 
           <Text style={styles.sectionTitle}>Blackout Dates</Text>
@@ -3666,7 +3669,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             )}
             {/* Minor Booking Policy */}
             <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>Accept Minor Bookings</Text>
@@ -3885,7 +3888,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               disabled={uploadingDoc}
               onPress={handleUploadDocument}
             >
-              {uploadingDoc ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Select PDF & Upload</Text>}
+              {uploadingDoc ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Select PDF & Upload</Text>}
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -3972,7 +3975,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 }
               } catch (err) { Alert.alert('Error', 'Could not save announcement') } finally { setSavingAnnouncement(false) }
             }} disabled={savingAnnouncement}>
-              {savingAnnouncement ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Announcement</Text>}
+              {savingAnnouncement ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Save Announcement</Text>}
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -3998,7 +4001,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.fieldLabel}>Cities (comma separated)</Text>
             <TextInput style={[styles.input, { height: 120, textAlignVertical: 'top' }]} value={rCities} onChangeText={setRCities} placeholder="e.g. Phoenix, Scottsdale, Tempe, Mesa, Chandler" placeholderTextColor="#444" multiline />
             <TouchableOpacity style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor, marginTop: 8 }, savingRegion && { opacity: 0.6 }]} onPress={saveRegion} disabled={savingRegion}>
-              {savingRegion ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{selectedRegion ? 'Save Changes' : 'Create Region'}</Text>}
+              {savingRegion ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{selectedRegion ? 'Save Changes' : 'Create Region'}</Text>}
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -4033,7 +4036,7 @@ const [showImportModal, setShowImportModal] = useState(false)
               ))}
             </View>
             <TouchableOpacity style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor }, creatingStaff && { opacity: 0.6 }]} onPress={createStaff} disabled={creatingStaff}>
-              {creatingStaff ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Create Staff Member</Text>}
+              {creatingStaff ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Create Staff Member</Text>}
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -4060,7 +4063,7 @@ const [showImportModal, setShowImportModal] = useState(false)
             <Text style={styles.fieldLabel}>Description</Text>
             <TextInput style={[styles.input, { height: 80, textAlignVertical: 'top' }]} value={svcDescription} onChangeText={setSvcDescription} placeholder="Brief description..." placeholderTextColor="#444" multiline />
             <TouchableOpacity style={[{ borderRadius: 14, padding: 18, alignItems: 'center', backgroundColor: primaryColor }, savingService && { opacity: 0.6 }]} onPress={createService} disabled={savingService}>
-              {savingService ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Add Service</Text>}
+              {savingService ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Add Service</Text>}
             </TouchableOpacity>
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -4291,7 +4294,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   ) : templateFields.map(field => {
                     if (field.type === 'heading') return (
                       <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
                         <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
                       </View>
                     )
@@ -4425,7 +4428,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   Alert.alert('Error', 'Could not save template')
                 }
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingTemplate ? 'Save Changes' : 'Create Template'}</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{editingTemplate ? 'Save Changes' : 'Create Template'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4614,7 +4617,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                 setTemplateFields(newFields)
                 setFieldConfigModal(false)
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Field</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Save Field</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4712,7 +4715,7 @@ const [showImportModal, setShowImportModal] = useState(false)
                   Alert.alert('Error', 'Could not save item')
                 }
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingFormularyItem ? 'Save Changes' : 'Add to Formulary'}</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{editingFormularyItem ? 'Save Changes' : 'Add to Formulary'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4739,7 +4742,7 @@ function PatientMembershipSection({ patientId, companyId, token, primaryColor, p
 
   return (
     <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-      <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏅 MEMBERSHIP</Text>
+      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>🏅 MEMBERSHIP</Text>
       {membership ? (
         <>
           <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 4 }}>{membership.plan_name}</Text>

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator, RefreshControl, KeyboardAvoidingView, Platform, Image , StatusBar} from 'react-native'
+import { getPrimaryOnDark, getTextColor } from '../utils/colorUtils'
 
 const API_URL = 'https://api.infusepro.app'
 

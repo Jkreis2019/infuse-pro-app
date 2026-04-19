@@ -1,4 +1,5 @@
 import BugReportModal from '../components/BugReportModal'
+import { getPrimaryOnDark, getTextColor } from '../utils/colorUtils'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -123,7 +124,9 @@ const cStyles = StyleSheet.create({
 
 // ─── DYNAMIC CHART MODAL ─────────────────────────────────────────────────────
 function DynamicChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
+  const buttonTextColor = getTextColor(primaryColor)
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -327,7 +330,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
       case 'heading':
         return (
           <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
-            <Text style={{ color: primaryColor, fontSize: 13, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+            <Text style={{ color: primaryOnDark, fontSize: 13, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
             <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 6 }} />
           </View>
         )
@@ -855,7 +858,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
                 />
                 <TouchableOpacity onPress={submitAmendment}
                   style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center', marginTop: 8 }}>
-                  <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>Save Addendum</Text>
+                  <Text style={{ color: buttonTextColor, fontSize: 14, fontWeight: '700' }}>Save Addendum</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -873,7 +876,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
                 { text: 'Cancel', style: 'cancel' },
                 { text: 'Submit', onPress: () => saveChart(true) }
               ])}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{saving ? 'Saving...' : 'Submit Chart'}</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{saving ? 'Saving...' : 'Submit Chart'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -913,7 +916,9 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 }
 
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
+  const buttonTextColor = getTextColor(primaryColor)
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
 
@@ -1321,7 +1326,7 @@ console.log('Status sent:', submit ? 'submitted' : 'open')
                   })}
                 </ScrollView>
                 <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 14, alignItems: 'center', marginTop: 16 }} onPress={() => setShowServicePicker(false)}>
-                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Done</Text>
+                  <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Done</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1690,7 +1695,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
           style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 12, alignItems: 'center' }}
           onPress={() => setNewBookingModal(true)}
         >
-          <Text style={{ color: secondaryColor, fontSize: 14, fontWeight: '700' }}>+ New Booking</Text>
+          <Text style={{ color: buttonTextColor, fontSize: 14, fontWeight: '700' }}>+ New Booking</Text>
         </TouchableOpacity>
       </View>
 
@@ -1759,7 +1764,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                     setConfirmTimeModal(true)
                   }}
                 >
-                  <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>✓ Confirm</Text>
+                  <Text style={{ color: buttonTextColor, fontSize: 13, fontWeight: '700' }}>✓ Confirm</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 10, padding: 12, alignItems: 'center' }}
@@ -1818,7 +1823,7 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
                           setConfirmTimeModal(true)
                         }}
                       >
-                        <Text style={{ color: secondaryColor, fontSize: 13, fontWeight: '700' }}>✓ Confirm</Text>
+                        <Text style={{ color: buttonTextColor, fontSize: 13, fontWeight: '700' }}>✓ Confirm</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={{ flex: 1, borderWidth: 1, borderColor: '#f09090', borderRadius: 10, padding: 10, alignItems: 'center' }}
@@ -2292,7 +2297,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
                           } catch (e) { Alert.alert('Error', 'Network error') }
                         }}
                       >
-                        <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Go En Route</Text>
+                        <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Go En Route</Text>
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -2314,7 +2319,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
               </View>
 
               <View style={sStyles.card}>
-                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>CALL DETAILS</Text>
+                <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10 }}>CALL DETAILS</Text>
                 <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 10 }}>{call.service}</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 2 }}>ADDRESS</Text>
                 <Text style={{ color: '#fff', fontSize: 15, marginBottom: 8 }}>{call.address}</Text>
@@ -2362,7 +2367,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
 
               {call.status !== 'completed' && (
                 <View style={sStyles.card}>
-                  <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>UPDATE STATUS</Text>
+                  <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>UPDATE STATUS</Text>
                   {(call.tech_status === 'assigned' || call.tech_status === null || call.tech_status === 'confirmed') && (
                     <TouchableOpacity style={{ backgroundColor: '#2196F3', borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 8 }} onPress={() => handleStatusChange('en_route')} disabled={updatingStatus}>
                       {updatingStatus ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>🚗 I'm En Route</Text>}
@@ -2380,7 +2385,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
                   )}
                   {call.tech_status === 'on_scene' && (
                     <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center' }} onPress={() => handleStatusChange('clear')} disabled={updatingStatus}>
-                      {updatingStatus ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>✅ Call Complete — Go Clear</Text>}
+                      {updatingStatus ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>✅ Call Complete — Go Clear</Text>}
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2417,7 +2422,7 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
           />
           {selectedScheduleDate && (
             <View style={[sStyles.card, { marginHorizontal: 16 }]}>
-              <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>
+              <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>
                 {new Date(selectedScheduleDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
               </Text>
               {selectedDayBookings.length === 0 ? (
@@ -2906,7 +2911,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                       )}
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
+                          <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>CONTACT INFORMATION</Text>
                           <TouchableOpacity onPress={() => setPsEditing(!psEditing)}>
                             <Text style={{ color: primaryColor, fontSize: 12, fontWeight: '600' }}>{psEditing ? 'Cancel' : '✏️ Edit'}</Text>
                           </TouchableOpacity>
@@ -2937,7 +2942,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                       </View>
 
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>EMERGENCY CONTACT</Text>
                         <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>NAME</Text>
                           {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditEmergencyContact} onChangeText={setPsEditEmergencyContact} placeholder="Emergency contact name" placeholderTextColor="#666" /> : <Text style={{ color: psEditEmergencyContact ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditEmergencyContact || 'Not on file'}</Text>}
@@ -2954,7 +2959,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
                       {psProfileData?.intake && (
                         <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                          <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
+                          <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MEDICAL FLAGS</Text>
                           {psProfileData.intake.allergies_detail?.length > 0 && (
                             <View style={{ backgroundColor: 'rgba(229,62,62,0.1)', borderRadius: 8, padding: 10, marginBottom: 8 }}>
                               <Text style={{ color: '#e53e3e', fontSize: 11, fontWeight: '700', marginBottom: 4 }}>⚠️ ALLERGIES</Text>
@@ -2971,7 +2976,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                       )}
 
                       <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>INSURANCE</Text>
                         <View style={{ paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' }}>
                           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 4 }}>PROVIDER</Text>
                           {psEditing ? <TextInput style={{ color: '#fff', fontSize: 13, borderBottomWidth: 1, borderBottomColor: primaryColor, paddingVertical: 4 }} value={psEditInsuranceProvider} onChangeText={setPsEditInsuranceProvider} placeholder="e.g. Blue Cross" placeholderTextColor="#666" /> : <Text style={{ color: psEditInsuranceProvider ? '#fff' : 'rgba(255,255,255,0.3)', fontSize: 13, fontWeight: '600' }}>{psEditInsuranceProvider || 'Not on file'}</Text>}
@@ -2992,7 +2997,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
                       {psEditing && (
                         <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 16, opacity: psSavingProfile ? 0.6 : 1 }} onPress={saveProfile} disabled={psSavingProfile}>
-                          {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
+                          {psSavingProfile ? <ActivityIndicator color={secondaryColor} /> : <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>Save Changes</Text>}
                         </TouchableOpacity>
                       )}
                     </>
@@ -3086,7 +3091,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                             if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) return null
                             if (field.type === 'heading') return (
                               <View key={field.id} style={{ marginBottom: 8, marginTop: 12 }}>
-                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
+                                <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>{field.label}</Text>
                                 <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
                               </View>
                             )
@@ -3099,7 +3104,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                             )
                             if (field.type === 'vitals' && Array.isArray(val)) return (
                               <View key={field.id} style={{ marginBottom: 12 }}>
-                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                                <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
                                 {val.map((v, i) => (
                                   <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6 }}>
                                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -3115,7 +3120,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                             )
                             if ((field.type === 'med_row' || field.type === 'vitamin_row') && Array.isArray(val)) return (
                               <View key={field.id} style={{ marginBottom: 12 }}>
-                                <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
+                                <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' }}>{field.label}</Text>
                                 {val.map((item, i) => (
                                   <View key={i} style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 10, marginBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>{item.name || item.dose}</Text>
@@ -3178,7 +3183,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
       {adminTab === 'services' && (
         <ScrollView style={{ flex: 1, padding: 16 }}>
           <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 12, padding: 16, alignItems: 'center', marginBottom: 20 }} onPress={() => setNewServiceModal(true)}>
-            <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Add Service</Text>
+            <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ Add Service</Text>
           </TouchableOpacity>
           {services.length === 0 ? (
             <View style={{ alignItems: 'center', paddingTop: 40 }}>
@@ -3257,7 +3262,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                 style={{ backgroundColor: primaryColor, borderRadius: 12, paddingHorizontal: 24, paddingVertical: 14 }}
                 onPress={() => { setAnTitle(''); setAnBody(''); setAnEmoji('📢'); setAnActive(true); setAnModal(true) }}
               >
-                <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Create Announcement</Text>
+                <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ Create Announcement</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -3513,7 +3518,7 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
           </TouchableOpacity>
           {/* Minor Booking Policy */}
           <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, marginTop: 16, marginBottom: 8 }}>
-            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
+            <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>MINOR BOOKING POLICY</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>Accept Minor Bookings</Text>
@@ -3585,12 +3590,12 @@ function SoloBillingSection({ token, primaryColor, secondaryColor, headers }) {
           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 16 }}>No active subscription</Text>
         ) : (
           <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderRadius: 10, padding: 14, marginBottom: 16 }}>
-            <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>ACTIVE</Text>
+            <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 4 }}>ACTIVE</Text>
             <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700', textTransform: 'capitalize' }}>{billingStatus.tier}</Text>
             {billingStatus.currentPeriodEnd && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginTop: 4 }}>Renews {new Date(billingStatus.currentPeriodEnd).toLocaleDateString()}</Text>}
           </View>
         )}
-        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
+        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>AVAILABLE PLANS</Text>
         {plans.map(plan => (
           <View key={plan.tier} style={{ borderWidth: 1, borderColor: billingStatus?.tier === plan.tier ? primaryColor : 'rgba(255,255,255,0.15)', borderRadius: 12, padding: 16, marginBottom: 12, backgroundColor: billingStatus?.tier === plan.tier ? primaryColor + '10' : 'transparent' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -3742,7 +3747,9 @@ function SoloMembershipsSection({ token, primaryColor, secondaryColor, headers }
 
 export default function SoloHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
+  const buttonTextColor = getTextColor(primaryColor)
   const secondaryColor = company?.secondaryColor || '#0D1B4B'
   const headers = { Authorization: `Bearer ${token}` }
   const [activeTab, setActiveTab] = useState('dispatch')
@@ -3852,7 +3859,7 @@ export default function SoloHomeScreen({ route, navigation }) {
               <ScrollView style={{ flex: 1, padding: 16 }}>
                 <TouchableOpacity style={{ backgroundColor: primaryColor, marginBottom: 12, borderRadius: 8, padding: 14, alignItems: 'center' }}
                   onPress={() => { setEditingTemplate(null); setTemplateName(''); setTemplateType('tech'); setTemplateIsDefault(false); setTemplateServiceTypes([]); setTemplateFields([]); setTemplateSubmitBehavior('lock'); setTemplateModalVisible(true) }}>
-                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
+                  <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ New Template</Text>
                 </TouchableOpacity>
                 <Text style={{ fontSize: 11, fontWeight: '700', color: 'rgba(201,168,76,0.7)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>🔧 Tech Templates</Text>
                 {chartTemplates.filter(t => t.chart_type === 'tech').length === 0 ? (
@@ -3933,7 +3940,7 @@ export default function SoloHomeScreen({ route, navigation }) {
               <ScrollView style={{ flex: 1, padding: 16 }}>
                 <TouchableOpacity style={{ backgroundColor: primaryColor, marginBottom: 12, borderRadius: 8, padding: 14, alignItems: 'center' }}
                   onPress={() => { setEditingFormularyItem(null); setFormularyName(''); setFormularyDose(''); setFormularyRoute('iv_push'); setFormularyCategory(''); setFormularyContraindications(''); setFormularyModalVisible(true) }}>
-                  <Text style={{ color: secondaryColor, fontSize: 15, fontWeight: '700' }}>+ Add to Formulary</Text>
+                  <Text style={{ color: buttonTextColor, fontSize: 15, fontWeight: '700' }}>+ Add to Formulary</Text>
                 </TouchableOpacity>
                 {formulary.length === 0 ? (
                   <View style={{ backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 24, alignItems: 'center' }}>
@@ -4164,7 +4171,7 @@ export default function SoloHomeScreen({ route, navigation }) {
                   ) : templateFields.map(field => {
                     if (field.type === 'heading') return (
                       <View key={field.id} style={{ marginBottom: 8, marginTop: 16 }}>
-                        <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
+                        <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase' }}>{field.label || 'HEADING'}</Text>
                         <View style={{ height: 1, backgroundColor: primaryColor + '40', marginTop: 4 }} />
                       </View>
                     )
@@ -4278,7 +4285,7 @@ export default function SoloHomeScreen({ route, navigation }) {
                   } else { Alert.alert('Error', data.error || 'Could not save template') }
                 } catch (err) { Alert.alert('Error', 'Could not save template') }
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingTemplate ? 'Save Changes' : 'Create Template'}</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{editingTemplate ? 'Save Changes' : 'Create Template'}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4343,7 +4350,7 @@ export default function SoloHomeScreen({ route, navigation }) {
                 setTemplateFields(newFields)
                 setFieldConfigModal(false)
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>Save Field</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>Save Field</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -4399,7 +4406,7 @@ export default function SoloHomeScreen({ route, navigation }) {
                   } else { Alert.alert('Error', data.error || 'Could not save item') }
                 } catch (err) { Alert.alert('Error', 'Could not save item') }
               }}>
-              <Text style={{ color: secondaryColor, fontSize: 16, fontWeight: '700' }}>{editingFormularyItem ? 'Save Changes' : 'Add to Formulary'}</Text>
+              <Text style={{ color: buttonTextColor, fontSize: 16, fontWeight: '700' }}>{editingFormularyItem ? 'Save Changes' : 'Add to Formulary'}</Text>
             </TouchableOpacity>
           </View>
         </View>
