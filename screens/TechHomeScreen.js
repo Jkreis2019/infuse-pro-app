@@ -11,7 +11,7 @@ import { Calendar } from 'react-native-calendars'
 const API_URL = 'https://api.infusepro.app'
 
 const STATUS_COLORS = {
-  confirmed: '#C9A84C', assigned: '#C9A84C', en_route: '#2196F3',
+  confirmed: '#0ABAB5', assigned: '#0ABAB5', en_route: '#2196F3',
   on_scene: '#4CAF50', cleared: '#aaa', completed: '#aaa'
 }
 
@@ -117,8 +117,8 @@ const cStyles = StyleSheet.create({
 
 // ─── DYNAMIC CHART MODAL ─────────────────────────────────────────────────────
 function DynamicChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const secondaryColor = company?.secondaryColor || '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [loading, setLoading] = useState(true)
@@ -879,7 +879,7 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 
         {/* NP Chart View Modal */}
         <Modal visible={npChartModalVisible} animationType="slide" presentationStyle="pageSheet">
-          <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+          <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
               <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>NP Chart</Text>
               <TouchableOpacity onPress={() => setNpChartModalVisible(false)}>
@@ -912,8 +912,8 @@ function DynamicChartModal({ visible, onClose, call, token, company, patientName
 }
 
 function ChartModal({ visible, onClose, call, token, company, patientName, patientDob }) {
-  const primaryColor = company?.primaryColor || '#C9A84C'
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const secondaryColor = company?.secondaryColor || '#0F2020'
   const headers = { Authorization: `Bearer ${token}` }
 
   const [saving, setSaving] = useState(false)
@@ -1284,7 +1284,7 @@ const [showServicePicker, setShowServicePicker] = useState(false)
 
           <Modal visible={showServicePicker} transparent animationType="slide">
             <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}>
-              <View style={{ backgroundColor: '#0D1B4B', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
+              <View style={{ backgroundColor: '#0F2020', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '70%' }}>
                 <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 16 }}>Select Service</Text>
                 <ScrollView>
                   {companyServices.length === 0 ? (
@@ -1427,8 +1427,8 @@ const [showServicePicker, setShowServicePicker] = useState(false)
 
 export default function TechHomeScreen({ route, navigation }) {
   const { token, user, company } = route.params || {}
-  const primaryColor = company?.primaryColor || '#C9A84C'
-  const secondaryColor = company?.secondaryColor || '#0D1B4B'
+  const primaryColor = company?.primaryColor || '#0ABAB5'
+  const secondaryColor = company?.secondaryColor || '#0F2020'
 
   const [activeTab, setActiveTab] = useState('call')
   const [techDocs, setTechDocs] = useState([])
@@ -1717,7 +1717,7 @@ if (data.call?.call_id) {
                   onPress={() => navigation.navigate('AdminHome', { token, user, company })}
                   style={{ backgroundColor: 'rgba(201,168,76,0.15)', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)' }}
                 >
-                  <Text style={{ color: '#C9A84C', fontSize: 12, fontWeight: '600' }}>⚙️ Admin</Text>
+                  <Text style={{ color: '#0ABAB5', fontSize: 12, fontWeight: '600' }}>⚙️ Admin</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => navigation.navigate('DispatcherHome', { token, user, company })}
@@ -1861,7 +1861,7 @@ if (data.call?.call_id) {
 
               <Modal visible={showNpOrders} transparent animationType="slide">
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
-                  <View style={{ backgroundColor: '#0D1B4B', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: '80%' }}>
+                  <View style={{ backgroundColor: '#0F2020', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: '80%' }}>
                     <Text style={{ fontSize: 18, fontWeight: '700', color: '#fff', marginBottom: 4 }}>NP Orders</Text>
                     <Text style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 20 }}>Signed by {npOrders?.npName} · Valid until {npOrders ? new Date(npOrders.validUntil).toLocaleDateString() : ''}</Text>
                     <ScrollView showsVerticalScrollIndicator={false}>
@@ -1903,9 +1903,9 @@ if (data.call?.call_id) {
               {/* Redeem Membership Modal */}
               <Modal visible={redeemMembershipModal} transparent animationType="fade">
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-                  <View style={{ backgroundColor: '#0D1B4B', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
+                  <View style={{ backgroundColor: '#0F2020', borderRadius: 20, width: '100%', maxWidth: 380, borderWidth: 1, borderColor: 'rgba(201,168,76,0.3)', overflow: 'hidden' }}>
                     <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' }}>
-                      <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REDEEM VISIT</Text>
+                      <Text style={{ color: '#0ABAB5', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>REDEEM VISIT</Text>
                       <Text style={{ color: '#fff', fontSize: 20, fontWeight: '800' }}>{patientMembership?.plan_name}</Text>
                       <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4 }}>{patientMembership ? patientMembership.max_redemptions_per_cycle - patientMembership.redemptions_this_cycle : 0} visits remaining</Text>
                     </View>
@@ -1913,8 +1913,8 @@ if (data.call?.call_id) {
                       <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>NUMBER OF VISITS TO REDEEM</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
                         {patientMembership && Array.from({ length: Math.min(patientMembership.max_redemptions_per_cycle - patientMembership.redemptions_this_cycle, 4) }, (_, i) => i + 1).map(n => (
-                          <TouchableOpacity key={n} style={{ flex: 1, minWidth: 60, borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center', borderColor: redeemQty === n ? '#C9A84C' : 'rgba(255,255,255,0.15)', backgroundColor: redeemQty === n ? 'rgba(201,168,76,0.2)' : 'transparent' }} onPress={() => setRedeemQty(n)}>
-                            <Text style={{ color: redeemQty === n ? '#C9A84C' : 'rgba(255,255,255,0.4)', fontSize: 18, fontWeight: '700' }}>{n}</Text>
+                          <TouchableOpacity key={n} style={{ flex: 1, minWidth: 60, borderWidth: 1, borderRadius: 10, padding: 12, alignItems: 'center', borderColor: redeemQty === n ? '#0ABAB5' : 'rgba(255,255,255,0.15)', backgroundColor: redeemQty === n ? 'rgba(201,168,76,0.2)' : 'transparent' }} onPress={() => setRedeemQty(n)}>
+                            <Text style={{ color: redeemQty === n ? '#0ABAB5' : 'rgba(255,255,255,0.4)', fontSize: 18, fontWeight: '700' }}>{n}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -1923,7 +1923,7 @@ if (data.call?.call_id) {
                           <Text style={{ color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                          style={{ flex: 2, backgroundColor: '#C9A84C', borderRadius: 12, padding: 14, alignItems: 'center', opacity: redeemingMembership ? 0.6 : 1 }}
+                          style={{ flex: 2, backgroundColor: '#0ABAB5', borderRadius: 12, padding: 14, alignItems: 'center', opacity: redeemingMembership ? 0.6 : 1 }}
                           disabled={redeemingMembership}
                           onPress={async () => {
                             setRedeemingMembership(true)
@@ -1941,7 +1941,7 @@ if (data.call?.call_id) {
                             } catch (e) { Alert.alert('Error', 'Failed to redeem') } finally { setRedeemingMembership(false) }
                           }}
                         >
-                          {redeemingMembership ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 15 }}>Redeem {redeemQty} Visit{redeemQty > 1 ? 's' : ''}</Text>}
+                          {redeemingMembership ? <ActivityIndicator color="#0D1B4B" /> : <Text style={{ color: '#0F2020', fontWeight: '700', fontSize: 15 }}>Redeem {redeemQty} Visit{redeemQty > 1 ? 's' : ''}</Text>}
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -1959,7 +1959,7 @@ if (data.call?.call_id) {
 
               {call.tech_status === 'on_scene' && patientMembership && (
                 <View style={{ backgroundColor: 'rgba(201,168,76,0.08)', borderWidth: 1, borderColor: 'rgba(201,168,76,0.4)', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🏅 ACTIVE MEMBER</Text>
+                  <Text style={{ color: '#0ABAB5', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>🏅 ACTIVE MEMBER</Text>
                   <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{patientMembership.plan_name}</Text>
                   <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 4, marginBottom: 12 }}>
                     {patientMembership.redemptions_this_cycle} of {patientMembership.max_redemptions_per_cycle === 999 ? 'unlimited' : patientMembership.max_redemptions_per_cycle} visits used this month
@@ -1967,10 +1967,10 @@ if (data.call?.call_id) {
                   </Text>
                   {patientMembership.max_redemptions_per_cycle === 999 || patientMembership.redemptions_this_cycle < patientMembership.max_redemptions_per_cycle ? (
                     <TouchableOpacity
-                      style={{ backgroundColor: 'rgba(201,168,76,0.2)', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#C9A84C' }}
+                      style={{ backgroundColor: 'rgba(201,168,76,0.2)', borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: '#0ABAB5' }}
                       onPress={() => { setRedeemQty(1); setRedeemMembershipModal(true) }}
                     >
-                      <Text style={{ color: '#C9A84C', fontWeight: '700', fontSize: 14 }}>Redeem Visit</Text>
+                      <Text style={{ color: '#0ABAB5', fontWeight: '700', fontSize: 14 }}>Redeem Visit</Text>
                     </TouchableOpacity>
                   ) : (
                     <View style={{ backgroundColor: 'rgba(240,144,144,0.1)', borderRadius: 10, padding: 12, alignItems: 'center' }}>
@@ -1981,19 +1981,19 @@ if (data.call?.call_id) {
               )}
 
               {call.tech_status === 'on_scene' && patientPerks && (
-                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#C9A84C', borderRadius: 14, padding: 16, marginBottom: 12 }}>
-                  <Text style={{ color: '#C9A84C', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>⭐ PATIENT HAS ACTIVE PERKS</Text>
+                <View style={{ backgroundColor: 'rgba(201,168,76,0.1)', borderWidth: 1, borderColor: '#0ABAB5', borderRadius: 14, padding: 16, marginBottom: 12 }}>
+                  <Text style={{ color: '#0ABAB5', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>⭐ PATIENT HAS ACTIVE PERKS</Text>
                   {patientPerks.referralPerks?.map(perk => (
                     <View key={perk.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                       <View>
                         <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>{perk.perk_type === 'fixed' ? `$${perk.perk_amount} off` : `${perk.perk_amount}% off`}</Text>
                         <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>Referral perk</Text>
                       </View>
-                      <TouchableOpacity style={{ backgroundColor: '#C9A84C', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }} disabled={redeemingPerk} onPress={async () => {
+                      <TouchableOpacity style={{ backgroundColor: '#0ABAB5', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 }} disabled={redeemingPerk} onPress={async () => {
                         setRedeemingPerk(true)
                         try { const res = await fetch(`${API_URL}/perks/redeem`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'referral', id: perk.id }) }); const data = await res.json(); if (data.success) { setPatientPerks(null); Alert.alert('✅ Redeemed!', 'Perk has been marked as used.') } } catch (e) {} finally { setRedeemingPerk(false) }
                       }}>
-                        <Text style={{ color: '#0D1B4B', fontWeight: '700', fontSize: 13 }}>Redeem</Text>
+                        <Text style={{ color: '#0F2020', fontWeight: '700', fontSize: 13 }}>Redeem</Text>
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -2118,7 +2118,7 @@ if (data.call?.call_id) {
       {activeTab === 'profile' && (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 24, alignItems: 'center' }}>
           <Modal visible={techChangePasswordModal} animationType="slide" presentationStyle="fullScreen">
-            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0D1B4B' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#0F2020' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
               <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
                 <TouchableOpacity onPress={() => { setTechChangePasswordModal(false); setTechCurrentPassword(''); setTechNewPassword(''); setTechConfirmPassword('') }}>
                   <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
@@ -2246,9 +2246,9 @@ if (data.call?.call_id) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
   content: { paddingBottom: 48 },
-  centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
+  centered: { flex: 1, backgroundColor: '#0F2020', alignItems: 'center', justifyContent: 'center' },
   header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 20, paddingHorizontal: 24 },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
   headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff', marginBottom: 4 },

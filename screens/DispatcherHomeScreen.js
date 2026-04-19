@@ -1532,10 +1532,10 @@ const submitSendIntake = async () => {
 
 {/* Patient Search Modal */}
 <Modal visible={patientSearchModal} animationType="slide" presentationStyle="fullScreen">
-  <View style={{ flex: 1, backgroundColor: '#0a0a1a' }}>
+  <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
     {/* Profile Modal inside Patient Search */}
     <Modal visible={psProfileModal} animationType="slide" presentationStyle="fullScreen">
-      <View style={{ flex: 1, backgroundColor: '#0D1B4B' }}>
+      <View style={{ flex: 1, backgroundColor: '#0F2020' }}>
         {/* Header */}
         <View style={{ paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 8 : 56, paddingBottom: 0, backgroundColor: secondaryColor }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 }}>
@@ -2290,7 +2290,7 @@ const submitSendIntake = async () => {
               <Text style={{ color: '#666' }}>{showDispositionDropdown ? '▲' : '▼'}</Text>
             </TouchableOpacity>
             {showDispositionDropdown && (
-              <View style={{ backgroundColor: '#1a2a5e', borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+              <View style={{ backgroundColor: '#0F2020', borderRadius: 8, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
                 {[
                   'Too long of a wait',
                   'Patient went to the ER',
@@ -2756,8 +2756,8 @@ const submitSendIntake = async () => {
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
-  centered: { flex: 1, backgroundColor: '#0D1B4B', alignItems: 'center', justifyContent: 'center' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
+  centered: { flex: 1, backgroundColor: '#0F2020', alignItems: 'center', justifyContent: 'center' },
   header: { paddingTop: Platform.OS === 'web' ? 16 : 56, paddingBottom: 8, paddingHorizontal: 24 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   companyName: { fontSize: 13, fontWeight: '600', letterSpacing: 1, marginBottom: 4 },
@@ -2766,11 +2766,11 @@ const styles = StyleSheet.create({
   statItem: { fontSize: 11, color: 'rgba(255,255,255,0.5)' },
   newBookingBtn: { borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10, marginLeft: 12 },
   newBookingBtnText: { fontSize: 14, fontWeight: '700' },
-  tabs: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
+  tabs: { flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.2)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' },
   tab: { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabText: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.4)' },
   scroll: { flex: 1, padding: 16 },
-  card: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 14, padding: 16, marginBottom: 12 },
+  card: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, padding: 16, marginBottom: 12 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   cardService: { fontSize: 16, fontWeight: '700', color: '#fff', flex: 1 },
   cardPatient: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 4 },
@@ -2799,10 +2799,10 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 18, fontWeight: '600', color: '#fff', marginBottom: 8 },
   emptySub: { fontSize: 13, color: 'rgba(255,255,255,0.4)' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: '#162260', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalCard: { backgroundColor: '#0F2020', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 6 },
   modalSub: { fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20 },
-  reasonLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(201,168,76,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
+  reasonLabel: { fontSize: 11, fontWeight: '600', color: 'rgba(10,186,181,0.7)', letterSpacing: 0.5, marginBottom: 6, marginTop: 14, textTransform: 'uppercase' },
   reasonInput: { backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, padding: 14, fontSize: 14, color: '#fff' },
   serviceSelector: { justifyContent: 'center' },
   serviceList: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', borderRadius: 8, marginTop: 4, overflow: 'hidden' },
