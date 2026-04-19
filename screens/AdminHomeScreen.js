@@ -101,13 +101,13 @@ function IntakeCard({ intake, index, primaryColor }) {
           {intake.medications && (
             <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
               <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>💊 MEDICATIONS</Text>
-              <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{intake.medications}</Text>
+              <Text style={{ color: '#fff', fontSize: 13, lineHeight: 20 }}>{intake.medications_text || intake.medications}</Text>
             </View>
           )}
           {intake.supplements && (
             <View style={{ backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
               <Text style={{ color: primaryColor, fontSize: 11, fontWeight: '700', marginBottom: 6 }}>🌿 SUPPLEMENTS</Text>
-              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.supplements}</Text>
+              <Text style={{ color: '#fff', fontSize: 13 }}>{intake.supplements_text || intake.supplements}</Text>
             </View>
           )}
           {intake.current_symptoms && (
