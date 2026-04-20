@@ -111,14 +111,19 @@ export default function MapScreen({ route, navigation }) {
       {bookingMode && (
         <View style={styles.bookingBanner}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={{ color: '#C9A84C', fontSize: 14, fontWeight: '600' }}>← Back</Text>
+            <Text style={{ color: '#0ABAB5', fontSize: 14, fontWeight: '600' }}>← Back</Text>
           </TouchableOpacity>
           <Text style={styles.bookingBannerText}>Select a company to book with</Text>
           <View style={{ width: 60 }} />
         </View>
       )}
 
-      <View style={{ paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#0D1B4B', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: bookingMode ? 10 : 60, paddingBottom: 10, backgroundColor: '#0F2020', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)' }}>
+        {!bookingMode && (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 10 }}>
+            <Text style={{ color: '#0ABAB5', fontSize: 14, fontWeight: '600' }}>← Back</Text>
+          </TouchableOpacity>
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10, paddingHorizontal: 12 }}>
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 16, marginRight: 8 }}>🔍</Text>
           <TextInput
@@ -128,7 +133,7 @@ export default function MapScreen({ route, navigation }) {
             value={citySearch}
             onChangeText={handleCitySearch}
           />
-          {searching && <ActivityIndicator color="#C9A84C" size="small" />}
+          {searching && <ActivityIndicator color="#0ABAB5" size="small" />}
           {citySearch.length > 0 && !searching && (
             <TouchableOpacity onPress={() => { setCitySearch(''); setFilteredCompanies(companies) }}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18, paddingLeft: 8 }}>✕</Text>
@@ -142,7 +147,7 @@ export default function MapScreen({ route, navigation }) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#C9A84C" size="large" />
+          <ActivityIndicator color="#0ABAB5" size="large" />
           <Text style={styles.loadingText}>Finding companies near you...</Text>
         </View>
       ) : (
@@ -259,16 +264,16 @@ export default function MapScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D1B4B' },
+  container: { flex: 1, backgroundColor: '#0F2020' },
   map: { flex: 1 },
-  bookingBanner: { backgroundColor: '#0D1B4B', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(201,168,76,0.2)' },
+  bookingBanner: { backgroundColor: '#0F2020', paddingTop: 56, paddingBottom: 14, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.2)' },
   bookingBannerText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   loadingText: { color: 'rgba(255,255,255,0.5)', fontSize: 14 },
   pin: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, maxWidth: 140 },
   premiumPin: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4 },
   pinText: { fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
-  companyCard: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: '#0D1B4B', borderWidth: 1.5, borderRadius: 16, padding: 18 },
+  companyCard: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: '#0F2020', borderWidth: 1.5, borderRadius: 16, padding: 18 },
   closeButton: { position: 'absolute', top: 12, right: 12, padding: 6 },
   closeText: { color: 'rgba(255,255,255,0.4)', fontSize: 16 },
   companyName: { fontSize: 20, fontWeight: '600', marginBottom: 3, paddingRight: 24 },
@@ -280,6 +285,6 @@ const styles = StyleSheet.create({
   code: { fontSize: 20, fontWeight: '700', letterSpacing: 3 },
   joinButton: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 },
   joinText: { fontSize: 14, fontWeight: '600' },
-  hint: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: 'rgba(13,27,75,0.9)', borderRadius: 12, padding: 14, alignItems: 'center' },
+  hint: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: 'rgba(15,32,32,0.9)', borderRadius: 12, padding: 14, alignItems: 'center' },
   hintText: { color: 'rgba(255,255,255,0.4)', fontSize: 13 },
 })

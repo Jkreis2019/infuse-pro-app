@@ -22,6 +22,10 @@ export default function ProfileScreen({ route, navigation, onCompanyChange }) {
   const [fmRelationship, setFmRelationship] = useState('')
   const [savingFm, setSavingFm] = useState(false)
   const [editModal, setEditModal] = useState(false)
+  const [deleteModal, setDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 const [editFirstName, setEditFirstName] = useState(user.firstName || '')
 const [editLastName, setEditLastName] = useState(user.lastName || '')
 const [editPhone, setEditPhone] = useState(user.phone || '')
@@ -483,6 +487,77 @@ const saveProfile = async () => {
       <TouchableOpacity style={styles.logoutButton} onPress={logout}>
         <Text style={styles.logoutText}>Log out</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={{ marginTop: 12, width: '100%', padding: 14, alignItems: 'center' }}
+        onPress={() => { setDeletePassword(''); setDeleteError(''); setDeleteModal(true) }}
+      >
+        <Text style={{ color: 'rgba(0,0,0,0.4)', fontSize: 13, fontWeight: '500', textDecorationLine: 'underline' }}>Delete account</Text>
+      </TouchableOpacity>
+
+      <Modal visible={deleteModal} animationType="slide" presentationStyle="fullScreen">
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#FFFFFF' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <View style={{ paddingTop: 56, paddingBottom: 20, paddingHorizontal: 24, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: 'rgba(10,186,181,0.1)' }}>
+            <TouchableOpacity onPress={() => { if (!deleting) setDeleteModal(false) }}>
+              <Text style={{ color: primaryColor, fontSize: 16, fontWeight: '600' }}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={{ color: '#1A2E2E', fontSize: 18, fontWeight: '700' }}>Delete account</Text>
+            <View style={{ width: 60 }} />
+          </View>
+          <ScrollView contentContainerStyle={{ padding: 24 }}>
+            <View style={{ backgroundColor: 'rgba(220,80,80,0.08)', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(220,80,80,0.2)' }}>
+              <Text style={{ color: '#c53030', fontSize: 14, fontWeight: '700', marginBottom: 8 }}>This action is permanent</Text>
+              <Text style={{ color: '#1A2E2E', fontSize: 13, lineHeight: 19 }}>
+                Deleting your account will:{'\n\n'}• Remove your name, email, phone, and address from Infuse Pro{'\n'}• Disable your login permanently{'\n'}• Unlink you from any company you were connected to{'\n\n'}For HIPAA compliance, your medical records (intake forms, treatment history, charts) are retained by your provider for the legally required period.{'\n\n'}You will not be able to recover this account or use this email address again.
+              </Text>
+            </View>
+
+            <Text style={{ color: '#1A2E2E', fontSize: 13, fontWeight: '600', marginBottom: 8 }}>Confirm your password to proceed</Text>
+            <TextInput
+              style={{ width: '100%', backgroundColor: '#F7FBFB', borderRadius: 12, padding: 14, fontSize: 15, borderWidth: 1, borderColor: deleteError ? '#e53e3e' : 'rgba(10,186,181,0.2)', marginBottom: 8, color: '#1A2E2E' }}
+              value={deletePassword}
+              onChangeText={(t) => { setDeletePassword(t); setDeleteError('') }}
+              placeholder="Password"
+              placeholderTextColor="rgba(0,0,0,0.3)"
+              secureTextEntry
+              autoCapitalize="none"
+            />
+            {deleteError ? <Text style={{ color: '#e53e3e', fontSize: 13, marginBottom: 8 }}>{deleteError}</Text> : null}
+
+            <TouchableOpacity
+              style={{ marginTop: 16, backgroundColor: '#c53030', borderRadius: 12, padding: 16, alignItems: 'center', opacity: (deleting || !deletePassword) ? 0.5 : 1 }}
+              disabled={deleting || !deletePassword}
+              onPress={async () => {
+                setDeleting(true)
+                setDeleteError('')
+                try {
+                  const res = await fetch(`${API_URL}/account`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: deletePassword })
+                  })
+                  const data = await res.json()
+                  if (data.success) {
+                    setDeleteModal(false)
+                    if (Platform.OS === 'web') window.alert('Your account has been deleted.')
+                    else Alert.alert('Account deleted', 'Your account has been deleted.')
+                    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] })
+                  } else {
+                    setDeleteError(data.error || 'Could not delete account')
+                  }
+                } catch (e) {
+                  setDeleteError('Network error')
+                } finally {
+                  setDeleting(false)
+                }
+              }}
+            >
+              {deleting ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Permanently delete my account</Text>}
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
       <Modal visible={editModal} animationType="slide" presentationStyle="fullScreen">
         <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#FFFFFF' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           {/* Header */}

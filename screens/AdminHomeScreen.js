@@ -179,6 +179,7 @@ export default function AdminHomeScreen({ route, navigation }) {
 
   // Staff
   const [staff, setStaff] = useState([])
+  const [showInactiveStaff, setShowInactiveStaff] = useState(false)
 
   // Services
   const [services, setServices] = useState([])
@@ -698,7 +699,7 @@ const [showImportModal, setShowImportModal] = useState(false)
     try {
       const [statsRes, staffRes, svcRes, regRes, anRes, refRes, loyRes, bilRes, plansRaw, membersRaw, locRaw] = await Promise.all([
         fetch(`${API_URL}/dispatch/stats`, { headers }),
-        fetch(`${API_URL}/admin/staff`, { headers }),
+        fetch(`${API_URL}/admin/staff?includeInactive=${showInactiveStaff}`, { headers }),
         fetch(`${API_URL}/admin/services`, { headers }),
         fetch(`${API_URL}/admin/regions`, { headers }),
         fetch(`${API_URL}/admin/announcements`, { headers }),
@@ -768,7 +769,7 @@ const [showImportModal, setShowImportModal] = useState(false)
       setLoading(false)
       setRefreshing(false)
     }
-  }, [token])
+  }, [token, showInactiveStaff])
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
@@ -1630,21 +1631,37 @@ const [showImportModal, setShowImportModal] = useState(false)
       {/* ── STAFF ── */}
       {activeTab === 'staff' && (
         <ScrollView style={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={primaryColor} />}>
-          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 20 }]} onPress={() => setNewStaffModal(true)}>
+          <TouchableOpacity style={[styles.actionBtn, { backgroundColor: primaryColor, marginBottom: 12 }]} onPress={() => setNewStaffModal(true)}>
             <Text style={[styles.actionBtnText, { color: secondaryColor }]}>+ Add Staff Member</Text>
           </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingHorizontal: 4 }}>
+            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>Show deactivated staff</Text>
+            <TouchableOpacity
+              style={{ width: 48, height: 28, borderRadius: 14, backgroundColor: showInactiveStaff ? primaryColor : 'rgba(255,255,255,0.2)', justifyContent: 'center', paddingHorizontal: 3 }}
+              onPress={() => setShowInactiveStaff(prev => !prev)}
+            >
+              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#fff', alignSelf: showInactiveStaff ? 'flex-end' : 'flex-start' }} />
+            </TouchableOpacity>
+          </View>
           {staff.length === 0 ? (
             <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 40 }}>No staff members yet</Text>
           ) : staff.map(member => (
-            <View key={member.id} style={styles.card}>
+            <View key={member.id} style={[styles.card, member.active === false && { opacity: 0.55 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardName}>{member.first_name} {member.last_name}</Text>
                   <Text style={styles.cardSub}>{member.email}</Text>
                   {member.phone && <Text style={styles.cardSub}>{member.phone}</Text>}
                 </View>
-                <View style={[styles.roleBadge, { borderColor: primaryColor }]}>
-                  <Text style={[styles.roleBadgeText, { color: primaryColor }]}>{member.role?.toUpperCase()}</Text>
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                  <View style={[styles.roleBadge, { borderColor: primaryColor }]}>
+                    <Text style={[styles.roleBadgeText, { color: primaryColor }]}>{member.role?.toUpperCase()}</Text>
+                  </View>
+                  {member.active === false && (
+                    <View style={{ borderWidth: 1, borderColor: '#e57373', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+                      <Text style={{ color: '#e57373', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 }}>DEACTIVATED</Text>
+                    </View>
+                  )}
                 </View>
               </View>
               <Text style={{ color: member.password_changed ? '#4CAF50' : 'rgba(255,255,255,0.3)', fontSize: 11, marginTop: 8 }}>
@@ -1661,6 +1678,46 @@ const [showImportModal, setShowImportModal] = useState(false)
                   </Text>
                 </TouchableOpacity>
               </View>
+              {member.role !== 'owner' && member.id !== user?.id && (
+                <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)' }}>
+                  {member.active === false ? (
+                    <TouchableOpacity
+                      style={{ borderWidth: 1, borderColor: '#4CAF50', borderRadius: 8, paddingVertical: 10, alignItems: 'center' }}
+                      onPress={() => {
+                        const doReactivate = async () => {
+                          try {
+                            await fetch(`${API_URL}/admin/staff/${member.id}/reactivate`, { method: 'PUT', headers })
+                            fetchAll()
+                          } catch (err) { Alert.alert('Error', 'Could not reactivate') }
+                        }
+                        if (Platform.OS === 'web') { if (window.confirm(`Reactivate ${member.first_name} ${member.last_name}?`)) doReactivate() }
+                        else Alert.alert('Reactivate', `Reactivate ${member.first_name} ${member.last_name}?`, [{ text: 'Cancel', style: 'cancel' }, { text: 'Reactivate', onPress: doReactivate }])
+                      }}
+                    >
+                      <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '600' }}>Reactivate</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={{ borderWidth: 1, borderColor: '#e57373', borderRadius: 8, paddingVertical: 10, alignItems: 'center' }}
+                      onPress={() => {
+                        const doDeactivate = async () => {
+                          try {
+                            const res = await fetch(`${API_URL}/admin/staff/${member.id}/deactivate`, { method: 'PUT', headers })
+                            const data = await res.json()
+                            if (!res.ok) { Alert.alert('Error', data.error || 'Could not deactivate'); return }
+                            fetchAll()
+                          } catch (err) { Alert.alert('Error', 'Could not deactivate') }
+                        }
+                        const msg = `Deactivate ${member.first_name} ${member.last_name}? They will no longer be able to log in. Their historical data is preserved for HIPAA compliance and they can be reactivated later.`
+                        if (Platform.OS === 'web') { if (window.confirm(msg)) doDeactivate() }
+                        else Alert.alert('Deactivate Staff', msg, [{ text: 'Cancel', style: 'cancel' }, { text: 'Deactivate', style: 'destructive', onPress: doDeactivate }])
+                      }}
+                    >
+                      <Text style={{ color: '#e57373', fontSize: 13, fontWeight: '600' }}>Deactivate</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
             </View>
           ))}
           <View style={{ height: 40 }} />
@@ -2110,7 +2167,14 @@ const [showImportModal, setShowImportModal] = useState(false)
                 }}>
                   <Text style={{ color: an.active ? '#aaa' : '#4CAF50', fontSize: 13, fontWeight: '600' }}>{an.active ? 'Deactivate' : 'Activate'}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionBtn, { borderColor: '#f09090' }]} onPress={() => Alert.alert('Delete', 'Delete this announcement?', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await fetch(`${API_URL}/admin/announcements/${an.id}`, { method: 'DELETE', headers }); fetchAll() } }])}>
+                <TouchableOpacity style={[styles.actionBtn, { borderColor: '#f09090' }]} onPress={() => {
+                  const doDelete = async () => { await fetch(`${API_URL}/admin/announcements/${an.id}`, { method: 'DELETE', headers }); fetchAll() }
+                  if (Platform.OS === 'web') {
+                    if (window.confirm('Delete this announcement?')) doDelete()
+                  } else {
+                    Alert.alert('Delete', 'Delete this announcement?', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: doDelete }])
+                  }
+                }}>
                   <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>Delete</Text>
                 </TouchableOpacity>
               </View>

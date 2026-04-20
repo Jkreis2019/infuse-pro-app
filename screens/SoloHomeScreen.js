@@ -1457,6 +1457,8 @@ function formatOnScene(seconds) {
 
 function DispatchSection({ token, primaryColor, secondaryColor, navigation, user, company }) {
   const headers = { Authorization: `Bearer ${token}` }
+  const buttonTextColor = getTextColor(primaryColor)
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
   const [dispatchTab, setDispatchTab] = useState('queue')
   const [queue, setQueue] = useState([])
   const [scheduled, setScheduled] = useState([])
@@ -2120,6 +2122,8 @@ function DispatchSection({ token, primaryColor, secondaryColor, navigation, user
 
 function TechSection({ token, primaryColor, secondaryColor, navigation, user, company }) {
   const headers = { Authorization: `Bearer ${token}` }
+  const buttonTextColor = getTextColor(primaryColor)
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
   const [techTab, setTechTab] = useState('call')
   const [call, setCall] = useState(null)
   const [mySchedule, setMySchedule] = useState([])
@@ -2455,6 +2459,8 @@ function TechSection({ token, primaryColor, secondaryColor, navigation, user, co
 // ─── ADMIN SECTION ────────────────────────────────────────────────────────────
 
 function AdminSection({ token, primaryColor, secondaryColor, company }) {
+  const buttonTextColor = getTextColor(primaryColor)
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
   const headers = { Authorization: `Bearer ${token}` }
   const [adminTab, setAdminTab] = useState('patients')
   const [loading, setLoading] = useState(false)
@@ -2691,6 +2697,66 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
     finally { setPsLoadingProfile(false) }
   }
 
+  const fetchPsPayments = async (patientId) => {
+    if (!patientId) return
+    setPsPaymentsLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/patients/${patientId}/payments`, { headers })
+      const data = await res.json()
+      if (data.success) setPsPayments(data.payments || [])
+    } catch (err) {
+      console.error('Fetch payments error:', err)
+    } finally {
+      setPsPaymentsLoading(false)
+    }
+  }
+
+  const chargeCancelFee = async () => {
+    const amount = parseFloat(psCancelFeeAmount)
+    if (!amount || amount <= 0) {
+      if (Platform.OS === 'web') window.alert('Enter a valid amount')
+      else Alert.alert('Invalid', 'Enter a valid amount')
+      return
+    }
+    setPsChargingFee(true)
+    try {
+      const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/charge-cancel-fee`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, description: psCancelFeeReason || 'Card on file charge' })
+      })
+      const data = await res.json()
+      if (data.success) {
+        // Poll for new charge to appear
+        let found = false
+        for (let i = 0; i < 10; i++) {
+          await new Promise(r => setTimeout(r, 1500))
+          const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+          const pd = await pr.json()
+          if (pd.success) {
+            setPsPayments(pd.payments || [])
+            if ((pd.payments || []).some(p => Math.abs(p.amount - amount) < 0.01 && Date.now() - new Date(p.created).getTime() < 60000)) {
+              found = true
+              break
+            }
+          }
+        }
+        setPsCancelFeeAmount('')
+        setPsCancelFeeReason('')
+        if (Platform.OS === 'web') window.alert(found ? `✅ $${amount.toFixed(2)} charged successfully` : `✅ $${amount.toFixed(2)} charged. (May take a moment to appear in history.)`)
+        else Alert.alert('Charged', `$${amount.toFixed(2)} charged successfully.`)
+      } else {
+        if (Platform.OS === 'web') window.alert(data.error || 'Charge failed')
+        else Alert.alert('Error', data.error || 'Charge failed')
+      }
+    } catch (err) {
+      if (Platform.OS === 'web') window.alert('Network error')
+      else Alert.alert('Error', 'Network error')
+    } finally {
+      setPsChargingFee(false)
+    }
+  }
+
   const saveProfile = async () => {
     setPsSavingProfile(true)
     try {
@@ -2890,8 +2956,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                   </View>
                 </View>
                 <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)' }}>
-                  {['overview', 'appointments', 'charts', 'intake'].map(tab => (
-                    <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => { setPsActiveTab(tab); setPsEditing(false) }}>
+                  {['overview', 'appointments', 'charts', 'intake', 'payments'].map(tab => (
+                    <TouchableOpacity key={tab} style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: psActiveTab === tab ? primaryColor : 'transparent' }} onPress={() => { setPsActiveTab(tab); setPsEditing(false); if (tab === 'payments') fetchPsPayments(psSelectedPatient?.id) }}>
                       <Text style={{ color: psActiveTab === tab ? primaryColor : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: '700' }}>{tab.toUpperCase()}</Text>
                     </TouchableOpacity>
                   ))}
@@ -3056,6 +3122,112 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
                       )}
                     </>
                   )}
+
+                  {psActiveTab === 'payments' && (
+                    <View>
+                      {/* Charge Card on File */}
+                      {psProfileData?.hasCardOnFile ? (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                          <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 12 }}>CHARGE CARD ON FILE</Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                            <Text style={{ color: '#4CAF50', fontSize: 13, fontWeight: '700' }}>Card on File</Text>
+                            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Stripe saved payment method</Text>
+                          </View>
+                          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 6 }}>Amount ($)</Text>
+                          <TextInput
+                            style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, color: '#fff', fontSize: 15, marginBottom: 10 }}
+                            value={psCancelFeeAmount}
+                            onChangeText={setPsCancelFeeAmount}
+                            placeholder="50.00"
+                            placeholderTextColor="rgba(255,255,255,0.3)"
+                            keyboardType="decimal-pad"
+                          />
+                          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginBottom: 6 }}>Reason (optional)</Text>
+                          <TextInput
+                            style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: 12, color: '#fff', fontSize: 15, marginBottom: 12 }}
+                            value={psCancelFeeReason}
+                            onChangeText={setPsCancelFeeReason}
+                            placeholder="Card on file charge"
+                            placeholderTextColor="rgba(255,255,255,0.3)"
+                          />
+                          <TouchableOpacity
+                            style={{ backgroundColor: 'rgba(240,144,144,0.15)', borderRadius: 10, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: '#f09090', opacity: psChargingFee ? 0.6 : 1 }}
+                            onPress={chargeCancelFee}
+                            disabled={psChargingFee}
+                          >
+                            {psChargingFee ? <ActivityIndicator color="#f09090" /> : <Text style={{ color: '#f09090', fontSize: 14, fontWeight: '700' }}>💳 Charge ${psCancelFeeAmount || '0.00'}</Text>}
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <View style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                          <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8 }}>CHARGE CARD ON FILE</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>No card on file</Text>
+                        </View>
+                      )}
+
+                      {/* Payment History */}
+                      <Text style={{ color: primaryOnDark, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 10, marginTop: 8 }}>PAYMENT HISTORY</Text>
+                      {psPaymentsLoading ? (
+                        <ActivityIndicator color={primaryColor} />
+                      ) : psPayments.length === 0 ? (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginTop: 20 }}>No payments on record</Text>
+                      ) : psPayments.map(p => (
+                        <View key={p.id} style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: 14, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: p.refunded ? '#aaa' : p.status === 'succeeded' ? '#4CAF50' : '#f09090' }}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>${p.amount.toFixed(2)}</Text>
+                            <View style={{ backgroundColor: p.refunded ? 'rgba(170,170,170,0.2)' : p.status === 'succeeded' ? 'rgba(76,175,80,0.2)' : 'rgba(240,144,144,0.2)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                              <Text style={{ color: p.refunded ? '#aaa' : p.status === 'succeeded' ? '#4CAF50' : '#f09090', fontSize: 10, fontWeight: '700' }}>{p.refunded ? 'REFUNDED' : p.status.toUpperCase()}</Text>
+                            </View>
+                          </View>
+                          {p.description && <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 4 }}>{p.description}</Text>}
+                          <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11, marginBottom: 8 }}>{new Date(p.created).toLocaleString()} · •••• {p.last4}</Text>
+                          {!p.refunded && p.status === 'succeeded' && (
+                            <TouchableOpacity
+                              style={{ borderWidth: 1, borderColor: '#f09090', borderRadius: 8, padding: 10, alignItems: 'center', opacity: psRefunding === p.id ? 0.6 : 1 }}
+                              disabled={psRefunding === p.id}
+                              onPress={async () => {
+                                const confirmed = Platform.OS === 'web'
+                                  ? window.confirm(`Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`)
+                                  : await new Promise(resolve => Alert.alert('Refund', `Refund $${p.amount.toFixed(2)} to ${psSelectedPatient?.first_name}?`, [
+                                      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+                                      { text: 'Refund', style: 'destructive', onPress: () => resolve(true) }
+                                    ]))
+                                if (!confirmed) return
+                                setPsRefunding(p.id)
+                                try {
+                                  const res = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/refund`, {
+                                    method: 'POST',
+                                    headers: { ...headers, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ chargeId: p.id, reason: 'Requested by patient' })
+                                  })
+                                  const data = await res.json()
+                                  if (data.success) {
+                                    await new Promise(r => setTimeout(r, 800))
+                                    const pr = await fetch(`${API_URL}/patients/${psSelectedPatient.id}/payments`, { headers })
+                                    const pd = await pr.json()
+                                    if (pd.success) setPsPayments(pd.payments || [])
+                                    if (Platform.OS === 'web') window.alert(`✅ $${p.amount.toFixed(2)} refunded successfully`)
+                                    else Alert.alert('✅ Refunded', `$${p.amount.toFixed(2)} refunded successfully`)
+                                  } else {
+                                    if (Platform.OS === 'web') window.alert(data.error || 'Could not refund')
+                                    else Alert.alert('Error', data.error || 'Could not refund')
+                                  }
+                                } catch (err) {
+                                  if (Platform.OS === 'web') window.alert('Network error')
+                                  else Alert.alert('Error', 'Network error')
+                                } finally {
+                                  setPsRefunding(null)
+                                }
+                              }}
+                            >
+                              <Text style={{ color: '#f09090', fontSize: 13, fontWeight: '600' }}>↩ Refund</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
                   <View style={{ height: 40 }} />
                 </ScrollView>
               )}
@@ -3566,6 +3738,8 @@ function AdminSection({ token, primaryColor, secondaryColor, company }) {
 
 // ─── SOLO BILLING SECTION ─────────────────────────────────────────────────────
 function SoloBillingSection({ token, primaryColor, secondaryColor, headers }) {
+  const buttonTextColor = getTextColor(primaryColor)
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
   const API_URL = 'https://api.infusepro.app'
   const [billingStatus, setBillingStatus] = useState(null)
   const [connectStatus, setConnectStatus] = useState(null)
@@ -3640,6 +3814,7 @@ function SoloBillingSection({ token, primaryColor, secondaryColor, headers }) {
         )}
         <TouchableOpacity style={{ backgroundColor: primaryColor, borderRadius: 10, padding: 14, alignItems: 'center' }} onPress={async () => {
           try {
+            const { Linking } = require('react-native')
             const res = await fetch(`${API_URL}/billing/connect`, { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' } })
             const data = await res.json()
             if (data.url) Linking.openURL(data.url)
@@ -3655,6 +3830,8 @@ function SoloBillingSection({ token, primaryColor, secondaryColor, headers }) {
 
 // ─── SOLO MEMBERSHIPS SECTION ─────────────────────────────────────────────────
 function SoloMembershipsSection({ token, primaryColor, secondaryColor, headers }) {
+  const buttonTextColor = getTextColor(primaryColor)
+  const primaryOnDark = getPrimaryOnDark(primaryColor)
   const API_URL = 'https://api.infusepro.app'
   const [membershipTab, setMembershipTab] = useState('plans')
   const [plans, setPlans] = useState([])

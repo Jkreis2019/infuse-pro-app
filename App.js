@@ -180,6 +180,7 @@ export default function App() {
   const [unlocking, setUnlocking] = useState(false)
   const [lockToken, setLockToken] = useState(null)
   const [lockCompany, setLockCompany] = useState(null)
+  const [lockUserEmail, setLockUserEmail] = useState(null)
   const [lockTime, setLockTime] = useState(null)
 
   const LOCK_ROLES = ['admin', 'owner', 'dispatcher', 'np']
@@ -212,7 +213,13 @@ export default function App() {
 
   useEffect(() => {
     const { sessionManager } = require('./utils/sessionManager')
-    sessionManager.setOnLogin((role, token, company) => { setUserRole(role); setLockToken(token); setLockCompany(company) })
+    sessionManager.setOnLogin((role, token, company) => {
+      setUserRole(role); setLockToken(token); setLockCompany(company)
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]))
+        if (payload.email) setLockUserEmail(payload.email)
+      } catch (e) {}
+    })
     sessionManager.setOnActivity(() => resetInactivityTimer())
     sessionManager.setOnLock(() => { setIsLocked(true); setLockTime(new Date()) })
     if (userRole) startInactivityTimer(userRole)
@@ -333,7 +340,7 @@ export default function App() {
                 const res = await fetch('https://api.infusepro.app/auth/login', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email: lockCompany?.userEmail, password: lockPassword, companyCode: lockCompany?.code })
+                  body: JSON.stringify({ email: lockUserEmail, password: lockPassword })
                 })
                 const data = await res.json()
                 if (data.token) {
